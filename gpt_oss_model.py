@@ -159,11 +159,20 @@ class Attention(nn.Module):
         self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=False)
         
         # RoPE
+        # Filter rope_scaling parameters to only include supported ones
+        rope_params = {}
+        if args.rope_scaling:
+            supported_params = {'scaling_factor', 'original_max_position_embeddings', 'beta_fast', 'beta_slow'}
+            rope_params = {k: v for k, v in args.rope_scaling.items() if k in supported_params}
+            # Map 'factor' to 'scaling_factor' if present
+            if 'factor' in args.rope_scaling:
+                rope_params['scaling_factor'] = args.rope_scaling['factor']
+        
         self.rotary_emb = YarnRotaryEmbedding(
             self.head_dim,
             max_position_embeddings=args.max_position_embeddings,
             base=args.rope_theta,
-            **args.rope_scaling
+            **rope_params
         )
 
     def __call__(
