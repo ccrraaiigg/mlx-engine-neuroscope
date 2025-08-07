@@ -2,3 +2,23 @@ __pycache__/
 .venv*/
 .DS_Store
 .idea
+
+# Model files (too large for git)
+models/
+*.bin
+*.safetensors
+*.gguf
+*.mlx
+*.npz
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# Model-related directories
+checkpoints/
+weights/
+pretrained/

@@ -8,10 +8,12 @@ __all__ = [
     "is_draft_model_compatible",
     "unload_draft_model",
     "create_generator",
+    "create_generator_with_activations",
     "tokenize",
 ]
 
 from pathlib import Path
+from typing import Union
 import os
 
 from .utils.disable_hf_download import patch_huggingface_hub
@@ -24,6 +26,7 @@ from .generate import (
     is_draft_model_compatible,
     unload_draft_model,
     create_generator,
+    create_generator_with_activations,
     tokenize,
 )
 
@@ -31,7 +34,7 @@ patch_huggingface_hub()
 register_models()
 
 
-def _set_outlines_cache_dir(cache_dir: Path | str):
+def _set_outlines_cache_dir(cache_dir: Union[Path, str]):
     """
     Set the cache dir for Outlines.
 

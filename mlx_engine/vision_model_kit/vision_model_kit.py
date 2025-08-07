@@ -135,10 +135,10 @@ class VisionModelKit(ModelKit):
     def record_sampled_token(self, token: int) -> None:
         self.model.record_sampled_token(token)
 
-    def is_draft_model_compatible(self, path: str | Path) -> bool:
+    def is_draft_model_compatible(self, path: Union[str, Path]) -> bool:
         return False
 
-    def load_draft_model(self, path: str | Path) -> None:
+    def load_draft_model(self, path: Union[str, Path]) -> None:
         raise ValueError(
             "Speculative decoding is not currently supported for vision models"
         )

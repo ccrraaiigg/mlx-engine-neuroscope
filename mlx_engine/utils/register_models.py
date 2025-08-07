@@ -9,5 +9,9 @@ from mlx_engine.external.models.ernie4_5.tokenization_ernie4_5 import Ernie4_5_T
 
 
 def register_models():
-    AutoTokenizer.register(Ernie4_5_Config, Ernie4_5_Tokenizer)
-    AutoTokenizer.register(Ernie4_5_MoeConfig, Ernie4_5_Tokenizer)
+    try:
+        AutoTokenizer.register(Ernie4_5_Config, Ernie4_5_Tokenizer, exist_ok=True)
+        AutoTokenizer.register(Ernie4_5_MoeConfig, Ernie4_5_Tokenizer, exist_ok=True)
+    except ValueError as e:
+        # Model already registered, ignore
+        pass

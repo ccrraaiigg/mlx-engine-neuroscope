@@ -17,6 +17,7 @@ from mlx_engine.model_kit.vision_add_ons.gemma3n import Gemma3nVisionAddOn
 from mlx_engine.model_kit.vision_add_ons.mistral3 import Mistral3VisionAddOn
 from mlx_engine.utils.kv_cache_quantization import get_kv_cache_quantization_params
 from mlx_engine.utils.prompt_processing import process_prompt_text_only
+from mlx_engine.activation_hooks import ActivationHookManager, ActivationHookSpec, ComponentType
 
 LOG_PREFIX = "ModelKit"
 
@@ -56,6 +57,9 @@ class ModelKit:
 
     # multi-modal add-ons
     vision_add_on: Optional[BaseVisionAddOn] = None
+    
+    # activation hooks for interpretability
+    activation_hook_manager: Optional[ActivationHookManager] = None
 
     def _vocab_only_init(self, model_path: Path):
         log_info(
@@ -109,6 +113,10 @@ class ModelKit:
         )
         if should_load_vision_add_on:
             self.vision_add_on = vision_add_on_class(model_path)
+        
+        # Initialize activation hook manager
+        self.activation_hook_manager = ActivationHookManager(self.model)
+        
         log_info(prefix=LOG_PREFIX, message="Model loaded successfully")
 
     def __init__(
@@ -237,3 +245,55 @@ class ModelKit:
             self.cache_wrapper.unset_draft_model()
         # Noticed that draft model memory would not be released without clearing metal cache
         mx.clear_cache()
+
+    def register_activation_hook(self, layer_name: str, component: str, 
+                                hook_id: Optional[str] = None,
+                                capture_input: bool = False,
+                                capture_output: bool = True) -> str:
+        """Register an activation hook for interpretability analysis."""
+        if self.activation_hook_manager is None:
+            raise ValueError("Activation hooks not available - model not fully loaded")
+        
+        # Convert string component to enum
+        try:
+            component_type = ComponentType(component.lower())
+        except ValueError:
+            raise ValueError(f"Unknown component type: {component}")
+        
+        spec = ActivationHookSpec(
+            layer_name=layer_name,
+            component=component_type,
+            hook_id=hook_id,
+            capture_input=capture_input,
+            capture_output=capture_output
+        )
+        
+        return self.activation_hook_manager.register_hook(spec)
+    
+    def unregister_activation_hook(self, hook_id: str):
+        """Unregister an activation hook."""
+        if self.activation_hook_manager is not None:
+            self.activation_hook_manager.unregister_hook(hook_id)
+    
+    def clear_activation_hooks(self):
+        """Clear all activation hooks."""
+        if self.activation_hook_manager is not None:
+            self.activation_hook_manager.clear_all_hooks()
+    
+    def get_captured_activations(self, hook_id: Optional[str] = None, 
+                                clear_after_get: bool = True) -> dict:
+        """Get captured activations from hooks."""
+        if self.activation_hook_manager is None:
+            return {}
+        
+        activations = self.activation_hook_manager.get_activations(hook_id)
+        
+        if clear_after_get:
+            self.activation_hook_manager.clear_activations(hook_id)
+        
+        return activations
+    
+    def clear_captured_activations(self, hook_id: Optional[str] = None):
+        """Clear captured activations without getting them."""
+        if self.activation_hook_manager is not None:
+            self.activation_hook_manager.clear_activations(hook_id)

@@ -105,7 +105,7 @@ class GenerationStatsCollector:
         self.start_time = time.time()
         self.first_token_time = None
         self.total_tokens = 0
-        self.num_accepted_draft_tokens: int | None = None
+        self.num_accepted_draft_tokens: Optional[int] = None
 
     def add_tokens(self, tokens: list[Token]):
         """Record new tokens and their timing."""

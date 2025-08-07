@@ -1,4 +1,4 @@
-from typing import Callable, Iterator, List, Literal, NamedTuple, Optional
+from typing import Any, Callable, Dict, Iterator, List, Literal, NamedTuple, Optional, Union
 import json
 from pathlib import Path
 import sys
@@ -26,6 +26,7 @@ from mlx_engine.utils.speculative_decoding import (
 from outlines.processors.structured import JSONLogitsProcessor
 from mlx_engine.utils.outlines_transformer_tokenizer import OutlinesTransformerTokenizer
 from mlx_engine.cache_wrapper import StopPromptProcessing
+from mlx_engine.activation_hooks import ActivationHookSpec, ComponentType, serialize_activations
 
 MAX_TOP_LOGPROBS = 10
 
@@ -47,7 +48,7 @@ class GenerationResult(NamedTuple):
 
 
 def load_model(
-    model_path: str | Path,
+    model_path: Union[str, Path],
     *,
     vocab_only: bool = False,
     max_kv_size: Optional[int] = 4096,
@@ -55,7 +56,7 @@ def load_model(
     kv_bits: Optional[int] = None,
     kv_group_size: Optional[int] = None,
     quantized_kv_start: Optional[int] = None,
-) -> ModelKit | VisionModelKit:
+) -> Union[ModelKit, VisionModelKit]:
     """
     Load a language model or vision-language model from the specified path.
 
@@ -63,7 +64,7 @@ def load_model(
     and initializes either a standard language model or a vision-language model accordingly.
 
     Args:
-        model_path (str | Path): Path to the model directory containing model files and config.json.
+        model_path (Union[str, Path]): Path to the model directory containing model files and config.json.
         vocab_only (bool): Only load vocabulary/tokenizer, not the full model.
         max_kv_size (int): Maximum size of the key-value cache used during model inference.
         trust_remote_code (bool): Whether to allow loading of remote code during model initialization.
@@ -438,6 +439,75 @@ def create_generator(
             token_buffer = []
             top_logprobs_buffer = []
             text = ""
+
+
+def create_generator_with_activations(
+    model_kit: ModelKit | VisionModelKit,
+    prompt_tokens: List[int],
+    activation_hooks: Optional[List[Dict[str, Any]]] = None,
+    **kwargs
+) -> Iterator[tuple[GenerationResult, Optional[Dict[str, Any]]]]:
+    """
+    Create a generator that streams text generation results along with captured activations.
+    
+    This function extends create_generator to support activation capture for interpretability
+    analysis. It registers the specified hooks before generation and returns both generation
+    results and captured activations.
+    
+    Args:
+        model_kit (ModelKit | VisionModelKit): The initialized model to use for generation
+        prompt_tokens (List[int]): List of token IDs representing the input prompt
+        activation_hooks (Optional[List[Dict[str, Any]]]): List of hook specifications.
+            Each dict should contain:
+            - layer_name (str): Name of the layer to hook
+            - component (str): Component type ('residual', 'attention', 'mlp', etc.)
+            - hook_id (str, optional): Unique identifier for the hook
+            - capture_input (bool, optional): Whether to capture input activations
+            - capture_output (bool, optional): Whether to capture output activations
+        **kwargs: All other arguments passed to create_generator
+    
+    Yields:
+        tuple[GenerationResult, Optional[Dict[str, Any]]]: A tuple containing:
+            - GenerationResult: Standard generation result
+            - Dict with captured activations (None if no hooks registered)
+    """
+    # Register activation hooks if provided
+    registered_hooks = []
+    if activation_hooks and hasattr(model_kit, 'register_activation_hook'):
+        for hook_spec in activation_hooks:
+            try:
+                hook_id = model_kit.register_activation_hook(
+                    layer_name=hook_spec['layer_name'],
+                    component=hook_spec['component'],
+                    hook_id=hook_spec.get('hook_id'),
+                    capture_input=hook_spec.get('capture_input', False),
+                    capture_output=hook_spec.get('capture_output', True)
+                )
+                registered_hooks.append(hook_id)
+            except Exception as e:
+                # Clean up any successfully registered hooks
+                for cleanup_hook_id in registered_hooks:
+                    model_kit.unregister_activation_hook(cleanup_hook_id)
+                raise ValueError(f"Failed to register activation hook: {e}")
+    
+    try:
+        # Generate with standard generator
+        for result in create_generator(model_kit, prompt_tokens, **kwargs):
+            # Get captured activations if hooks are registered
+            activations = None
+            if registered_hooks:
+                raw_activations = model_kit.get_captured_activations(clear_after_get=False)
+                activations = serialize_activations(raw_activations, format='numpy')
+            
+            yield result, activations
+    
+    finally:
+        # Clean up hooks
+        for hook_id in registered_hooks:
+            try:
+                model_kit.unregister_activation_hook(hook_id)
+            except Exception:
+                pass  # Best effort cleanup
 
 
 def tokenize(model_kit: ModelKit | VisionModelKit, prompt: str) -> List[int]:

@@ -55,12 +55,12 @@ class CacheWrapper:
         )
         self.chunk_size = chunk_size
 
-    def _get_num_tokens_in_cache(self) -> int | None:
+    def _get_num_tokens_in_cache(self) -> Optional[int]:
         """
         Get the number of tokens in the cache.
 
         Returns:
-            int | None: The number of tokens in the cache, or None if the size cannot be determined.
+            Optional[int]: The number of tokens in the cache, or None if the size cannot be determined.
         """
         for c in self.cache:
             if hasattr(c, "offset"):
