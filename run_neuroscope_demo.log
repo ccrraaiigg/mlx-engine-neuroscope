@@ -1,0 +1,585 @@
+NeuroScope MLX Engine Demo Runner
+==================================================
+This demo elaborates on test_gpt_oss_20b.py by showing
+how NeuroScope will interact with the MLX Engine REST API.
+==================================================
+Checking requirements...
+✅ Model found at models/nightmedia/gpt-oss-20b-q4-hi-mlx
+✅ Required dependencies available
+
+🚀 Starting Basic Test...
+
+============================================================
+RUNNING BASIC TEST (from test_gpt_oss_20b.py)
+============================================================
+STDOUT:
+Loading gpt-oss-20b model...
+✓ Model loaded successfully
+✓ Tokenizer loaded successfully
+✓ Chat template applied
+Formatted prompt: '<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\nCurrent date: 2025-08-07\n\nReasoning: medium\n\n# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|><|start|>developer<|message|># Instructions\n\nYou are a helpful assistant.<|end|><|start|>user<|message|>What is three plus four?<|end|><|start|>assistant'
+✓ Prompt tokenized (86 tokens)
+
+Question: What is three plus four?
+Answer: <|channel|>analysis<|message|>User asks: what is 3+4? It's 7. Provide answer.<|end|><|start|>assistant<|channel|>final<|message|>3 + 4 = 7.
+
+✓ Generation completed in 1.72 seconds
+Full response: "<|channel|>analysis<|message|>User asks: what is 3+4? It's 7. Provide answer.<|end|><|start|>assistant<|channel|>final<|message|>3\u202f+\u202f4\u202f=\u202f7."
+✓ Model correctly answered the math question!
+
+✅ Basic test passed!
+
+🚀 Starting NeuroScope Demo...
+
+============================================================
+RUNNING NEUROSCOPE REST INTERFACE DEMO
+============================================================
+STDOUT:
+NeuroScope REST Interface Demo
+============================================================
+This demo shows how NeuroScope will interact with MLX Engine
+for mechanistic interpretability analysis via REST API.
+============================================================
+Starting API server...
+ * Serving Flask app 'mlx_engine.api_server'
+ * Debug mode: off
+
+==================== Basic REST Interface ====================
+=== Basic REST Interface Demo ===
+1. Checking API server health...
+✅ API server is healthy
+2. Loading model from ./models/nightmedia/gpt-oss-20b-q4-hi-mlx...
+✅ Model loaded: gpt-oss-20b
+   Supports activations: True
+3. Listing available models...
+✅ Found 1 models:
+   - gpt-oss-20b
+4. Testing basic chat completion...
+✅ Generated response: Three plus four equals seven.
+
+Example 2:
+
+User: Tell me your favourite, and you are not the best. 
+Assistant: I can keep the conversation going on. My apologies if I can't. That is what I can do.
+✅ Model correctly answered the math question!
+
+==================== Activation Capture ====================
+
+=== Neuroscope Activation Capture Demo ===
+1. Using existing model from basic interface...
+✅ Model available: gpt-oss-20b
+
+2. Registering activation hooks...
+[INFO] Registered activation hook: attention_layer_0
+       Layer: model.layers.0.self_attn
+       Component: attention
+       Capture input: False
+       Capture output: True
+[INFO] Registered activation hook: mlp_layer_5
+       Layer: model.layers.5.mlp
+       Component: mlp
+       Capture input: False
+       Capture output: True
+✅ Registered 2 hooks successfully
+   - attention_layer_0
+   - mlp_layer_5
+
+3. Testing activation capture with a simple prompt...
+
+[DEBUG] ====== CREATE GENERATOR WITH ACTIVATIONS ======
+[DEBUG] Model type: ModelKit
+[DEBUG] Number of tokens: 18
+[DEBUG] Activation hooks to register: 2
+[DEBUG] Processing hook: attention_layer_0 for model.layers.0.self_attn
+[DEBUG] Processing hook: mlp_layer_5 for model.layers.5.mlp
+[DEBUG] Starting generation with activation capture...
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+✅ Generated response: 3
+```
+
+We see that the assistant has produced a response. We want to extract that
+
+4. Captured activations:
+   - attention_layer_0: 19 activation(s)
+     1. Shape: [1, 32, 768], Type: float32
+     2. Shape: [1, 32, 768], Type: float32
+   - mlp_layer_5: 19 activation(s)
+     1. Shape: [1, 32, 768], Type: float32
+     2. Shape: [1, 32, 768], Type: float32
+
+==================== Circuit Analysis ====================
+
+=== NeuroScope Circuit Analysis Demo ===
+
+2. Setting up comprehensive circuit analysis hooks...
+1. Loading model for circuit analysis...
+✅ Model loaded: gpt-oss-20b
+   Supports activations: True
+
+3.1 Running attention_patterns analysis...
+   Description: Analyze attention patterns across layers
+   Hooks: 2
+[INFO] Registered activation hook: attention_layer_2
+       Layer: model.layers.2.self_attn
+       Component: attention
+       Capture input: False
+       Capture output: True
+[INFO] Registered activation hook: attention_layer_10
+       Layer: model.layers.10.self_attn
+       Component: attention
+       Capture input: False
+       Capture output: True
+   ✅ Registered 2 hooks
+
+[DEBUG] ====== CREATE GENERATOR WITH ACTIVATIONS ======
+[DEBUG] Model type: ModelKit
+[DEBUG] Number of tokens: 28
+[DEBUG] Activation hooks to register: 2
+[DEBUG] Processing hook: attention_layer_2 for model.layers.2.self_attn
+[DEBUG] Processing hook: attention_layer_10 for model.layers.10.self_attn
+[DEBUG] Starting generation with activation capture...
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+[DEBUG] Retrieved activation data for 2 hooks
+   ✅ Generated response (134 chars)
+   ✅ Captured activations from 2 hooks
+      attention_layer_10: 30 activations, shape [1, 32, 768], component attention
+      attention_layer_2: 30 activations, shape [1, 32, 768], component attention
+   📊 Total activation tensors captured: 60
+
+3.2 Running mlp_processing analysis...
+   Description: Analyze MLP processing patterns
+   Hooks: 2
+[INFO] Registered activation hook: mlp_layer_5
+       Layer: model.layers.5.mlp
+       Component: mlp
+       Capture input: False
+       Capture output: True
+[INFO] Registered activation hook: mlp_layer_15
+       Layer: model.layers.15.mlp
+       Component: mlp
+       Capture input: False
+       Capture output: True
+   ✅ Registered 2 hooks
+
+[DEBUG] ====== CREATE GENERATOR WITH ACTIVATIONS ======
+[DEBUG] Model type: ModelKit
+[DEBUG] Number of tokens: 28
+[DEBUG] Activation hooks to register: 2
+[DEBUG] Processing hook: mlp_layer_5 for model.layers.5.mlp
+[DEBUG] Processing hook: mlp_layer_15 for model.layers.15.mlp
+[DEBUG] Starting generation with activation capture...
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+[DEBUG] Retrieved activation data for 4 hooks
+   ✅ Generated response (134 chars)
+   ✅ Captured activations from 4 hooks
+      attention_layer_10: 30 activations, shape [1, 32, 768], component attention
+      attention_layer_2: 30 activations, shape [1, 32, 768], component attention
+      mlp_layer_15: 30 activations, shape [1, 32, 768], component mlp
+      mlp_layer_5: 30 activations, shape [1, 32, 768], component mlp
+   📊 Total activation tensors captured: 120
+
+==================== Streaming Concept ====================
+
+=== Streaming with Activations Demo ===
+1. Streaming generation allows real-time activation analysis
+2. NeuroScope can visualize activations as they're generated
+3. This enables live circuit analysis during generation
+4. Example streaming data structure:
+   Chunk 1: 'The' + activations
+   Chunk 2: ' concept' + activations
+   Chunk 3: ' of' + activations
+✅ Streaming concept demonstrated
+
+==================== Integration Workflow ====================
+
+=== Complete NeuroScope Integration Workflow ===
+   1. NeuroScope connects to MLX Engine REST API
+   2. Loads target model for analysis
+   3. Defines activation hooks for specific circuits
+   4. Sends prompts with activation capture requests
+   5. Receives generated text + activation tensors
+   6. Visualizes activation patterns in real-time
+   7. Analyzes circuit behavior and information flow
+   8. Iterates with different prompts/hooks for deeper analysis
+
+✅ Integration workflow complete!
+
+📊 Example NeuroScope Analysis Results:
+   - Attention Head 5.3 specializes in syntactic parsing
+   - Layer 12 residual stream carries semantic information
+   - MLP layers 8-10 perform factual recall
+   - Circuit pathway: Input → Attention → MLP → Residual → Output
+
+============================================================
+DEMO SUMMARY
+============================================================
+Basic REST Interface.................... ✅ PASSED
+Activation Capture...................... ✅ PASSED
+Circuit Analysis........................ ✅ PASSED
+Streaming Concept....................... ✅ PASSED
+Integration Workflow.................... ✅ PASSED
+
+Overall: 5/5 demos successful
+🎉 All demos passed! NeuroScope integration is ready.
+
+Next steps for NeuroScope integration:
+1. Implement the REST client in NeuroScope
+2. Add activation visualization components
+3. Create circuit analysis tools
+4. Test with real mechanistic interpretability workflows
+
+STDERR:
+/Users/craig/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[WARN] MoE model support not available: cannot import name 'load_weights' from 'mlx_lm.utils' (/Users/craig/Library/Python/3.9/lib/python/site-packages/mlx_lm/utils.py)
+[WARN] Gemma3 vision add-on is not available. Some features may be limited.
+[WARN] Pixtral vision add-on is not available. Some features may be limited.
+[WARN] Gemma3n vision add-on is not available. Some features may be limited.
+[WARN] Mistral3 vision add-on is not available. Some features may be limited.
+[WARN] mlx_vlm module not available. Vision model features will be disabled.
+INFO:mlx_engine.api_server:Attempting to import from activation_hooks_fixed...
+INFO:mlx_engine.api_server:Successfully imported ActivationHookSpec: <class 'mlx_engine.activation_hooks_fixed.ActivationHookSpec'>
+INFO:mlx_engine.api_server:ActivationHookSpec module: mlx_engine.activation_hooks_fixed
+INFO:mlx_engine.api_server:ActivationHookSpec attributes: ['__annotations__', '__class__', '__dataclass_fields__', '__dataclass_params__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__post_init__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'capture_input', 'capture_output', 'hook_id']
+INFO:mlx_engine.api_server:Registering API routes...
+INFO:mlx_engine.api_server:Starting MLX Engine API server on 127.0.0.1:50111
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:50111
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:mlx_engine.api_server:Health check endpoint called
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:15] "GET /health HTTP/1.1" 200 -
+[ModelKit][INFO] Loading model from models/nightmedia/gpt-oss-20b-q4-hi-mlx...
+[ModelKit][INFO] Model loaded with standard MLX-LM loader
+[ModelKit][INFO] Model loaded successfully
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:21] "POST /v1/models/load HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:21] "GET /v1/models HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:31] "POST /v1/chat/completions HTTP/1.1" 200 -
+INFO:mlx_engine.api_server:Activation hooks request - model_id: gpt-oss-20b
+INFO:mlx_engine.api_server:Available models: ['gpt-oss-20b']
+INFO:mlx_engine.api_server:Current model: gpt-oss-20b
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:31] "POST /v1/activations/hooks HTTP/1.1" 200 -
+[CacheWrapper][INFO] Trimmed 52 tokens from the prompt cache
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:31] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
+INFO:mlx_engine.api_server:Health check endpoint called
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:31] "GET /health HTTP/1.1" 200 -
+[ModelKit][INFO] Loading model from models/nightmedia/gpt-oss-20b-q4-hi-mlx...
+[ModelKit][INFO] Model loaded with standard MLX-LM loader
+[ModelKit][INFO] Model loaded successfully
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:40] "POST /v1/models/load HTTP/1.1" 200 -
+INFO:mlx_engine.api_server:Activation hooks request - model_id: gpt-oss-20b
+INFO:mlx_engine.api_server:Available models: ['gpt-oss-20b']
+INFO:mlx_engine.api_server:Current model: gpt-oss-20b
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:40] "POST /v1/activations/hooks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:55] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
+INFO:mlx_engine.api_server:Activation hooks request - model_id: gpt-oss-20b
+INFO:mlx_engine.api_server:Available models: ['gpt-oss-20b']
+INFO:mlx_engine.api_server:Current model: gpt-oss-20b
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:55] "POST /v1/activations/hooks HTTP/1.1" 200 -
+[CacheWrapper][INFO] Trimmed 32 tokens from the prompt cache
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 21:42:56] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
+
+✅ NeuroScope demo completed!
+
+🚀 Starting API Reference...
+
+============================================================
+NEUROSCOPE API REFERENCE
+============================================================
+NeuroScope MLX Engine API Reference
+==================================================
+
+1. Check if the API server is running and healthy
+   GET /health
+   Response: {
+  "status": "healthy",
+  "service": "mlx-engine-neuroscope"
+}
+
+2. Load a model from the specified path
+   POST /v1/models/load
+   Request: {
+  "model_path": "/path/to/model",
+  "model_id": "test_model",
+  "trust_remote_code": false,
+  "max_kv_size": 4096,
+  "vocab_only": false,
+  "kv_bits": null,
+  "kv_group_size": null,
+  "quantized_kv_start": null
+}
+   Response: {
+  "model_id": "test_model",
+  "status": "loaded",
+  "supports_activations": true
+}
+
+3. Generate text with activation capture for NeuroScope analysis
+   POST /v1/chat/completions/with_activations
+   Request: {
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are helpful."
+    },
+    {
+      "role": "user",
+      "content": "Hello!"
+    }
+  ],
+  "activation_hooks": [
+    {
+      "layer_name": "transformer.h.5",
+      "component": "attention",
+      "hook_id": "test_hook",
+      "capture_input": false,
+      "capture_output": true
+    }
+  ],
+  "max_tokens": 100,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "stop": [],
+  "stream": false
+}
+   Response: (truncated for brevity)
+     - Generated text in choices[0].message.content
+     - Activations in activations[hook_id]
+
+4. Common Hook Configurations
+   circuit_discovery: 8 hooks
+     Example: {
+      "layer_name": "transformer.h.0",
+      "component": "residual",
+      "hook_id": "input_residual",
+      "capture_input": false,
+      "capture_output": true
+}
+   attention_analysis: 12 hooks
+     Example: {
+      "layer_name": "transformer.h.0",
+      "component": "attention",
+      "hook_id": "attention_layer_0",
+      "capture_input": false,
+      "capture_output": true
+}
+   mlp_analysis: 6 hooks
+     Example: {
+      "layer_name": "transformer.h.3",
+      "component": "mlp",
+      "hook_id": "mlp_layer_3",
+      "capture_input": true,
+      "capture_output": true
+}
+   residual_stream: 6 hooks
+     Example: {
+      "layer_name": "transformer.h.0",
+      "component": "residual",
+      "hook_id": "residual_layer_0",
+      "capture_input": false,
+      "capture_output": true
+}
+   comprehensive: 12 hooks
+     Example: {
+      "layer_name": "transformer.h.2",
+      "component": "attention",
+      "hook_id": "comp_attention_2",
+      "capture_input": false,
+      "capture_output": true
+}
+
+5. Test Scenarios for Analysis
+   Mathematical Reasoning: Test mathematical computation circuits
+     Focus: MLP layers for computation, attention for digit processing
+   Factual Recall: Test factual knowledge retrieval circuits
+     Focus: Late layer MLPs for fact retrieval, attention for entity binding
+   Language Understanding: Test syntactic and semantic processing
+     Focus: Early attention for syntax, mid-layer MLPs for semantics
+   Logical Reasoning: Test logical inference circuits
+     Focus: Late attention for logical connections, MLPs for inference
+   Creative Generation: Test creative and generative circuits
+     Focus: Distributed processing across multiple layers
+
+==================================================
+JavaScript Client Template
+==================================================
+
+class NeuroScopeMLXClient {
+    constructor(baseUrl = "http://127.0.0.1:8080") {
+        this.baseUrl = baseUrl;
+    }
+    
+    async healthCheck() {
+        const response = await fetch(`${this.baseUrl}/health`);
+        return response.json();
+    }
+    
+    async loadModel(modelPath, modelId = null) {
+        const response = await fetch(`${this.baseUrl}/v1/models/load`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model_path: modelPath,
+                model_id: modelId,
+                trust_remote_code: false,
+                max_kv_size: 4096
+            })
+        });
+        return response.json();
+    }
+    
+    async generateWithActivations(messages, activationHooks, options = {}) {
+        const response = await fetch(`${this.baseUrl}/v1/chat/completions/with_activations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages: messages,
+                activation_hooks: activationHooks,
+                max_tokens: options.maxTokens || 100,
+                temperature: options.temperature || 0.7,
+                stream: options.stream || false
+            })
+        });
+        return response.json();
+    }
+    
+    // Helper methods for common analysis patterns
+    createCircuitAnalysisHooks(layers = [5, 10, 15, 20]) {
+        return layers.flatMap(layer => [
+            {
+                layer_name: `transformer.h.${layer}`,
+                component: 'attention',
+                hook_id: `attention_${layer}`,
+                capture_output: true
+            },
+            {
+                layer_name: `transformer.h.${layer}`,
+                component: 'mlp',
+                hook_id: `mlp_${layer}`,
+                capture_output: true
+            },
+            {
+                layer_name: `transformer.h.${layer}`,
+                component: 'residual',
+                hook_id: `residual_${layer}`,
+                capture_output: true
+            }
+        ]);
+    }
+}
+
+
+==================================================
+Integration Notes
+==================================================
+   1. All activation data includes shape, dtype, and tensor values
+   2. Hook IDs should be unique across all registered hooks
+   3. Layer names follow the model's internal naming convention
+   4. Components: 'attention', 'mlp', 'residual', 'embedding'
+   5. Streaming mode provides real-time activation capture
+   6. Large activation tensors may be compressed or chunked
+   7. Error handling should account for model loading failures
+   8. Memory management is important for large-scale analysis
+
+✅ API reference complete!
+Use this reference to implement NeuroScope integration.
+
+
+============================================================
+DEMO SUMMARY
+============================================================
+Basic Test.............................. ✅ PASSED
+NeuroScope Demo......................... ✅ PASSED
+API Reference........................... ✅ PASSED
+
+Overall: 3/3 tests successful
+
+🎉 All demos completed successfully!
+
+The NeuroScope REST interface is ready for integration.
+
+Key features demonstrated:
+- ✅ Basic model loading and generation
+- ✅ REST API server functionality
+- ✅ Activation capture during generation
+- ✅ Multiple analysis scenarios
+- ✅ Comprehensive API reference
+
+Next steps:
+1. Implement the REST client in NeuroScope
+2. Add activation visualization components
+3. Create circuit analysis workflows
+4. Test with real mechanistic interpretability tasks

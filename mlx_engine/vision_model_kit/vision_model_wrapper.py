@@ -1,8 +1,21 @@
 import mlx.core as mx
-from mlx_engine.logging import log_info
-from mlx_vlm.models.cache import KVCache, SimpleKVCache
+from mlx_engine.logging import log_info, log_warn
+from typing import List, Optional, Any, Type
 
-from typing import List, Optional
+# Make mlx_vlm imports optional
+try:
+    from mlx_vlm.models.cache import KVCache, SimpleKVCache
+    VLM_AVAILABLE = True
+except ImportError:
+    log_warn("mlx_vlm module not available. Vision model features will be disabled.")
+    VLM_AVAILABLE = False
+    
+    # Define dummy classes for type hints when mlx_vlm is not available
+    class KVCache:
+        pass
+        
+    class SimpleKVCache:
+        pass
 
 from mlx_engine.model_kit.vision_add_ons.process_prompt_with_images import (
     common_process_prompt_with_images,

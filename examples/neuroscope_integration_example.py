@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from mlx_engine import load_model, create_generator_with_activations, tokenize
-from mlx_engine.activation_hooks import ComponentType
+from mlx_engine.activation_hooks_fixed import ComponentType
 from neuroscope_integration import LMStudioNeuroScopeClient, NeuroScopeActivationBridge
 
 

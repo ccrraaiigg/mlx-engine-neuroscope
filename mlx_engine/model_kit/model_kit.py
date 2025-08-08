@@ -1,5 +1,5 @@
 import json
-from typing import Callable, Optional, List, Tuple
+from typing import Callable, Optional, List, Tuple, Dict, Any
 
 import mlx_lm
 from mlx_lm.tokenizer_utils import TokenizerWrapper, StreamingDetokenizer
@@ -8,16 +8,51 @@ from mlx_engine.cache_wrapper import CacheWrapper
 from pathlib import Path
 import mlx.nn as nn
 import mlx.core as mx
+import os
 
-from mlx_engine.logging import log_info, log_warn
+from mlx_engine.logging import log_info, log_warn, log_error
 from mlx_engine.model_kit.vision_add_ons.base import BaseVisionAddOn
-from mlx_engine.model_kit.vision_add_ons.gemma3 import Gemma3VisionAddOn
-from mlx_engine.model_kit.vision_add_ons.pixtral import PixtralVisionAddOn
-from mlx_engine.model_kit.vision_add_ons.gemma3n import Gemma3nVisionAddOn
-from mlx_engine.model_kit.vision_add_ons.mistral3 import Mistral3VisionAddOn
+
+# Try to import MoE model and loader
+try:
+    from .moe_model import GptOssMoEModel
+    from .moe_loader import load_moe_model
+    MOE_AVAILABLE = True
+except ImportError as e:
+    MOE_AVAILABLE = False
+    log_warn(f"MoE model support not available: {e}")
+    GptOssMoEModel = None
+    load_moe_model = None
+try:
+    from mlx_engine.model_kit.vision_add_ons.gemma3 import Gemma3VisionAddOn
+    GEMMA3_AVAILABLE = True
+except ImportError:
+    GEMMA3_AVAILABLE = False
+    log_warn("Gemma3 vision add-on is not available. Some features may be limited.")
+
+try:
+    from mlx_engine.model_kit.vision_add_ons.pixtral import PixtralVisionAddOn
+    PIXTRAL_AVAILABLE = True
+except ImportError:
+    PIXTRAL_AVAILABLE = False
+    log_warn("Pixtral vision add-on is not available. Some features may be limited.")
+
+try:
+    from mlx_engine.model_kit.vision_add_ons.gemma3n import Gemma3nVisionAddOn
+    GEMMA3N_AVAILABLE = True
+except ImportError:
+    GEMMA3N_AVAILABLE = False
+    log_warn("Gemma3n vision add-on is not available. Some features may be limited.")
+
+try:
+    from mlx_engine.model_kit.vision_add_ons.mistral3 import Mistral3VisionAddOn
+    MISTRAL3_AVAILABLE = True
+except ImportError:
+    MISTRAL3_AVAILABLE = False
+    log_warn("Mistral3 vision add-on is not available. Some features may be limited.")
 from mlx_engine.utils.kv_cache_quantization import get_kv_cache_quantization_params
 from mlx_engine.utils.prompt_processing import process_prompt_text_only
-from mlx_engine.activation_hooks import ActivationHookManager, ActivationHookSpec, ComponentType
+from mlx_engine.activation_hooks_fixed import ActivationHookManager, ActivationHookSpec, ComponentType
 
 LOG_PREFIX = "ModelKit"
 
@@ -32,15 +67,27 @@ class ModelKit:
         max_kv_size (int): Maximum size of the key-value cache used during model inference.
         kv_bits (Optional[int]): Number of bits for KV cache quantization. None disables quantization.
         kv_group_size (Optional[int]): Group size for KV cache quantization. Defaults to 64.
-        quantized_kv_start (Optional[int]): Step to begin KV cache quantization when enabled. Defaults to 0.
+        quantized_kv_start (Optional[int]): Start index for KV cache quantization. Defaults to 0.
     """
 
-    VISION_ADD_ON_MAP = {
-        "gemma3": Gemma3VisionAddOn,
-        "gemma3n": Gemma3nVisionAddOn,
-        "mistral3": Mistral3VisionAddOn,
-        "pixtral": PixtralVisionAddOn,
-    }
+    # Initialize VISION_ADD_ON_MAP with only the available vision add-ons
+    VISION_ADD_ON_MAP = {}
+    
+    # Add Gemma3 if available
+    if GEMMA3_AVAILABLE:
+        VISION_ADD_ON_MAP["gemma3"] = Gemma3VisionAddOn
+    
+    # Add Gemma3n if available
+    if GEMMA3N_AVAILABLE:
+        VISION_ADD_ON_MAP["gemma3n"] = Gemma3nVisionAddOn
+    
+    # Add Pixtral if available
+    if PIXTRAL_AVAILABLE:
+        VISION_ADD_ON_MAP["pixtral"] = PixtralVisionAddOn
+    
+    # Add Mistral3 if available
+    if MISTRAL3_AVAILABLE:
+        VISION_ADD_ON_MAP["mistral3"] = Mistral3VisionAddOn
 
     # model state tracking
     model: nn.Module = None
@@ -70,6 +117,57 @@ class ModelKit:
         self.detokenizer = self.tokenizer.detokenizer
         log_info(prefix=LOG_PREFIX, message="Model (vocab-only) loaded successfully")
 
+    def _load_model_with_retry(
+        self,
+        model_path: Path,
+        max_kv_size: Optional[int] = None,
+        kv_bits: Optional[int] = None,
+        kv_group_size: Optional[int] = None,
+        quantized_kv_start: Optional[int] = None,
+    ) -> Tuple[nn.Module, TokenizerWrapper]:
+        """
+        Try to load the model with standard MLX-LM, falling back to custom MoE loader if needed.
+        
+        Args:
+            model_path: Path to the model directory
+            max_kv_size: Maximum size of the KV cache
+            kv_bits: Number of bits for KV cache quantization
+            kv_group_size: Group size for KV cache quantization
+            quantized_kv_start: Start index for KV cache quantization
+            
+        Returns:
+            Tuple of (model, tokenizer)
+        """
+        try:
+            # First try standard MLX-LM loading
+            model, tokenizer = mlx_lm.utils.load(model_path)
+            log_info(prefix=LOG_PREFIX, message="Model loaded with standard MLX-LM loader")
+            return model, tokenizer
+        except (ValueError, RuntimeError, AttributeError) as e:
+            # Check if this is an MoE model
+            config_path = model_path / "config.json"
+            if not config_path.exists():
+                raise ValueError(f"Config file not found at {config_path}")
+                
+            with open(config_path, "r") as f:
+                config = json.load(f)
+                
+            is_moe = any(key in config for key in ["num_local_experts", "num_experts_per_tok"])
+            
+            if is_moe and MOE_AVAILABLE:
+                log_info(prefix=LOG_PREFIX, message="Detected MoE model, using custom loader...")
+                try:
+                    model, tokenizer = load_moe_model(str(model_path))
+                    log_info(prefix=LOG_PREFIX, message="MoE model loaded successfully")
+                    return model, tokenizer
+                except Exception as moe_error:
+                    log_error(prefix=LOG_PREFIX, message=f"Failed to load MoE model: {moe_error}")
+                    raise
+            
+            # Re-raise the original error if we can't handle it
+            log_error(prefix=LOG_PREFIX, message=f"Failed to load model: {e}")
+            raise
+
     def _full_model_init(
         self,
         model_path: Path,
@@ -90,13 +188,31 @@ class ModelKit:
                 message="max_kv_size is ignored when using KV cache quantization",
             )
             max_kv_size = None
+            
         self.model_path = model_path
         log_info(prefix=LOG_PREFIX, message=f"Loading model from {model_path}...")
-        config_json = json.loads((model_path / "config.json").read_text())
-        self.model_type = config_json.get("model_type", None)
-
-        self.model, self.tokenizer = mlx_lm.utils.load(self.model_path)
-        self.detokenizer = self.tokenizer.detokenizer
+        
+        # Load the config to determine model type
+        config_path = model_path / "config.json"
+        if not config_path.exists():
+            raise FileNotFoundError(f"Config file not found at {config_path}")
+            
+        with open(config_path, "r") as f:
+            config = json.load(f)
+            
+        self.model_type = config.get("model_type", None)
+        self.is_moe = any(key in config for key in ["num_local_experts", "num_experts_per_tok"])
+        
+        # Load the model and tokenizer
+        self.model, self.tokenizer = self._load_model_with_retry(
+            model_path,
+            max_kv_size,
+            kv_bits,
+            kv_group_size,
+            quantized_kv_start,
+        )
+        
+        # Initialize the cache wrapper
         self.cache_wrapper = CacheWrapper(
             self.model,
             max_kv_size,
@@ -206,7 +322,7 @@ class ModelKit:
         """
         return model_arch in ModelKit.VISION_ADD_ON_MAP
 
-    def is_draft_model_compatible(self, path: str | Path) -> bool:
+    def is_draft_model_compatible(self, path: 'str | Path') -> bool:
         path = Path(path)
         if self.tokenizer is None:
             log_warn(
@@ -226,7 +342,7 @@ class ModelKit:
             return False
         return True
 
-    def load_draft_model(self, path: str | Path) -> None:
+    def load_draft_model(self, path: 'str | Path') -> None:
         log_info(prefix=LOG_PREFIX, message=f"Loading draft model from {path}...")
         path = Path(path)
         if self.model is None:
@@ -283,17 +399,40 @@ class ModelKit:
     def get_captured_activations(self, hook_id: Optional[str] = None, 
                                 clear_after_get: bool = True) -> dict:
         """Get captured activations from hooks."""
+        print(f"\n[DEBUG] ModelKit.get_captured_activations called")
+        print(f"[DEBUG]   hook_id: {hook_id}")
+        print(f"[DEBUG]   clear_after_get: {clear_after_get}")
+        
         if self.activation_hook_manager is None:
+            print("[WARNING] No activation hook manager, returning empty dict")
             return {}
         
-        activations = self.activation_hook_manager.get_activations(hook_id)
-        
-        if clear_after_get:
-            self.activation_hook_manager.clear_activations(hook_id)
-        
-        return activations
+        try:
+            print("[DEBUG] Getting activations from hook manager...")
+            activations = self.activation_hook_manager.get_activations(hook_id)
+            print(f"[DEBUG] Retrieved activations with keys: {list(activations.keys())}")
+            
+            if clear_after_get:
+                print("[DEBUG] Clearing activations after get")
+                self.activation_hook_manager.clear_activations(hook_id)
+            
+            return activations
+        except Exception as e:
+            print(f"[ERROR] Failed to get activations: {e}")
+            return {}
     
     def clear_captured_activations(self, hook_id: Optional[str] = None):
         """Clear captured activations without getting them."""
+        print(f"\n[DEBUG] ModelKit.clear_captured_activations called")
+        print(f"[DEBUG]   hook_id: {hook_id}")
+        
         if self.activation_hook_manager is not None:
-            self.activation_hook_manager.clear_activations(hook_id)
+            print(f"[DEBUG] Clearing activations for hook: {hook_id}")
+            try:
+                self.activation_hook_manager.clear_activations(hook_id)
+                print("[DEBUG] Successfully cleared activations")
+            except Exception as e:
+                print(f"[ERROR] Failed to clear activations: {e}")
+                raise
+        else:
+            print("[WARNING] No activation hook manager to clear activations from")

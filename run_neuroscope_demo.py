@@ -45,29 +45,34 @@ def run_basic_test():
     print("="*60)
     
     try:
-        result = subprocess.run([
-            sys.executable, "test_gpt_oss_20b.py"
-        ], capture_output=True, text=True, timeout=120)
+        # Import the test function directly
+        from test_gpt_oss_20b import test_gpt_oss_20b
         
+        # Redirect stdout to capture the output
+        import io
+        import sys
+        from contextlib import redirect_stdout
+        
+        f = io.StringIO()
+        with redirect_stdout(f):
+            success = test_gpt_oss_20b()
+        
+        # Print the captured output
+        output = f.getvalue()
         print("STDOUT:")
-        print(result.stdout)
+        print(output)
         
-        if result.stderr:
-            print("STDERR:")
-            print(result.stderr)
-        
-        if result.returncode == 0:
+        if success:
             print("✅ Basic test passed!")
             return True
         else:
             print("❌ Basic test failed!")
             return False
             
-    except subprocess.TimeoutExpired:
-        print("❌ Basic test timed out!")
-        return False
     except Exception as e:
         print(f"❌ Error running basic test: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def run_neuroscope_demo():
@@ -192,12 +197,22 @@ def main():
         
         return 0
     else:
-        print("\n⚠️  Some demos failed.")
+        print(f"\n⚠️  {total_tests - successful_tests} out of {total_tests} demos failed.")
         print("Check the output above for details.")
+        
+        # List specific failures
+        failed_tests = [name for name, success in results.items() if not success]
+        if failed_tests:
+            print("\nFailed tests:")
+            for test_name in failed_tests:
+                print(f"- ❌ {test_name}")
+        
         print("\nCommon issues:")
         print("- Model not found (download required)")
         print("- Missing dependencies (pip install flask mlx)")
         print("- Memory limitations (reduce model size)")
+        print("- Activation hooks endpoint not implemented")
+        print("- Missing analysis configuration variables")
         
         return 1
 

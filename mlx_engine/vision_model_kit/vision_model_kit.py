@@ -1,18 +1,34 @@
-from typing import Union, Optional, List, Tuple
+from typing import Union, Optional, List, Tuple, Dict, Any, Type
+import warnings
 
 from mlx_engine.model_kit.model_kit import ModelKit
-from mlx_engine.logging import log_info
-from ._transformers_compatibility import (
-    fix_qwen2_5_vl_image_processor,
-    fix_qwen2_vl_preprocessor,
-)
-from .vision_model_wrapper import VisionModelWrapper
+from mlx_engine.logging import log_info, log_warn
 
-import mlx_vlm
-import mlx_lm
+# Try to import vision model dependencies
+try:
+    from ._transformers_compatibility import (
+        fix_qwen2_5_vl_image_processor,
+        fix_qwen2_vl_preprocessor,
+    )
+    from .vision_model_wrapper import VisionModelWrapper, VLM_AVAILABLE
+    import mlx_vlm
+    import mlx_lm
+    from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
+    VISION_DEPS_AVAILABLE = True
+except ImportError as e:
+    log_warn(f"Vision model dependencies not available: {e}")
+    log_warn("Vision model features will be disabled.")
+    VISION_DEPS_AVAILABLE = False
+    
+    # Define dummy classes for type hints when dependencies are not available
+    class DummyTokenizer:
+        pass
+        
+    class DummyModel:
+        pass
+
 from pathlib import Path
 import mlx.core as mx
-from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 
 class VisionModelKit(ModelKit):
@@ -20,14 +36,22 @@ class VisionModelKit(ModelKit):
     Collection of objects and methods that are needed for operating a vision model
     """
 
-    config: dict = None
+    config: Dict[str, Any] = None
     trust_remote_code: bool = False
     model_path: Path = None
     vocab_only: bool = False
     model_weights = None
 
-    processor: Union[PreTrainedTokenizer, PreTrainedTokenizerFast] = None
+    processor: Any = None
     has_processed_prompt: bool = False
+    
+    def __init__(self, *args, **kwargs):
+        if not VISION_DEPS_AVAILABLE:
+            raise ImportError(
+                "Vision model dependencies are not available. "
+                "Please install the required packages to use vision model features."
+            )
+        super().__init__(*args, **kwargs)
 
     def __init__(
         self,

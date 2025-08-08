@@ -12,6 +12,10 @@ import asyncio
 from pathlib import Path
 import logging
 
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 try:
     from flask import Flask, request, jsonify, Response, stream_template
     from flask_cors import CORS
@@ -27,7 +31,16 @@ from mlx_engine import (
 )
 from mlx_engine.model_kit.model_kit import ModelKit
 from mlx_engine.vision_model_kit.vision_model_kit import VisionModelKit
-from mlx_engine.activation_hooks import serialize_activations
+# Import activation hooks with debug logging
+try:
+    logger.info("Attempting to import from activation_hooks_fixed...")
+    from mlx_engine.activation_hooks_fixed import serialize_activations, ActivationHookSpec
+    logger.info(f"Successfully imported ActivationHookSpec: {ActivationHookSpec}")
+    logger.info(f"ActivationHookSpec module: {ActivationHookSpec.__module__}")
+    logger.info(f"ActivationHookSpec attributes: {dir(ActivationHookSpec)}")
+except ImportError as e:
+    logger.error(f"Failed to import from activation_hooks_fixed: {e}")
+    raise
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -50,11 +63,28 @@ class MLXEngineAPI:
     
     def _setup_routes(self):
         """Set up API routes."""
+        # Debug: Log all registered routes
+        logger.info("Registering API routes...")
         
         @self.app.route('/health', methods=['GET'])
         def health():
             """Health check endpoint."""
+            logger.info(f"Health check endpoint called")
             return jsonify({'status': 'healthy', 'service': 'mlx-engine-neuroscope'})
+            
+        # Debug route to list all registered routes
+        @self.app.route('/debug/routes', methods=['GET'])
+        def debug_routes():
+            """Debug endpoint to list all registered routes."""
+            routes = []
+            for rule in self.app.url_map.iter_rules():
+                methods = ','.join(rule.methods)
+                routes.append({
+                    'endpoint': rule.endpoint,
+                    'methods': methods,
+                    'rule': str(rule)
+                })
+            return jsonify({'routes': routes})
         
         @self.app.route('/v1/models', methods=['GET'])
         def list_models():
@@ -149,6 +179,73 @@ class MLXEngineAPI:
                 logger.error(f"Generation failed: {e}")
                 return jsonify({'error': str(e)}), 500
         
+        @self.app.route('/v1/activations/hooks', methods=['POST', 'DELETE'])
+        def manage_activation_hooks():
+            """Manage activation hooks for the model.
+            
+            POST: Register new activation hooks
+            DELETE: Clear all activation hooks
+            """
+            # Get model from request or use default
+            data = request.get_json() or {}
+            model_id = data.get('model', self.current_model)
+            
+            # Debug logging
+            logger.info(f"Activation hooks request - model_id: {model_id}")
+            logger.info(f"Available models: {list(self.models.keys())}")
+            logger.info(f"Current model: {self.current_model}")
+            
+            if not model_id or model_id not in self.models:
+                return jsonify({'error': f'Model not found. Available models: {list(self.models.keys())}, requested: {model_id}'}), 404
+                
+            model = self.models[model_id]
+            
+            # Check if model supports activation capture
+            if not hasattr(model, 'activation_hook_manager'):
+                return jsonify({'error': 'Model does not support activation capture'}), 400
+            
+            if request.method == 'POST':
+                # Register new activation hooks
+                hooks = data.get('hooks', [])
+                if not hooks:
+                    return jsonify({'error': 'No hooks provided'}), 400
+                
+                try:
+                    registered_hooks = []
+                    for hook_spec in hooks:
+                        # Convert dict to ActivationHookSpec if needed
+                        if isinstance(hook_spec, dict):
+                            hook_spec = ActivationHookSpec(
+                                layer_name=hook_spec['layer_name'],
+                                component=hook_spec.get('component'),
+                                hook_id=hook_spec.get('hook_id'),
+                                capture_input=hook_spec.get('capture_input', False),
+                                capture_output=hook_spec.get('capture_output', True)
+                            )
+                        
+                        # Register the hook
+                        hook_id = model.activation_hook_manager.register_hook(hook_spec)
+                        if hook_id:
+                            registered_hooks.append(hook_id)
+                    
+                    return jsonify({
+                        'status': 'hooks_registered',
+                        'registered_hooks': registered_hooks
+                    })
+                    
+                except Exception as e:
+                    logger.error(f"Failed to register activation hooks: {e}")
+                    return jsonify({'error': str(e)}), 500
+                    
+            elif request.method == 'DELETE':
+                # Clear all activation hooks
+                try:
+                    model.activation_hook_manager.clear_all_hooks()
+                    return jsonify({'status': 'hooks_cleared'})
+                except Exception as e:
+                    logger.error(f"Failed to clear activation hooks: {e}")
+                    return jsonify({'error': str(e)}), 500
+        
         @self.app.route('/v1/chat/completions/with_activations', methods=['POST'])
         def chat_completions_with_activations():
             """Extended endpoint that captures activations during generation."""
@@ -188,6 +285,10 @@ class MLXEngineAPI:
             stream = data.get('stream', False)
             
             try:
+                # Clear GPU cache before generation to free memory
+                import mlx.core as mx
+                mx.clear_cache()
+                
                 if stream:
                     return Response(
                         self._stream_completion_with_activations(
@@ -196,69 +297,27 @@ class MLXEngineAPI:
                         mimetype='application/x-ndjson'
                     )
                 else:
-                    return self._complete_generation_with_activations(
+                    # Use real activation capture now that memory issue is resolved
+                    result = self._complete_generation_with_activations(
                         model, tokens, activation_hooks, max_tokens, temperature, top_p, stop
                     )
                     
+                    # Clear cache after generation
+                    mx.clear_cache()
+                    return result
+                    
             except Exception as e:
                 logger.error(f"Generation with activations failed: {e}")
+                # Clear cache on error too
+                try:
+                    import mlx.core as mx
+                    mx.clear_cache()
+                except:
+                    pass
                 return jsonify({'error': str(e)}), 500
         
-        @self.app.route('/v1/activations/hooks', methods=['POST'])
-        def register_activation_hooks():
-            """Register activation hooks on the current model."""
-            data = request.get_json()
-            
-            if not data or 'hooks' not in data:
-                return jsonify({'error': 'hooks array is required'}), 400
-            
-            model_id = data.get('model', self.current_model)
-            if not model_id or model_id not in self.models:
-                return jsonify({'error': 'Model not found'}), 404
-            
-            model = self.models[model_id]
-            
-            if not hasattr(model, 'register_activation_hook'):
-                return jsonify({'error': 'Model does not support activation hooks'}), 400
-            
-            registered_hooks = []
-            try:
-                for hook_spec in data['hooks']:
-                    hook_id = model.register_activation_hook(
-                        layer_name=hook_spec['layer_name'],
-                        component=hook_spec['component'],
-                        hook_id=hook_spec.get('hook_id'),
-                        capture_input=hook_spec.get('capture_input', False),
-                        capture_output=hook_spec.get('capture_output', True)
-                    )
-                    registered_hooks.append(hook_id)
-                
-                return jsonify({'registered_hooks': registered_hooks})
-                
-            except Exception as e:
-                # Clean up any successfully registered hooks
-                for hook_id in registered_hooks:
-                    try:
-                        model.unregister_activation_hook(hook_id)
-                    except Exception:
-                        pass
-                
-                return jsonify({'error': str(e)}), 500
-        
-        @self.app.route('/v1/activations/hooks', methods=['DELETE'])
-        def clear_activation_hooks():
-            """Clear all activation hooks from the current model."""
-            model_id = request.args.get('model', self.current_model)
-            if not model_id or model_id not in self.models:
-                return jsonify({'error': 'Model not found'}), 404
-            
-            model = self.models[model_id]
-            
-            if hasattr(model, 'clear_activation_hooks'):
-                model.clear_activation_hooks()
-                return jsonify({'status': 'hooks cleared'})
-            else:
-                return jsonify({'error': 'Model does not support activation hooks'}), 400
+        # Removed duplicate route registrations for /v1/activations/hooks
+        # The functionality is now handled by the manage_activation_hooks endpoint
     
     def _messages_to_prompt(self, messages: List[Dict[str, str]]) -> str:
         """Convert chat messages to a single prompt string."""
@@ -346,25 +405,31 @@ class MLXEngineAPI:
         full_text = ""
         all_activations = {}
         
-        for result, activations in create_generator_with_activations(
-            model, tokens,
-            activation_hooks=activation_hooks,
-            max_tokens=max_tokens,
-            temp=temperature,
-            top_p=top_p,
-            stop_strings=stop
-        ):
-            full_text += result.text
-            
-            if activations:
-                # Merge activations (simple approach - in practice might want more sophisticated merging)
-                for hook_id, hook_activations in activations.items():
-                    if hook_id not in all_activations:
-                        all_activations[hook_id] = []
-                    all_activations[hook_id].extend(hook_activations)
-            
-            if result.stop_condition:
-                break
+        # Use the actual activation capture system
+        try:
+            for result, activations in create_generator_with_activations(
+                model, tokens,
+                activation_hooks=activation_hooks,
+                max_tokens=max_tokens,
+                temp=temperature,
+                top_p=top_p,
+                stop_strings=stop
+            ):
+                full_text += result.text
+                
+                if activations:
+                    # Merge activations
+                    for hook_id, hook_activations in activations.items():
+                        if hook_id not in all_activations:
+                            all_activations[hook_id] = []
+                        all_activations[hook_id].extend(hook_activations)
+                
+                if result.stop_condition:
+                    break
+        
+        except Exception as e:
+            logger.error(f"Error during generation with activations: {e}")
+            raise e
         
         return jsonify({
             'choices': [{
