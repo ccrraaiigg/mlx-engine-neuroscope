@@ -15,9 +15,10 @@ import threading
 import requests
 from pathlib import Path
 from typing import Dict, List, Optional, Any
+from datetime import datetime
 
-# Add the current directory to Python path
-sys.path.insert(0, os.getcwd())
+# Add the parent directory to Python path to access mlx_engine
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 # Import the API server and activation hooks
 from mlx_engine.api_server import MLXEngineAPI
@@ -144,8 +145,8 @@ def demo_basic_rest_interface():
         return False
     print("✅ API server is healthy")
     
-    # Load model
-    model_path = "./models/nightmedia/gpt-oss-20b-q4-hi-mlx"
+    # Load model (relative to parent directory)
+    model_path = "../models/nightmedia/gpt-oss-20b-q4-hi-mlx"
     if not Path(model_path).exists():
         print(f"❌ Model not found at {model_path}")
         return False
@@ -191,7 +192,7 @@ def demo_basic_rest_interface():
     return True
 
 
-def demo_neuroscope_activation_capture(model_path: str = "./models/nightmedia/gpt-oss-20b-q4-hi-mlx"):
+def demo_neuroscope_activation_capture(model_path: str = "../models/nightmedia/gpt-oss-20b-q4-hi-mlx"):
     """Demo activation capture functionality for NeuroScope.
     
     Args:
@@ -270,6 +271,13 @@ def demo_neuroscope_activation_capture(model_path: str = "./models/nightmedia/gp
                     shape = act.get('shape', 'unknown')
                     dtype = act.get('dtype', 'unknown')
                     print(f"     {i+1}. Shape: {shape}, Type: {dtype}")
+            
+            # Save activation data to file
+            print("\n5. Saving activation data...")
+            _save_activation_data(activation_data, "activation_capture_demo.json")
+            _create_activation_format_doc("activation_capture_demo_format.md", activation_data)
+            print("   ✅ Saved data/activation_capture_demo.json")
+            print("   ✅ Created data/activation_capture_demo_format.md")
         else:
             print("⚠️  No activations captured")
             
@@ -333,7 +341,7 @@ def demo_neuroscope_circuit_analysis():
     # Load model for circuit analysis
     print("1. Loading model for circuit analysis...")
     try:
-        model_path = "./models/nightmedia/gpt-oss-20b-q4-hi-mlx"
+        model_path = "../models/nightmedia/gpt-oss-20b-q4-hi-mlx"
         load_result = client.load_model(model_path, "gpt-oss-20b")
         print(f"✅ Model loaded: {load_result['model_id']}")
         print(f"   Supports activations: {load_result['supports_activations']}")
@@ -389,6 +397,15 @@ def demo_neuroscope_circuit_analysis():
                               f"shape {shape}, component {component}")
                 
                 print(f"   📊 Total activation tensors captured: {total_activations}")
+                
+                # Save circuit analysis data
+                circuit_filename = f"circuit_analysis_{analysis_name}.json"
+                format_filename = f"circuit_analysis_{analysis_name}_format.md"
+                _save_circuit_analysis_data(result, circuit_filename, analysis_name, config)
+                _create_circuit_format_doc(format_filename, result, analysis_name, config)
+                print(f"   💾 Saved data/{circuit_filename}")
+                print(f"   📄 Created data/{format_filename}")
+                
                 success_count += 1
             else:
                 print(f"   ❌ Request failed with status {response.status_code}")
@@ -494,6 +511,16 @@ def main():
     # Wait for server to start
     time.sleep(3)
     
+    # Set up signal handler for clean shutdown
+    import signal
+    import sys
+    
+    def signal_handler(sig, frame):
+        print('\n\n🛑 Demo interrupted by user')
+        sys.exit(0)
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    
     # Run demo scenarios
     demos = [
         ("Basic REST Interface", demo_basic_rest_interface),
@@ -541,6 +568,248 @@ def main():
     print("2. Add activation visualization components")
     print("3. Create circuit analysis tools")
     print("4. Test with real mechanistic interpretability workflows")
+    
+    # Exit cleanly
+    print("\n✅ NeuroScope demo completed!")
+    sys.exit(0)
+
+
+def _save_activation_data(activation_data: Dict[str, Any], filename: str):
+    """Save activation data to JSON file."""
+    output_data = {
+        "timestamp": datetime.now().isoformat(),
+        "demo_type": "activation_capture",
+        "total_hooks": len(activation_data),
+        "activations": activation_data
+    }
+    
+    # Ensure data directory exists
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    
+    filepath = data_dir / filename
+    with open(filepath, 'w') as f:
+        json.dump(output_data, f, indent=2)
+
+
+def _create_activation_format_doc(filename: str, activation_data: Dict[str, Any]):
+    """Create documentation explaining the activation data format."""
+    # Ensure data directory exists
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    doc_content = f"""# Activation Capture Data Format
+
+Generated: {datetime.now().isoformat()}
+Demo Type: Basic Activation Capture
+
+## File Structure
+
+```json
+{{
+  "timestamp": "ISO 8601 timestamp of capture",
+  "demo_type": "activation_capture", 
+  "total_hooks": {len(activation_data)},
+  "activations": {{
+    "hook_id": [
+      {{
+        "hook_id": "string - unique identifier for this hook",
+        "layer_name": "string - model layer name (e.g., 'model.layers.0.self_attn')",
+        "component": "string - component type ('attention', 'mlp', 'residual', etc.)",
+        "shape": [batch_size, sequence_length, hidden_size],
+        "dtype": "string - data type ('float32', 'float16', etc.)",
+        "is_input": boolean - whether this is input or output activation
+      }}
+    ]
+  }}
+}}
+```
+
+## Hook Details
+
+"""
+    
+    for hook_id, activations in activation_data.items():
+        if activations:
+            first_activation = activations[0]
+            doc_content += f"""### Hook: {hook_id}
+- **Layer**: {first_activation.get('layer_name', 'unknown')}
+- **Component**: {first_activation.get('component', 'unknown')}
+- **Activations Count**: {len(activations)}
+- **Shape**: {first_activation.get('shape', 'unknown')}
+- **Data Type**: {first_activation.get('dtype', 'unknown')}
+- **Is Input**: {first_activation.get('is_input', False)}
+
+"""
+    
+    doc_content += """## Usage for NeuroScope
+
+This data format is designed for mechanistic interpretability analysis:
+
+1. **Hook ID**: Use to identify which layer/component the activation came from
+2. **Shape**: [batch_size, sequence_length, hidden_size] tensor dimensions
+3. **Layer Name**: Maps to specific transformer architecture components
+4. **Component Type**: Distinguishes between attention, MLP, residual connections
+5. **Activation Count**: Number of tokens/steps captured during generation
+
+## Integration Notes
+
+- Each activation represents one forward pass step during text generation
+- Multiple activations per hook indicate multi-token generation
+- Shape [1, 32, 768] indicates: 1 batch, 32 sequence length, 768 hidden dimensions
+- Data can be loaded and processed by NeuroScope for circuit analysis
+"""
+    
+    filepath = data_dir / filename
+    with open(filepath, 'w') as f:
+        f.write(doc_content)
+
+
+def _save_circuit_analysis_data(result: Dict[str, Any], filename: str, analysis_name: str, config: Dict[str, Any]):
+    """Save circuit analysis data to JSON file."""
+    output_data = {
+        "timestamp": datetime.now().isoformat(),
+        "demo_type": "circuit_analysis",
+        "analysis_name": analysis_name,
+        "analysis_description": config.get('description', ''),
+        "hooks_used": len(config.get('hooks', [])),
+        "generated_text": result.get('choices', [{}])[0].get('message', {}).get('content', ''),
+        "activations": result.get('activations', {}),
+        "usage": result.get('usage', {}),
+        "hook_configurations": config.get('hooks', [])
+    }
+    
+    # Ensure data directory exists
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    
+    filepath = data_dir / filename
+    with open(filepath, 'w') as f:
+        json.dump(output_data, f, indent=2)
+
+
+def _create_circuit_format_doc(filename: str, result: Dict[str, Any], analysis_name: str, config: Dict[str, Any]):
+    """Create documentation explaining the circuit analysis data format."""
+    activations = result.get('activations', {})
+    generated_text = result.get('choices', [{}])[0].get('message', {}).get('content', '')
+    
+    # Ensure data directory exists
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    
+    doc_content = f"""# Circuit Analysis Data Format: {analysis_name}
+
+Generated: {datetime.now().isoformat()}
+Analysis Type: {analysis_name}
+Description: {config.get('description', '')}
+
+## File Structure
+
+```json
+{{
+  "timestamp": "ISO 8601 timestamp of analysis",
+  "demo_type": "circuit_analysis",
+  "analysis_name": "{analysis_name}",
+  "analysis_description": "{config.get('description', '')}",
+  "hooks_used": {len(config.get('hooks', []))},
+  "generated_text": "The text generated during this analysis",
+  "activations": {{
+    "hook_id": [
+      {{
+        "hook_id": "unique identifier",
+        "layer_name": "model layer path",
+        "component": "component type",
+        "shape": [dimensions],
+        "dtype": "data type",
+        "is_input": boolean
+      }}
+    ]
+  }},
+  "usage": {{
+    "prompt_tokens": number,
+    "completion_tokens": number,
+    "total_tokens": number
+  }},
+  "hook_configurations": [
+    {{
+      "layer_name": "target layer",
+      "component": "component type",
+      "hook_id": "identifier",
+      "capture_output": boolean
+    }}
+  ]
+}}
+```
+
+## Analysis Results
+
+**Generated Text**: "{generated_text[:100]}{'...' if len(generated_text) > 100 else ''}"
+
+**Hooks Analyzed**: {len(activations)}
+"""
+    
+    total_activations = 0
+    for hook_id, hook_activations in activations.items():
+        if hook_activations:
+            total_activations += len(hook_activations)
+            first_activation = hook_activations[0]
+            doc_content += f"""
+### {hook_id}
+- **Layer**: {first_activation.get('layer_name', 'unknown')}
+- **Component**: {first_activation.get('component', 'unknown')}
+- **Activations**: {len(hook_activations)}
+- **Shape**: {first_activation.get('shape', 'unknown')}
+- **Data Type**: {first_activation.get('dtype', 'unknown')}
+"""
+    
+    doc_content += f"""
+**Total Activation Tensors**: {total_activations}
+
+## Circuit Analysis Interpretation
+
+### {analysis_name.replace('_', ' ').title()}
+
+{config.get('description', 'No description available')}
+
+This analysis captured activations from {len(config.get('hooks', []))} different hooks across the model:
+
+"""
+    
+    for i, hook_config in enumerate(config.get('hooks', []), 1):
+        doc_content += f"""
+{i}. **{hook_config.get('layer_name', 'unknown')}**
+   - Component: {hook_config.get('component', 'unknown')}
+   - Hook ID: {hook_config.get('hook_id', 'unknown')}
+   - Captures: {'Input & Output' if hook_config.get('capture_input') and hook_config.get('capture_output') else 'Output' if hook_config.get('capture_output') else 'Input'}
+"""
+    
+    doc_content += """
+## NeuroScope Integration
+
+This circuit analysis data provides:
+
+1. **Multi-layer Analysis**: Activations from multiple transformer layers
+2. **Component Isolation**: Separate data for attention, MLP, and other components  
+3. **Temporal Dynamics**: Activation sequences showing how information flows during generation
+4. **Circuit Mapping**: Data to identify which layers/components are active for specific tasks
+
+### Recommended Analysis Workflows
+
+1. **Attention Pattern Analysis**: Examine attention layer activations to understand what the model is "looking at"
+2. **Information Flow**: Track how information moves through residual connections
+3. **Feature Detection**: Analyze MLP activations to identify what features are being computed
+4. **Circuit Discovery**: Compare activations across different prompts to identify consistent patterns
+
+### Data Processing Notes
+
+- Each activation tensor represents one forward pass step
+- Multiple activations per hook indicate multi-token generation
+- Shape information is crucial for proper tensor manipulation
+- Hook IDs provide traceability back to specific model components
+"""
+    
+    filepath = data_dir / filename
+    with open(filepath, 'w') as f:
+        f.write(doc_content)
 
 
 if __name__ == "__main__":

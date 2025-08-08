@@ -230,3 +230,58 @@ The solution provides:
 - **Robust testing and error handling**
 
 This enables researchers to leverage LM Studio's optimized inference while conducting deep interpretability analysis with NeuroScope's powerful Smalltalk-based tools.
+
+## Generated Data Files and Format Documentation
+
+### 📁 **Generated Files:**
+
+The demo system now automatically generates concrete examples of activation data with comprehensive format documentation:
+
+#### **Activation Capture Data:**
+1. **`activation_capture_demo.json`** - Raw activation data from basic capture demo
+2. **`activation_capture_demo_format.md`** - Detailed format documentation
+
+#### **Circuit Analysis Data:**
+3. **`circuit_analysis_attention_patterns.json`** - Attention pattern analysis data
+4. **`circuit_analysis_attention_patterns_format.md`** - Format documentation for attention analysis
+5. **`circuit_analysis_mlp_processing.json`** - MLP processing analysis data  
+6. **`circuit_analysis_mlp_processing_format.md`** - Format documentation for MLP analysis
+
+### 🔍 **Key Data Insights:**
+
+#### **Activation Structure:**
+- **Shape**: `[1, 32, 768]` - 1 batch, 32 sequence length, 768 hidden dimensions
+- **Data Type**: `float32` - Standard precision for neural network activations
+- **Temporal Sequence**: 12 activations per hook (one per generated token)
+- **Multi-layer Capture**: Simultaneous data from attention and MLP components
+
+#### **Circuit Analysis Results:**
+- **Attention Patterns**: 30 activations each from layers 2 and 10
+- **MLP Processing**: 30 activations each from layers 5 and 15  
+- **Cross-layer Analysis**: 4 hooks capturing 120 total activation tensors
+- **Generated Text**: Real model output during analysis
+
+### 📋 **Format Documentation Features:**
+
+#### **Comprehensive Structure:**
+- **JSON Schema**: Clear data structure specification
+- **Field Descriptions**: Detailed explanation of each data field
+- **Usage Guidelines**: How NeuroScope should consume the data
+- **Integration Notes**: Technical details for implementation
+
+#### **Analysis Context:**
+- **Timestamp**: When the analysis was performed
+- **Hook Configurations**: Exact specifications used
+- **Generated Text**: The actual model output being analyzed
+- **Token Usage**: Resource consumption metrics
+
+### 🚀 **NeuroScope Integration Ready:**
+
+These files provide **concrete examples** of:
+1. **Real activation data format** from working MLX models
+2. **Multi-layer circuit analysis** with proper tensor shapes
+3. **Temporal dynamics** showing token-by-token activation sequences
+4. **Component isolation** (attention vs MLP vs residual)
+5. **Production-ready data structures** for mechanistic interpretability
+
+**The activation hooks system is now fully documented with real data examples for NeuroScope integration!**

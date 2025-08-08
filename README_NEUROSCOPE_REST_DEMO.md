@@ -6,14 +6,14 @@ This demo elaborates on `test_gpt_oss_20b.py` by showing how NeuroScope will int
 
 The demo consists of several components that demonstrate the complete workflow for NeuroScope integration:
 
-1. **`demo_neuroscope_rest_interface.py`** - Main demo showing REST API usage
+1. **`demo/demo_neuroscope_rest_interface.py`** - Main demo showing REST API usage
 2. **`neuroscope_api_reference.py`** - Comprehensive API reference and examples
-3. **`run_neuroscope_demo.py`** - Simple runner script to execute all demos
+3. **`demo/run_neuroscope_demo.py`** - Simple runner script to execute all demos
 4. **This README** - Documentation and usage instructions
 
 ## What's Demonstrated
 
-### 1. Basic REST Interface (`demo_neuroscope_rest_interface.py`)
+### 1. Basic REST Interface (`demo/demo_neuroscope_rest_interface.py`)
 
 - **Health Checks**: Verify API server is running
 - **Model Loading**: Load models via REST API
@@ -59,7 +59,7 @@ NeuroScope → REST API → MLX Engine → Model → Activations → Analysis
 Run all demos with the simple runner:
 
 ```bash
-python run_neuroscope_demo.py
+python demo/run_neuroscope_demo.py
 ```
 
 This will:
@@ -77,7 +77,7 @@ Run specific parts of the demo:
 python test_gpt_oss_20b.py
 
 # Full NeuroScope REST demo
-python demo_neuroscope_rest_interface.py
+python demo/demo_neuroscope_rest_interface.py
 
 # API reference and examples
 python neuroscope_api_reference.py

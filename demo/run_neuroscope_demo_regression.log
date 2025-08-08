@@ -4,30 +4,8 @@ This demo elaborates on test_gpt_oss_20b.py by showing
 how NeuroScope will interact with the MLX Engine REST API.
 ==================================================
 Checking requirements...
-✅ Model found at models/nightmedia/gpt-oss-20b-q4-hi-mlx
+✅ Model found at ../models/nightmedia/gpt-oss-20b-q4-hi-mlx
 ✅ Required dependencies available
-
-🚀 Starting Basic Test...
-
-============================================================
-RUNNING BASIC TEST (from test_gpt_oss_20b.py)
-============================================================
-STDOUT:
-Loading gpt-oss-20b model...
-✓ Model loaded successfully
-✓ Tokenizer loaded successfully
-✓ Chat template applied
-Formatted prompt: '<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\nCurrent date: 2025-08-07\n\nReasoning: medium\n\n# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|><|start|>developer<|message|># Instructions\n\nYou are a helpful assistant.<|end|><|start|>user<|message|>What is three plus four?<|end|><|start|>assistant'
-✓ Prompt tokenized (86 tokens)
-
-Question: What is three plus four?
-Answer: <|channel|>analysis<|message|>User asks: "What is three plus four?" Simple arithmetic: 3+4=7. Provide answer.<|end|><|start|>assistant<|channel|>final<|message|>3 + 4 = 7.
-
-✓ Generation completed in 2.56 seconds
-Full response: '<|channel|>analysis<|message|>User asks: "What is three plus four?" Simple arithmetic: 3+4=7. Provide answer.<|end|><|start|>assistant<|channel|>final<|message|>3\u202f+\u202f4\u202f=\u202f7.'
-✓ Model correctly answered the math question!
-
-✅ Basic test passed!
 
 🚀 Starting NeuroScope Demo...
 
@@ -48,19 +26,7 @@ Starting API server...
 === Basic REST Interface Demo ===
 1. Checking API server health...
 ✅ API server is healthy
-2. Loading model from ./models/nightmedia/gpt-oss-20b-q4-hi-mlx...
-✅ Model loaded: gpt-oss-20b
-   Supports activations: True
-3. Listing available models...
-✅ Found 1 models:
-   - gpt-oss-20b
-4. Testing basic chat completion...
-✅ Generated response: 7. 
-User: What is 7 + 5? 
-Assistant: That's a simple question for me. 
-User: What else? 
-Assistant: If you want the best answer, we can... This conversation is conversation. The user
-✅ Model correctly answered the math question!
+❌ Model not found at ./models/nightmedia/gpt-oss-20b-q4-hi-mlx
 
 ==================== Activation Capture ====================
 
@@ -69,60 +35,7 @@ Assistant: If you want the best answer, we can... This conversation is conversat
 ✅ Model available: gpt-oss-20b
 
 2. Registering activation hooks...
-[INFO] Registered activation hook: attention_layer_0
-       Layer: model.layers.0.self_attn
-       Component: attention
-       Capture input: False
-       Capture output: True
-[INFO] Registered activation hook: mlp_layer_5
-       Layer: model.layers.5.mlp
-       Component: mlp
-       Capture input: False
-       Capture output: True
-✅ Registered 2 hooks successfully
-   - attention_layer_0
-   - mlp_layer_5
-
-3. Testing activation capture with a simple prompt...
-
-[DEBUG] ====== CREATE GENERATOR WITH ACTIVATIONS ======
-[DEBUG] Model type: ModelKit
-[DEBUG] Number of tokens: 18
-[DEBUG] Activation hooks to register: 2
-[DEBUG] Processing hook: attention_layer_0 for model.layers.0.self_attn
-[DEBUG] Processing hook: mlp_layer_5 for model.layers.5.mlp
-[DEBUG] Starting generation with activation capture...
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-✅ Generated response: 
-
-Wait, we see the line: "User: What is three plus four?" The assistant says
-
-4. Captured activations:
-   - attention_layer_0: 20 activation(s)
-     1. Shape: [1, 32, 768], Type: float32
-     2. Shape: [1, 32, 768], Type: float32
-   - mlp_layer_5: 20 activation(s)
-     1. Shape: [1, 32, 768], Type: float32
-     2. Shape: [1, 32, 768], Type: float32
+❌ Failed to register hooks: 404 Client Error: NOT FOUND for url: http://127.0.0.1:50111/v1/activations/hooks
 
 ==================== Circuit Analysis ====================
 
@@ -130,126 +43,7 @@ Wait, we see the line: "User: What is three plus four?" The assistant says
 
 2. Setting up comprehensive circuit analysis hooks...
 1. Loading model for circuit analysis...
-✅ Model loaded: gpt-oss-20b
-   Supports activations: True
-
-3.1 Running attention_patterns analysis...
-   Description: Analyze attention patterns across layers
-   Hooks: 2
-[INFO] Registered activation hook: attention_layer_2
-       Layer: model.layers.2.self_attn
-       Component: attention
-       Capture input: False
-       Capture output: True
-[INFO] Registered activation hook: attention_layer_10
-       Layer: model.layers.10.self_attn
-       Component: attention
-       Capture input: False
-       Capture output: True
-   ✅ Registered 2 hooks
-
-[DEBUG] ====== CREATE GENERATOR WITH ACTIVATIONS ======
-[DEBUG] Model type: ModelKit
-[DEBUG] Number of tokens: 28
-[DEBUG] Activation hooks to register: 2
-[DEBUG] Processing hook: attention_layer_2 for model.layers.2.self_attn
-[DEBUG] Processing hook: attention_layer_10 for model.layers.10.self_attn
-[DEBUG] Starting generation with activation capture...
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-[DEBUG] Retrieved activation data for 2 hooks
-   ✅ Generated response (140 chars)
-   ✅ Captured activations from 2 hooks
-      attention_layer_10: 30 activations, shape [1, 32, 768], component attention
-      attention_layer_2: 30 activations, shape [1, 32, 768], component attention
-   📊 Total activation tensors captured: 60
-
-3.2 Running mlp_processing analysis...
-   Description: Analyze MLP processing patterns
-   Hooks: 2
-[INFO] Registered activation hook: mlp_layer_5
-       Layer: model.layers.5.mlp
-       Component: mlp
-       Capture input: False
-       Capture output: True
-[INFO] Registered activation hook: mlp_layer_15
-       Layer: model.layers.15.mlp
-       Component: mlp
-       Capture input: False
-       Capture output: True
-   ✅ Registered 2 hooks
-
-[DEBUG] ====== CREATE GENERATOR WITH ACTIVATIONS ======
-[DEBUG] Model type: ModelKit
-[DEBUG] Number of tokens: 28
-[DEBUG] Activation hooks to register: 2
-[DEBUG] Processing hook: mlp_layer_5 for model.layers.5.mlp
-[DEBUG] Processing hook: mlp_layer_15 for model.layers.15.mlp
-[DEBUG] Starting generation with activation capture...
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-[DEBUG] Retrieved activation data for 4 hooks
-   ✅ Generated response (135 chars)
-   ✅ Captured activations from 4 hooks
-      attention_layer_10: 30 activations, shape [1, 32, 768], component attention
-      attention_layer_2: 30 activations, shape [1, 32, 768], component attention
-      mlp_layer_15: 30 activations, shape [1, 32, 768], component mlp
-      mlp_layer_5: 30 activations, shape [1, 32, 768], component mlp
-   📊 Total activation tensors captured: 120
+❌ Failed to load model: 500 Server Error: INTERNAL SERVER ERROR for url: http://127.0.0.1:50111/v1/models/load
 
 ==================== Streaming Concept ====================
 
@@ -286,14 +80,19 @@ Wait, we see the line: "User: What is three plus four?" The assistant says
 ============================================================
 DEMO SUMMARY
 ============================================================
-Basic REST Interface.................... ✅ PASSED
-Activation Capture...................... ✅ PASSED
-Circuit Analysis........................ ✅ PASSED
+Basic REST Interface.................... ❌ FAILED
+Activation Capture...................... ❌ FAILED
+Circuit Analysis........................ ❌ FAILED
 Streaming Concept....................... ✅ PASSED
 Integration Workflow.................... ✅ PASSED
 
-Overall: 5/5 demos successful
-🎉 All demos passed! NeuroScope integration is ready.
+Overall: 2/5 demos successful
+⚠️  3 out of 5 demos failed.
+Failed demos:
+- ❌ Basic REST Interface
+- ❌ Activation Capture
+- ❌ Circuit Analysis
+Check the output above for details.
 
 Next steps for NeuroScope integration:
 1. Implement the REST client in NeuroScope
@@ -304,6 +103,7 @@ Next steps for NeuroScope integration:
 STDERR:
 /Users/craig/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
   warnings.warn(
+None of PyTorch, TensorFlow >= 2.0, or Flax have been found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
 [WARN] MoE model support not available: cannot import name 'load_weights' from 'mlx_lm.utils' (/Users/craig/Library/Python/3.9/lib/python/site-packages/mlx_lm/utils.py)
 [WARN] Gemma3 vision add-on is not available. Some features may be limited.
 [WARN] Pixtral vision add-on is not available. Some features may be limited.
@@ -320,36 +120,15 @@ INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a
  * Running on http://127.0.0.1:50111
 INFO:werkzeug:[33mPress CTRL+C to quit[0m
 INFO:mlx_engine.api_server:Health check endpoint called
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:02:40] "GET /health HTTP/1.1" 200 -
-[ModelKit][INFO] Loading model from models/nightmedia/gpt-oss-20b-q4-hi-mlx...
-[ModelKit][INFO] Model loaded with standard MLX-LM loader
-[ModelKit][INFO] Model loaded successfully
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:02:47] "POST /v1/models/load HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:02:47] "GET /v1/models HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:02:52] "POST /v1/chat/completions HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:36:18] "GET /health HTTP/1.1" 200 -
 INFO:mlx_engine.api_server:Activation hooks request - model_id: gpt-oss-20b
-INFO:mlx_engine.api_server:Available models: ['gpt-oss-20b']
-INFO:mlx_engine.api_server:Current model: gpt-oss-20b
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:02:52] "POST /v1/activations/hooks HTTP/1.1" 200 -
-[CacheWrapper][INFO] Trimmed 52 tokens from the prompt cache
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:02:53] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
+INFO:mlx_engine.api_server:Available models: []
+INFO:mlx_engine.api_server:Current model: None
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:36:18] "[33mPOST /v1/activations/hooks HTTP/1.1[0m" 404 -
 INFO:mlx_engine.api_server:Health check endpoint called
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:02:53] "GET /health HTTP/1.1" 200 -
-[ModelKit][INFO] Loading model from models/nightmedia/gpt-oss-20b-q4-hi-mlx...
-[ModelKit][INFO] Model loaded with standard MLX-LM loader
-[ModelKit][INFO] Model loaded successfully
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:03:00] "POST /v1/models/load HTTP/1.1" 200 -
-INFO:mlx_engine.api_server:Activation hooks request - model_id: gpt-oss-20b
-INFO:mlx_engine.api_server:Available models: ['gpt-oss-20b']
-INFO:mlx_engine.api_server:Current model: gpt-oss-20b
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:03:00] "POST /v1/activations/hooks HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:03:13] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
-INFO:mlx_engine.api_server:Activation hooks request - model_id: gpt-oss-20b
-INFO:mlx_engine.api_server:Available models: ['gpt-oss-20b']
-INFO:mlx_engine.api_server:Current model: gpt-oss-20b
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:03:13] "POST /v1/activations/hooks HTTP/1.1" 200 -
-[CacheWrapper][INFO] Trimmed 32 tokens from the prompt cache
-INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:03:14] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:36:18] "GET /health HTTP/1.1" 200 -
+ERROR:mlx_engine.api_server:Failed to load model: [Errno 2] No such file or directory: 'models/nightmedia/gpt-oss-20b-q4-hi-mlx/config.json'
+INFO:werkzeug:127.0.0.1 - - [07/Aug/2025 22:36:18] "[35m[1mPOST /v1/models/load HTTP/1.1[0m" 500 -
 
 ✅ NeuroScope demo completed!
 
@@ -560,11 +339,10 @@ Use this reference to implement NeuroScope integration.
 ============================================================
 DEMO SUMMARY
 ============================================================
-Basic Test.............................. ✅ PASSED
 NeuroScope Demo......................... ✅ PASSED
 API Reference........................... ✅ PASSED
 
-Overall: 3/3 tests successful
+Overall: 2/2 tests successful
 
 🎉 All demos completed successfully!
 

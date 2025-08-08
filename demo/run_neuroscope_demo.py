@@ -17,8 +17,8 @@ def check_requirements():
     """Check if required dependencies are available."""
     print("Checking requirements...")
     
-    # Check if model exists
-    model_path = Path("./models/nightmedia/gpt-oss-20b-q4-hi-mlx")
+    # Check if model exists (relative to parent directory)
+    model_path = Path("../models/nightmedia/gpt-oss-20b-q4-hi-mlx")
     if not model_path.exists():
         print(f"❌ Model not found at {model_path}")
         print("Please ensure the model is downloaded and available.")
@@ -38,42 +38,7 @@ def check_requirements():
         print("pip install flask flask-cors mlx")
         return False
 
-def run_basic_test():
-    """Run the basic test from test_gpt_oss_20b.py for comparison."""
-    print("\n" + "="*60)
-    print("RUNNING BASIC TEST (from test_gpt_oss_20b.py)")
-    print("="*60)
-    
-    try:
-        # Import the test function directly
-        from test_gpt_oss_20b import test_gpt_oss_20b
-        
-        # Redirect stdout to capture the output
-        import io
-        import sys
-        from contextlib import redirect_stdout
-        
-        f = io.StringIO()
-        with redirect_stdout(f):
-            success = test_gpt_oss_20b()
-        
-        # Print the captured output
-        output = f.getvalue()
-        print("STDOUT:")
-        print(output)
-        
-        if success:
-            print("✅ Basic test passed!")
-            return True
-        else:
-            print("❌ Basic test failed!")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Error running basic test: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+
 
 def run_neuroscope_demo():
     """Run the NeuroScope REST interface demo."""
@@ -84,14 +49,9 @@ def run_neuroscope_demo():
     try:
         result = subprocess.run([
             sys.executable, "demo_neuroscope_rest_interface.py"
-        ], capture_output=True, text=True, timeout=300)
+        ], capture_output=False, text=True, timeout=60)
         
-        print("STDOUT:")
-        print(result.stdout)
-        
-        if result.stderr:
-            print("STDERR:")
-            print(result.stderr)
+        # Output is displayed in real-time, no need to print captured output
         
         if result.returncode == 0:
             print("✅ NeuroScope demo completed!")
@@ -115,14 +75,10 @@ def show_api_reference():
     
     try:
         result = subprocess.run([
-            sys.executable, "neuroscope_api_reference.py"
-        ], capture_output=True, text=True, timeout=30)
+            sys.executable, "../code/neuroscope_api_reference.py"
+        ], capture_output=False, text=True, timeout=30)
         
-        print(result.stdout)
-        
-        if result.stderr:
-            print("STDERR:")
-            print(result.stderr)
+        # Output is displayed in real-time, no need to print captured output
         
         return result.returncode == 0
         
@@ -146,7 +102,6 @@ def main():
     
     # Run tests in sequence
     tests = [
-        ("Basic Test", run_basic_test),
         ("NeuroScope Demo", run_neuroscope_demo),
         ("API Reference", show_api_reference)
     ]
