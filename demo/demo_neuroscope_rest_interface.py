@@ -276,8 +276,9 @@ def demo_neuroscope_activation_capture(model_path: str = "../models/nightmedia/g
             print("\n5. Saving activation data...")
             _save_activation_data(activation_data, "activation_capture_demo.json")
             _create_activation_format_doc("activation_capture_demo_format.md", activation_data)
-            print("   ✅ Saved data/activation_capture_demo.json")
-            print("   ✅ Created data/activation_capture_demo_format.md")
+            data_dir_path = os.environ.get('NEUROSCOPE_DATA_DIR', 'data')
+            print(f"   ✅ Saved {data_dir_path}/activation_capture_demo.json")
+            print(f"   ✅ Created {data_dir_path}/activation_capture_demo_format.md")
         else:
             print("⚠️  No activations captured")
             
@@ -403,8 +404,9 @@ def demo_neuroscope_circuit_analysis():
                 format_filename = f"circuit_analysis_{analysis_name}_format.md"
                 _save_circuit_analysis_data(result, circuit_filename, analysis_name, config)
                 _create_circuit_format_doc(format_filename, result, analysis_name, config)
-                print(f"   💾 Saved data/{circuit_filename}")
-                print(f"   📄 Created data/{format_filename}")
+                data_dir_path = os.environ.get('NEUROSCOPE_DATA_DIR', 'data')
+                print(f"   💾 Saved {data_dir_path}/{circuit_filename}")
+                print(f"   📄 Created {data_dir_path}/{format_filename}")
                 
                 success_count += 1
             else:
@@ -502,6 +504,8 @@ def main():
     print("This demo shows how NeuroScope will interact with MLX Engine")
     print("for mechanistic interpretability analysis via REST API.")
     print("=" * 60)
+    print(f"Script: {__file__}")
+    print("=" * 60)
     
     # Start API server in background
     print("Starting API server...")
@@ -583,9 +587,10 @@ def _save_activation_data(activation_data: Dict[str, Any], filename: str):
         "activations": activation_data
     }
     
-    # Ensure data directory exists
-    data_dir = Path("data")
-    data_dir.mkdir(exist_ok=True)
+    # Use data directory from environment or default
+    data_dir_path = os.environ.get('NEUROSCOPE_DATA_DIR', 'data')
+    data_dir = Path(data_dir_path)
+    data_dir.mkdir(parents=True, exist_ok=True)
     
     filepath = data_dir / filename
     with open(filepath, 'w') as f:
@@ -594,9 +599,10 @@ def _save_activation_data(activation_data: Dict[str, Any], filename: str):
 
 def _create_activation_format_doc(filename: str, activation_data: Dict[str, Any]):
     """Create documentation explaining the activation data format."""
-    # Ensure data directory exists
-    data_dir = Path("data")
-    data_dir.mkdir(exist_ok=True)
+    # Use data directory from environment or default
+    data_dir_path = os.environ.get('NEUROSCOPE_DATA_DIR', 'data')
+    data_dir = Path(data_dir_path)
+    data_dir.mkdir(parents=True, exist_ok=True)
     doc_content = f"""# Activation Capture Data Format
 
 Generated: {datetime.now().isoformat()}
@@ -678,9 +684,10 @@ def _save_circuit_analysis_data(result: Dict[str, Any], filename: str, analysis_
         "hook_configurations": config.get('hooks', [])
     }
     
-    # Ensure data directory exists
-    data_dir = Path("data")
-    data_dir.mkdir(exist_ok=True)
+    # Use data directory from environment or default
+    data_dir_path = os.environ.get('NEUROSCOPE_DATA_DIR', 'data')
+    data_dir = Path(data_dir_path)
+    data_dir.mkdir(parents=True, exist_ok=True)
     
     filepath = data_dir / filename
     with open(filepath, 'w') as f:
@@ -692,9 +699,10 @@ def _create_circuit_format_doc(filename: str, result: Dict[str, Any], analysis_n
     activations = result.get('activations', {})
     generated_text = result.get('choices', [{}])[0].get('message', {}).get('content', '')
     
-    # Ensure data directory exists
-    data_dir = Path("data")
-    data_dir.mkdir(exist_ok=True)
+    # Use data directory from environment or default
+    data_dir_path = os.environ.get('NEUROSCOPE_DATA_DIR', 'data')
+    data_dir = Path(data_dir_path)
+    data_dir.mkdir(parents=True, exist_ok=True)
     
     doc_content = f"""# Circuit Analysis Data Format: {analysis_name}
 

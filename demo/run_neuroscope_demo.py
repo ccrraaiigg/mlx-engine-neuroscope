@@ -12,6 +12,40 @@ import subprocess
 import time
 import signal
 from pathlib import Path
+import glob
+
+def get_next_run_number():
+    """Get the next available run number for logs and data directories."""
+    logs_dir = Path("logs")
+    logs_dir.mkdir(exist_ok=True)
+    
+    # Find existing numbered directories
+    existing_dirs = glob.glob(str(logs_dir / "[0-9][0-9][0-9]"))
+    if not existing_dirs:
+        return 1
+    
+    # Extract numbers and find the maximum
+    numbers = []
+    for dir_path in existing_dirs:
+        dir_name = Path(dir_path).name
+        try:
+            numbers.append(int(dir_name))
+        except ValueError:
+            continue
+    
+    return max(numbers) + 1 if numbers else 1
+
+def setup_run_directories(run_number):
+    """Set up directories for this run."""
+    run_id = f"{run_number:03d}"
+    
+    logs_dir = Path("logs") / run_id
+    data_dir = Path("data") / run_id
+    
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    data_dir.mkdir(parents=True, exist_ok=True)
+    
+    return logs_dir, data_dir
 
 def check_requirements():
     """Check if required dependencies are available."""
@@ -40,16 +74,20 @@ def check_requirements():
 
 
 
-def run_neuroscope_demo():
+def run_neuroscope_demo(data_dir):
     """Run the NeuroScope REST interface demo."""
     print("\n" + "="*60)
     print("RUNNING NEUROSCOPE REST INTERFACE DEMO")
     print("="*60)
     
     try:
+        # Set environment variable for data directory
+        env = os.environ.copy()
+        env['NEUROSCOPE_DATA_DIR'] = str(data_dir)
+        
         result = subprocess.run([
             sys.executable, "demo_neuroscope_rest_interface.py"
-        ], capture_output=False, text=True, timeout=60)
+        ], capture_output=False, text=True, timeout=60, env=env)
         
         # Output is displayed in real-time, no need to print captured output
         
@@ -88,23 +126,59 @@ def show_api_reference():
 
 def main():
     """Main demo runner."""
-    print("NeuroScope MLX Engine Demo Runner")
-    print("=" * 50)
-    print("This demo elaborates on test_gpt_oss_20b.py by showing")
-    print("how NeuroScope will interact with the MLX Engine REST API.")
-    print("=" * 50)
+    # Set up run directories
+    run_number = get_next_run_number()
+    logs_dir, data_dir = setup_run_directories(run_number)
     
-    # Check requirements
-    if not check_requirements():
-        print("\n❌ Requirements check failed!")
-        print("Please install dependencies and ensure model is available.")
-        return 1
+    # Set up logging to file
+    log_file = logs_dir / "run_neuroscope_demo_py.log"
     
-    # Run tests in sequence
-    tests = [
-        ("NeuroScope Demo", run_neuroscope_demo),
-        ("API Reference", show_api_reference)
-    ]
+    # Create a custom print function that writes to both console and file
+    original_stdout = sys.stdout
+    
+    class TeeOutput:
+        def __init__(self, file_path):
+            self.terminal = original_stdout
+            self.log_file = open(file_path, 'w')
+        
+        def write(self, message):
+            self.terminal.write(message)
+            self.log_file.write(message)
+            self.log_file.flush()
+        
+        def flush(self):
+            self.terminal.flush()
+            self.log_file.flush()
+        
+        def close(self):
+            self.log_file.close()
+    
+    tee = TeeOutput(log_file)
+    sys.stdout = tee
+    
+    try:
+        print("NeuroScope MLX Engine Demo Runner")
+        print("=" * 50)
+        print("This demo elaborates on test_gpt_oss_20b.py by showing")
+        print("how NeuroScope will interact with the MLX Engine REST API.")
+        print("=" * 50)
+        print(f"Script: {__file__}")
+        print(f"Run: {run_number:03d}")
+        print(f"Logs: {logs_dir}")
+        print(f"Data: {data_dir}")
+        print("=" * 50)
+        
+        # Check requirements
+        if not check_requirements():
+            print("\n❌ Requirements check failed!")
+            print("Please install dependencies and ensure model is available.")
+            return 1
+        
+        # Run tests in sequence
+        tests = [
+            ("NeuroScope Demo", lambda: run_neuroscope_demo(data_dir)),
+            ("API Reference", show_api_reference)
+        ]
     
     results = {}
     
@@ -170,6 +244,13 @@ def main():
         print("- Missing analysis configuration variables")
         
         return 1
+    
+    finally:
+        # Restore original stdout and close log file
+        sys.stdout = original_stdout
+        tee.close()
+        print(f"\n📝 Log saved to: {log_file}")
+        print(f"📊 Data saved to: {data_dir}")
 
 if __name__ == "__main__":
     try:

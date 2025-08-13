@@ -331,6 +331,8 @@ def print_api_reference():
     
     print("NeuroScope MLX Engine API Reference")
     print("=" * 50)
+    print(f"Script: {__file__}")
+    print("=" * 50)
     
     api_ref = NeuroScopeAPIReference()
     

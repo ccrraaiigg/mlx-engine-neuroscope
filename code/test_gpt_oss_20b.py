@@ -133,6 +133,8 @@ def test_gpt_oss_20b():
 if __name__ == "__main__":
     print("Testing gpt-oss-20b model with mlx-engine-neuroscope")
     print("=" * 60)
+    print(f"Script: {__file__}")
+    print("=" * 60)
     
     success = test_gpt_oss_20b()
     
