@@ -39,7 +39,7 @@ If you want, I can outline an experiment set tailored to your stack that would l
 
 User: Yes.
 
-Assistant: Great — here’s a focused experiment suite you can run on NeuroScope with gpt-oss-20b, designed to make the most of GPT-5 as a reasoning partner.
+Assistant: Great — here’s a focused experiment suite you can run on NeuroScope with gpt-oss-20b, designed to make the most of an LLM as a reasoning partner.
 
 ---
 ## 1. Causal Tracing for Known Phenomena
@@ -47,7 +47,7 @@ Assistant: Great — here’s a focused experiment suite you can run on NeuroSco
 - Patch activations from “correct” runs into “incorrect” runs and measure performance recovery.
 - Layer/head attribution via residual stream interventions.
 
-**GPT-5 role:** Help hypothesize candidate head roles based on attention patterns, then propose minimal patch sites.
+**Assistant LLM role:** Help hypothesize candidate head roles based on attention patterns, then propose minimal patch sites.
 
 ---
 ## 2. Feature Localization & Ablation
@@ -55,28 +55,28 @@ Assistant: Great — here’s a focused experiment suite you can run on NeuroSco
 - Use activation vectors for known features (e.g., country names, code syntax) and run PCA or probing classifiers.
 - Zero or randomize neuron activations to measure degradation.
 
-**GPT-5 role:** Interpret high-dimensional projections into human-meaningful categories.
+**Assistant LLM role:** Interpret high-dimensional projections into human-meaningful categories.
 
 ---
 ## 3. Multi-Token Steering
 **Goal:** See if steering vectors (activation additions) work better when applied across multiple tokens.
 - Compare one-token vs. distributed-token steering for style, bias, or factual recall.
 
-**GPT-5 role:** Suggest where in the sequence the features are most semantically dense.
+**Assistant LLM role:** Suggest where in the sequence the features are most semantically dense.
 
 ---
 ## 4. Circuit Growth with Scale
 **Goal:** Compare circuit complexity to smaller checkpoints of the same architecture.
 - Same prompt set, same analysis pipeline, measure number of heads/MLPs required for task success.
 
-**GPT-5 role:** Analyze patterns of reuse vs. specialization across scale.
+**Assistant LLM role:** Analyze patterns of reuse vs. specialization across scale.
 
 ---
 ## 5. Cross-Domain Feature Entanglement
 **Goal:** Detect whether a neuron/feature responds to semantically unrelated inputs.
 - Activation similarity search across domains (math, code, prose).
 
-**GPT-5 role:** Hypothesize shared latent features and potential multi-task roles.
+**Assistant LLM role:** Hypothesize shared latent features and potential multi-task roles.
 
 ---
 With your platform, all of these are feasible. The main limit is compute budget for full activation storage on 20B.
