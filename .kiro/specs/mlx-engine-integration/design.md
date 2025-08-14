@@ -4,10 +4,18 @@
 
 The MLX Engine integration system provides seamless connectivity between MLX Engine's activation capture capabilities and NeuroScope's interpretability analysis tools. This system enables comprehensive circuit analysis, real-time activation monitoring, and end-to-end workflows from model inference to sophisticated interpretability research.
 
+All integration capabilities are exposed through the **Mechanistic Interpretability MCP Server**, allowing LLM agents to perform complex MLX Engine operations through standardized MCP tools. Agents can load models, capture activations, perform streaming analysis, and validate NeuroScope integration without requiring direct API knowledge or manual workflow orchestration.
+
 ## Architecture
 
 ```mermaid
 graph TB
+    subgraph "MCP Server Layer"
+        MCP[MCP Server]
+        MLX_TOOLS[MLX Integration Tools]
+        AGENT[LLM Agent Interface]
+    end
+    
     subgraph "MLX Engine Layer"
         MK[Model Kit]
         AH[Activation Hooks]
@@ -42,6 +50,10 @@ graph TB
         CM[Cache Manager]
         EM[Export Manager]
     end
+    
+    AGENT --> MCP
+    MCP --> MLX_TOOLS
+    MLX_TOOLS --> RAC
     
     MK --> AH
     AH --> RAC

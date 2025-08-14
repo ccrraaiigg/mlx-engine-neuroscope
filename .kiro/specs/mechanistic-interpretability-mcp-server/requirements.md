@@ -2,9 +2,9 @@
 
 ## Introduction
 
-This specification defines an MCP (Model Context Protocol) server that enables LLM agents to execute tasks from all mechanistic interpretability specifications in this workspace. The MCP server will provide a comprehensive toolkit for circuit analysis, model modification, safety validation, and ecosystem management through standardized MCP tools that can be invoked by any compatible LLM agent.
+This specification defines an MCP (Model Context Protocol) server implemented in **JavaScript** using the **Deno** runtime that enables LLM agents to execute tasks from all mechanistic interpretability specifications in this workspace. The MCP server will provide a comprehensive toolkit for circuit analysis, model modification, safety validation, and ecosystem management through standardized MCP tools that can be invoked by any compatible LLM agent.
 
-The server will bridge the gap between high-level agent instructions and low-level mechanistic interpretability operations, enabling automated execution of complex analysis workflows, circuit discovery, model modifications, and safety validations across the entire MLX Engine ecosystem.
+The server will bridge the gap between high-level agent instructions and low-level mechanistic interpretability operations, enabling automated execution of complex analysis workflows, circuit discovery, model modifications, and safety validations across the entire MLX Engine ecosystem. The choice of JavaScript/Deno provides excellent performance for I/O-intensive operations, built-in security features, native TypeScript support, and seamless integration with web-based APIs and modern development tooling.
 
 ## Requirements
 
@@ -116,14 +116,26 @@ The server will bridge the gap between high-level agent instructions and low-lev
 4. WHEN an agent requests resource management THEN the system SHALL manage computational resources efficiently
 5. WHEN an agent requests logging THEN the system SHALL provide comprehensive logging and debugging capabilities
 
-### Requirement 10: Security and Access Control
+### Requirement 10: JavaScript/Deno Runtime Integration
+
+**User Story:** As an LLM agent, I want to interact with a performant and secure MCP server so that I can execute mechanistic interpretability operations efficiently.
+
+#### Acceptance Criteria
+
+1. WHEN an agent connects to the server THEN the system SHALL use Deno's built-in HTTP server with TypeScript support
+2. WHEN an agent requests operations THEN the system SHALL leverage Deno's permission system for secure execution
+3. WHEN an agent performs I/O operations THEN the system SHALL use Deno's optimized APIs for file system and network access
+4. WHEN an agent requests data processing THEN the system SHALL use JavaScript's native JSON handling and Web APIs
+5. WHEN an agent encounters errors THEN the system SHALL provide TypeScript-typed error responses with detailed diagnostics
+
+### Requirement 11: Security and Access Control
 
 **User Story:** As an LLM agent, I want secure access to operations so that I can perform authorized actions while maintaining system security.
 
 #### Acceptance Criteria
 
-1. WHEN an agent requests authentication THEN the system SHALL provide secure authentication mechanisms
+1. WHEN an agent requests authentication THEN the system SHALL provide secure authentication mechanisms using Deno's crypto APIs
 2. WHEN an agent requests authorization THEN the system SHALL enforce role-based access control for operations
 3. WHEN an agent requests audit logging THEN the system SHALL log all operations with user attribution
-4. WHEN an agent requests secure communication THEN the system SHALL use encrypted communication channels
-5. WHEN an agent requests data protection THEN the system SHALL protect sensitive data and model information
+4. WHEN an agent requests secure communication THEN the system SHALL use encrypted communication channels via Deno's TLS support
+5. WHEN an agent requests data protection THEN the system SHALL protect sensitive data and model information using Deno's security model

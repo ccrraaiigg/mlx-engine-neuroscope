@@ -4,7 +4,109 @@
 
 The Mechanistic Interpretability MCP Server is a comprehensive Model Context Protocol server that exposes all mechanistic interpretability capabilities as standardized MCP tools. The server acts as a bridge between LLM agents and the complex mechanistic interpretability ecosystem, providing a unified interface for circuit analysis, model modification, safety validation, and ecosystem management.
 
-The design follows a modular architecture where each major capability area is implemented as a separate service module, with a central orchestrator managing tool registration, request routing, and resource coordination. The server leverages the existing MLX Engine infrastructure while providing agent-friendly abstractions for complex operations.
+The server is implemented in **JavaScript** using the **Deno** runtime environment, providing modern TypeScript support, built-in security features, and excellent performance for I/O-intensive operations. Deno's permission system ensures secure execution while its built-in HTTP server and JSON handling capabilities make it ideal for MCP protocol implementation.
+
+The design follows a modular architecture where each major capability area is implemented as a separate service module, with a central orchestrator managing tool registration, request routing, and resource coordination. The server leverages the existing MLX Engine infrastructure through HTTP API calls while providing agent-friendly abstractions for complex operations.
+
+## Runtime Environment
+
+### Deno Runtime Features
+
+The server leverages Deno's key features for secure and efficient operation:
+
+- **TypeScript Support**: Native TypeScript compilation without external tooling
+- **Security Model**: Permission-based security with explicit network, file system, and environment access
+- **Standard Library**: Built-in HTTP server, JSON handling, and cryptographic functions
+- **ES Modules**: Modern module system with URL-based imports
+- **Web APIs**: Standard Web APIs for consistent cross-platform behavior
+- **Performance**: V8 JavaScript engine with optimized I/O operations
+
+### JavaScript/TypeScript Implementation
+
+```typescript
+// Example MCP tool implementation structure
+interface MCPTool {
+  name: string;
+  description: string;
+  inputSchema: JSONSchema;
+  handler: (params: unknown) => Promise<MCPResult>;
+}
+
+class MCPServer {
+  private tools: Map<string, MCPTool> = new Map();
+  private services: ServiceModule[] = [];
+  
+  async start(port: number): Promise<void> {
+    // Server initialization
+  }
+  
+  registerTool(tool: MCPTool): void {
+    this.tools.set(tool.name, tool);
+  }
+}
+```
+
+### Dependencies and Libraries
+
+- **@modelcontextprotocol/sdk**: Official MCP SDK for JavaScript/TypeScript
+- **std/http**: Deno standard library HTTP server and client for REST API calls
+- **std/crypto**: Cryptographic functions for security
+- **std/fs**: File system operations for data management
+- **std/json**: JSON schema validation and processing
+- **npm:zod**: Runtime type validation and schema definition
+
+### Configuration
+
+The MCP server requires configuration to connect to the MLX Engine REST API server:
+
+```typescript
+interface MCPServerConfig {
+  // MCP server settings
+  mcp: {
+    port: number;
+    host: string;
+  };
+  
+  // MLX Engine REST API connection
+  mlxEngine: {
+    apiUrl: string;          // e.g., "http://localhost:8080"
+    timeout: number;         // Request timeout in milliseconds
+    retryAttempts: number;   // Number of retry attempts for failed requests
+    apiKey?: string;         // Optional API key for authentication
+  };
+  
+  // Data storage
+  storage: {
+    activationsPath: string; // Path for storing activation data
+    circuitsPath: string;    // Path for circuit library storage
+    cachePath: string;       // Path for analysis result cache
+  };
+  
+  // Analysis settings
+  analysis: {
+    maxConcurrentRequests: number;  // Max concurrent MLX API requests
+    defaultTimeout: number;         // Default analysis timeout
+    cacheResults: boolean;          // Whether to cache analysis results
+  };
+}
+```
+
+**Environment Variables:**
+```bash
+# MLX Engine connection
+MLX_ENGINE_API_URL=http://localhost:8080
+MLX_ENGINE_API_KEY=optional_api_key
+MLX_ENGINE_TIMEOUT=30000
+
+# MCP server settings
+MCP_SERVER_PORT=3000
+MCP_SERVER_HOST=localhost
+
+# Storage paths
+ACTIVATIONS_PATH=./data/activations
+CIRCUITS_PATH=./data/circuits
+CACHE_PATH=./data/cache
+```
 
 ## Architecture
 
@@ -21,15 +123,87 @@ graph TB
     Router --> Safety[Safety Service]
     Router --> Data[Data Management Service]
     
-    Core --> MLXEngine[MLX Engine]
-    MLX --> MLXEngine
-    Advanced --> MLXEngine
-    Ecosystem --> CircuitDB[(Circuit Database)]
-    Safety --> PolicyEngine[Policy Engine]
-    Data --> Storage[(Storage Backend)]
+    subgraph "External Systems"
+        MLXAPI[MLX Engine REST API Server]
+        NeuroScope[NeuroScope Bridge]
+        CircuitDB[(Circuit Database)]
+        Storage[(Storage Backend)]
+    end
     
-    MLXEngine --> NeuroScope[NeuroScope Bridge]
+    Core --> MLXAPI
+    MLX --> MLXAPI
+    Advanced --> MLXAPI
+    Ecosystem --> CircuitDB
+    Safety --> MLXAPI
+    Data --> Storage
+    
+    MLXAPI --> NeuroScope
 ```
+
+### MLX Engine REST API Integration
+
+The MCP server acts as a client to the **MLX Engine REST API Server** (defined in the MLX Engine Integration spec). This integration enables the MCP server to:
+
+- **Model Management**: Load and manage models through REST endpoints
+- **Activation Capture**: Create hooks and capture activations during generation
+- **Streaming Analysis**: Perform real-time analysis during streaming generation
+- **Data Export**: Export activation data for NeuroScope integration
+
+```typescript
+interface MLXEngineClient {
+  baseUrl: string;
+  
+  // Model management
+  loadModel(modelPath: string): Promise<ModelLoadResult>;
+  listModels(): Promise<ModelInfo[]>;
+  
+  // Activation capture
+  createHooks(specs: ActivationHookSpec[]): Promise<string[]>;
+  generateWithActivations(messages: Message[], hookIds: string[]): Promise<GenerationWithActivations>;
+  streamWithActivations(messages: Message[], hookIds: string[]): AsyncIterator<StreamingResult>;
+  
+  // Data management
+  clearHooks(hookIds?: string[]): Promise<boolean>;
+  exportActivations(format: string): Promise<ExportResult>;
+}
+```
+
+### Integration Architecture
+
+The MCP server operates as a **client** to the MLX Engine REST API server, not as a replacement. This architecture provides:
+
+```mermaid
+sequenceDiagram
+    participant Agent as LLM Agent
+    participant MCP as MCP Server
+    participant MLX as MLX Engine REST API
+    participant Model as MLX Model
+    
+    Agent->>MCP: mlx_load_model("gpt-oss-20b")
+    MCP->>MLX: POST /models/load
+    MLX->>Model: Load model
+    Model-->>MLX: Model loaded
+    MLX-->>MCP: ModelLoadResult
+    MCP-->>Agent: Success response
+    
+    Agent->>MCP: core_discover_circuits("IOI")
+    MCP->>MLX: POST /hooks/create
+    MLX-->>MCP: Hook IDs
+    MCP->>MLX: POST /generate (with hooks)
+    MLX->>Model: Generate with activation capture
+    Model-->>MLX: Generation + Activations
+    MLX-->>MCP: GenerationWithActivations
+    MCP->>MCP: Analyze circuits
+    MCP-->>Agent: Circuit discovery results
+```
+
+**Key Integration Points:**
+
+1. **Model Lifecycle**: MCP server manages model loading/unloading through REST API
+2. **Activation Capture**: MCP tools create hooks and capture activations via API calls
+3. **Analysis Pipeline**: MCP server processes captured activations locally
+4. **Data Flow**: Activations flow from MLX Engine → MCP Server → Analysis Results
+5. **Error Handling**: MCP server handles both API errors and analysis errors
 
 ### Service Architecture
 
@@ -101,21 +275,47 @@ Tools are organized by capability area with consistent naming conventions:
 ### MLX Integration Service
 
 **ActivationCaptureClient**: REST API integration with MLX Engine
-- `mlx_load_model`: Model loading and management
-- `mlx_create_hooks`: Activation hook creation and management
-- `mlx_capture_activations`: Generation with activation capture
-- `mlx_stream_analysis`: Real-time streaming analysis
+- `mlx_load_model`: Calls `POST /models/load` to load models on MLX Engine server
+- `mlx_create_hooks`: Calls `POST /hooks/create` to set up activation capture hooks
+- `mlx_capture_activations`: Calls `POST /generate` with hook parameters for activation capture
+- `mlx_stream_analysis`: Uses `POST /stream` endpoint for real-time streaming analysis
+
+**Implementation Details:**
+```typescript
+class ActivationCaptureClient {
+  constructor(private mlxApiUrl: string) {}
+  
+  async loadModel(modelPath: string): Promise<ModelLoadResult> {
+    const response = await fetch(`${this.mlxApiUrl}/models/load`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model_path: modelPath })
+    });
+    return await response.json();
+  }
+  
+  async createHooks(specs: ActivationHookSpec[]): Promise<string[]> {
+    const response = await fetch(`${this.mlxApiUrl}/hooks/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hook_specs: specs })
+    });
+    const result = await response.json();
+    return result.hook_ids;
+  }
+}
+```
 
 **CircuitAnalysisEngine**: Domain-specific circuit analysis
-- `mlx_analyze_math`: Mathematical reasoning circuit analysis
-- `mlx_analyze_attention`: Attention pattern analysis
-- `mlx_analyze_factual`: Factual recall circuit analysis
-- `mlx_track_residual`: Residual stream information flow
+- `mlx_analyze_math`: Captures activations via REST API, then performs local mathematical reasoning analysis
+- `mlx_analyze_attention`: Extracts attention matrices from REST API activations
+- `mlx_analyze_factual`: Uses REST API for factual queries, analyzes results locally
+- `mlx_track_residual`: Captures residual stream data via API, tracks information flow locally
 
 **NeuroScopeIntegrator**: NeuroScope integration and validation
-- `mlx_export_neuroscope`: Data export for NeuroScope
-- `mlx_validate_integration`: End-to-end workflow validation
-- `mlx_generate_smalltalk`: Smalltalk interface generation
+- `mlx_export_neuroscope`: Converts REST API activation data to NeuroScope format
+- `mlx_validate_integration`: Tests complete MLX Engine → MCP Server → NeuroScope pipeline
+- `mlx_generate_smalltalk`: Generates Smalltalk code that can connect to MLX Engine REST API
 
 ### Advanced Analysis Service
 
@@ -204,49 +404,144 @@ Tools are organized by capability area with consistent naming conventions:
 
 ### Circuit Representation
 
-```python
-@dataclass
-class Circuit:
-    id: str
-    name: str
-    description: str
-    layers: List[int]
-    components: List[str]
-    confidence: float
-    metadata: Dict[str, Any]
-    validation_status: ValidationStatus
-    created_at: datetime
-    updated_at: datetime
+```typescript
+interface Circuit {
+  id: string;
+  name: string;
+  description: string;
+  layers: number[];
+  components: string[];
+  confidence: number;
+  metadata: Record<string, unknown>;
+  validation_status: ValidationStatus;
+  created_at: Date;
+  updated_at: Date;
+}
 ```
 
 ### Activation Data
 
-```python
-@dataclass
-class ActivationData:
-    model_id: str
-    layer_activations: Dict[int, torch.Tensor]
-    attention_patterns: Dict[int, torch.Tensor]
-    residual_stream: torch.Tensor
-    tokens: List[str]
-    metadata: Dict[str, Any]
+```typescript
+interface ActivationData {
+  model_id: string;
+  layer_activations: Record<number, Float32Array>;
+  attention_patterns: Record<number, Float32Array>;
+  residual_stream: Float32Array;
+  tokens: string[];
+  metadata: Record<string, unknown>;
+}
 ```
 
 ### Analysis Result
 
-```python
-@dataclass
-class AnalysisResult:
-    operation: str
-    status: ResultStatus
-    data: Dict[str, Any]
-    confidence: Optional[float]
-    validation: Optional[ValidationResult]
-    timestamp: datetime
-    execution_time: float
+```typescript
+interface AnalysisResult {
+  operation: string;
+  status: ResultStatus;
+  data: Record<string, unknown>;
+  confidence?: number;
+  validation?: ValidationResult;
+  timestamp: Date;
+  execution_time: number;
+}
+```
+
+### MLX Engine Integration Models
+
+```typescript
+interface MLXEngineRequest {
+  endpoint: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  body?: Record<string, unknown>;
+  headers?: Record<string, string>;
+  timeout?: number;
+}
+
+interface MLXEngineResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  status_code: number;
+  request_id: string;
+}
+
+interface ActivationHookSpec {
+  layer_name: string;
+  component: string;
+  hook_id: string;
+  capture_input: boolean;
+  capture_output: boolean;
+}
+
+interface GenerationWithActivations {
+  choices: Array<{
+    message: { content: string };
+    finish_reason: string;
+  }>;
+  activations: Record<string, CapturedActivation[]>;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
 ```
 
 ## Error Handling
+
+### MLX Engine Integration Errors
+
+The MCP server must handle various types of errors from the MLX Engine REST API:
+
+```typescript
+class MLXEngineError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number,
+    public endpoint: string,
+    public requestId?: string
+  ) {
+    super(message);
+    this.name = 'MLXEngineError';
+  }
+}
+
+class MLXEngineConnectionError extends MLXEngineError {
+  constructor(endpoint: string, cause: Error) {
+    super(`Failed to connect to MLX Engine at ${endpoint}: ${cause.message}`, 0, endpoint);
+    this.name = 'MLXEngineConnectionError';
+  }
+}
+
+class MLXEngineTimeoutError extends MLXEngineError {
+  constructor(endpoint: string, timeout: number) {
+    super(`Request to ${endpoint} timed out after ${timeout}ms`, 408, endpoint);
+    this.name = 'MLXEngineTimeoutError';
+  }
+}
+```
+
+**Error Recovery Strategies:**
+
+1. **Connection Failures**: 
+   - Retry with exponential backoff (3 attempts)
+   - Check MLX Engine server status
+   - Provide clear error messages to agent
+
+2. **API Errors**:
+   - Parse MLX Engine error responses
+   - Map HTTP status codes to meaningful errors
+   - Suggest corrective actions
+
+3. **Timeout Handling**:
+   - Configurable timeouts per operation type
+   - Cancel long-running operations gracefully
+   - Provide progress updates for long operations
+
+4. **Data Validation**:
+   - Validate MLX Engine responses before processing
+   - Handle malformed activation data
+   - Ensure data consistency across API calls
 
 ### Error Categories
 
@@ -259,14 +554,14 @@ class AnalysisResult:
 
 ### Error Response Format
 
-```python
-@dataclass
-class MCPError:
-    code: str
-    message: str
-    details: Optional[Dict[str, Any]]
-    suggestions: Optional[List[str]]
-    recoverable: bool
+```typescript
+interface MCPError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+  suggestions?: string[];
+  recoverable: boolean;
+}
 ```
 
 ### Recovery Mechanisms

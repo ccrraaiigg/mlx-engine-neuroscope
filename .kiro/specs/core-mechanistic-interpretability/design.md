@@ -4,10 +4,18 @@
 
 The core mechanistic interpretability system provides foundational capabilities for understanding transformer model internals through systematic analysis of circuits, features, and activation patterns. The design leverages the existing MLX Engine activation hook infrastructure and extends it with specialized analysis tools for causal tracing, feature localization, steering, and cross-domain analysis.
 
+This system is designed to be fully accessible through the **Mechanistic Interpretability MCP Server**, which exposes all analysis capabilities as standardized MCP tools. This enables LLM agents to automatically execute complex interpretability workflows, from circuit discovery to feature entanglement analysis, through simple tool calls rather than manual implementation.
+
 ## Architecture
 
 ```mermaid
 graph TB
+    subgraph "MCP Server Layer"
+        MCP[MCP Server]
+        TOOLS[Core Analysis Tools]
+        AGENT[LLM Agent Interface]
+    end
+    
     subgraph "Analysis Layer"
         CT[Causal Tracer]
         FL[Feature Localizer]
@@ -33,6 +41,14 @@ graph TB
         CM[Circuit Memory]
         RM[Results Manager]
     end
+    
+    AGENT --> MCP
+    MCP --> TOOLS
+    TOOLS --> CT
+    TOOLS --> FL
+    TOOLS --> MS
+    TOOLS --> CG
+    TOOLS --> FE
     
     CT --> AH
     FL --> AH

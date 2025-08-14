@@ -4,6 +4,8 @@
 
 This specification covers the development of a composable circuit ecosystem that enables building comprehensive libraries of discovered circuits, automated circuit discovery tools, sophisticated circuit composition frameworks, and quality assurance systems for circuit reliability and safety.
 
+**Note:** All ecosystem capabilities defined in this specification are accessible through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to manage circuit libraries, perform automated discovery, and compose complex systems through standardized MCP tools.
+
 ## Requirements
 
 ### Requirement 1: Circuit Library Development

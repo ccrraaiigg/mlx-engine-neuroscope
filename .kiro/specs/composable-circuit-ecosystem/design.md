@@ -4,6 +4,8 @@
 
 The composable circuit ecosystem provides a comprehensive framework for building, discovering, composing, and validating circuits as reusable components. This system enables the creation of specialized AI systems through systematic circuit composition, automated discovery, and rigorous quality assurance.
 
+The entire ecosystem is accessible through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to manage circuit libraries, perform automated discovery, compose complex systems, and run quality assurance tests through standardized MCP tools. This allows agents to build sophisticated AI systems by combining validated circuit components without manual implementation complexity.
+
 ## Architecture
 
 ```mermaid

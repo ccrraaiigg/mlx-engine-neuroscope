@@ -4,6 +4,8 @@
 
 The safety and alignment system applies mechanistic interpretability insights to create safer AI systems through targeted interventions, interpretability-guided training, and comprehensive validation frameworks. This system ensures responsible development and deployment of interpretability techniques while maintaining model capabilities and preventing harmful behaviors.
 
+All safety and alignment capabilities are exposed through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to perform safety analysis, apply interventions, conduct risk assessments, and validate modifications through standardized tools. This allows agents to automatically ensure AI safety while maintaining full transparency and control over safety-critical operations.
+
 ## Architecture
 
 ```mermaid

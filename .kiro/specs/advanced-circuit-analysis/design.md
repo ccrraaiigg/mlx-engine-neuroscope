@@ -4,6 +4,8 @@
 
 The advanced circuit analysis system enables sophisticated model interventions through direct weight modification, activation steering, knowledge editing, and capability transfer. This system builds upon the core interpretability infrastructure to provide precise, targeted modifications while preserving model integrity and performance.
 
+All advanced analysis capabilities are accessible through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to perform complex model modifications through standardized tools. Agents can edit circuit weights, apply activation steering, modify factual knowledge, and transfer capabilities between models with built-in safety validation and automatic rollback mechanisms.
+
 ## Architecture
 
 ```mermaid

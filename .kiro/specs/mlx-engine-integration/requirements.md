@@ -4,6 +4,8 @@
 
 This specification covers the integration experiments between MLX Engine and NeuroScope, focusing on REST API activation capture, comprehensive circuit analysis capabilities, and streaming activation analysis. These experiments validate the complete workflow from activation capture to interpretability analysis.
 
+**Note:** All integration capabilities defined in this specification are accessible through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to perform MLX Engine integration tasks through standardized MCP tools without requiring direct API knowledge.
+
 ## Requirements
 
 ### Requirement 1: REST API Activation Capture

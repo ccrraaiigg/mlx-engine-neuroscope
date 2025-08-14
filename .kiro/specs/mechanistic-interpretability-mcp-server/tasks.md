@@ -1,16 +1,32 @@
 # Implementation Plan
 
-- [ ] 1. Set up MCP server infrastructure and core framework
-  - Create MCP server base classes and protocol implementation
-  - Implement tool registry and request routing system
-  - Set up authentication, authorization, and security framework
-  - _Requirements: 9.1, 9.2, 10.1, 10.2_
+- [ ] 1. Set up Deno project and MCP server infrastructure
+- [ ] 1.1 Initialize Deno project structure
+  - Create deno.json configuration file with TypeScript compiler options
+  - Set up import maps for external dependencies and internal modules
+  - Configure Deno permissions and security policies
+  - Create project directory structure following Deno conventions
+  - _Requirements: 9.1, 10.1_
+
+- [ ] 1.2 Set up MCP server core framework
+  - Install and configure @modelcontextprotocol/sdk for TypeScript
+  - Implement MCP server base classes with proper TypeScript typing
+  - Create tool registry and request routing system with type-safe interfaces
+  - Set up error handling and logging using Deno's standard library
+  - _Requirements: 9.1, 9.2_
+
+- [ ] 1.3 Implement authentication and security framework
+  - Create authentication middleware using Deno's crypto APIs
+  - Implement role-based access control with TypeScript enums and interfaces
+  - Set up secure communication using Deno's built-in TLS support
+  - Configure Deno permission system for secure operation
+  - _Requirements: 10.1, 10.2_
 
 - [ ] 2. Implement Core Mechanistic Interpretability Tools
 - [ ] 2.1 Create circuit discovery and analysis tools
-  - Implement `core_discover_circuits` tool for causal tracing with activation patching
-  - Create `core_validate_circuit` tool for circuit validation against known examples
-  - Add `core_find_analogous` tool for pattern matching similar circuits
+  - Implement `core_discover_circuits` tool in TypeScript for causal tracing with activation patching
+  - Create `core_validate_circuit` tool with Zod schema validation for circuit validation against known examples
+  - Add `core_find_analogous` tool using JavaScript pattern matching for similar circuits
   - _Requirements: 1.1_
 
 - [ ] 2.2 Build feature localization tools
@@ -38,30 +54,47 @@
   - _Requirements: 1.5_
 
 - [ ] 3. Implement MLX Engine Integration Tools
-- [ ] 3.1 Create activation capture tools
-  - Implement `mlx_load_model` tool for model loading and management via REST API
-  - Create `mlx_create_hooks` tool for activation hook creation and management
-  - Add `mlx_capture_activations` tool for generation with activation capture
+- [ ] 3.1 Create MLX Engine REST API client infrastructure
+  - Implement MLXEngineClient class with connection management and error handling
+  - Create request/response type definitions for all MLX Engine REST API endpoints
+  - Add authentication, timeout, and retry logic for API calls
+  - Implement connection health checking and status monitoring
+  - _Requirements: 2.1, 10.1_
+
+- [ ] 3.2 Create activation capture tools
+  - Implement `mlx_load_model` tool that calls `POST /models/load` on MLX Engine REST API
+  - Create `mlx_create_hooks` tool that calls `POST /hooks/create` with activation hook specifications
+  - Add `mlx_capture_activations` tool that calls `POST /generate` with hook parameters
+  - Implement proper error handling for all MLX Engine API responses
   - _Requirements: 2.1_
 
-- [ ] 3.2 Build circuit analysis engine tools
-  - Implement `mlx_analyze_math` tool for mathematical reasoning circuit analysis
-  - Create `mlx_analyze_attention` tool for attention pattern analysis
-  - Add `mlx_analyze_factual` tool for factual recall circuit analysis
-  - Create `mlx_track_residual` tool for residual stream information flow tracking
+- [ ] 3.3 Build circuit analysis engine tools
+  - Implement `mlx_analyze_math` tool that captures activations via REST API then performs local analysis
+  - Create `mlx_analyze_attention` tool that extracts attention matrices from REST API activation data
+  - Add `mlx_analyze_factual` tool that uses REST API for queries and analyzes results locally
+  - Create `mlx_track_residual` tool that captures residual stream data via API and tracks flow locally
   - _Requirements: 2.2_
 
-- [ ] 3.3 Implement streaming analysis tools
-  - Create `mlx_stream_analysis` tool for real-time activation processing
-  - Implement streaming session management and intervention capabilities
-  - Add pattern change detection during generation
+- [ ] 3.4 Implement streaming analysis tools
+  - Create `mlx_stream_analysis` tool that uses `POST /stream` endpoint for real-time processing
+  - Implement streaming session management with MLX Engine WebSocket or Server-Sent Events
+  - Add pattern change detection during generation using streaming activation data
+  - Create intervention capabilities that can modify ongoing generation via REST API
   - _Requirements: 2.3_
 
-- [ ] 3.4 Build NeuroScope integration tools
-  - Implement `mlx_export_neuroscope` tool for data export to NeuroScope
-  - Create `mlx_validate_integration` tool for end-to-end workflow validation
-  - Add `mlx_generate_smalltalk` tool for Smalltalk interface generation
+- [ ] 3.5 Build NeuroScope integration tools
+  - Implement `mlx_export_neuroscope` tool that converts REST API activation data to NeuroScope format
+  - Create `mlx_validate_integration` tool that tests MLX Engine → MCP Server → NeuroScope pipeline
+  - Add `mlx_generate_smalltalk` tool that generates Smalltalk code connecting to MLX Engine REST API
+  - Implement end-to-end workflow validation with proper error reporting
   - _Requirements: 2.4_
+
+- [ ] 3.6 Create MLX Engine configuration and management tools
+  - Implement configuration management for MLX Engine REST API connection settings
+  - Add health monitoring and status checking for MLX Engine server availability
+  - Create connection pooling and request queuing for efficient API usage
+  - Implement graceful degradation when MLX Engine is unavailable
+  - _Requirements: 2.5, 9.1, 9.2_
 
 - [ ] 3.5 Create data management and optimization tools
   - Implement efficient activation data storage and retrieval
@@ -165,9 +198,9 @@
 
 - [ ] 7. Implement Data Management and Persistence Tools
 - [ ] 7.1 Create data storage and retrieval tools
-  - Implement `data_store_activations` tool for efficient activation data storage
-  - Create `data_store_circuits` tool for circuit data storage with metadata
-  - Add `data_retrieve_data` tool for data retrieval with filtering and search
+  - Implement `data_store_activations` tool using Deno's file system APIs for efficient activation data storage
+  - Create `data_store_circuits` tool with JSON serialization for circuit data storage with metadata
+  - Add `data_retrieve_data` tool using Deno's streaming APIs for data retrieval with filtering and search
   - _Requirements: 6.1_
 
 - [ ] 7.2 Build format conversion tools
@@ -364,13 +397,45 @@
   - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1_
 
 - [ ] 14.2 Create deployment infrastructure
-  - Implement containerized deployment with Docker
-  - Add configuration management for different environments
-  - Create health checks and monitoring for production deployment
+  - Implement native Deno deployment using compiled binaries for production
+  - Add configuration management using Deno's environment variables and JSON config files
+  - Create health checks using Deno's built-in HTTP server and monitoring for production deployment
+  - Set up systemd service files or process managers for server management
   - _Requirements: 9.1, 9.2, 10.1, 10.2_
 
 - [ ] 14.3 Build scalability and reliability features
-  - Implement horizontal scaling capabilities
-  - Add load balancing for multiple server instances
-  - Create fault tolerance and automatic recovery mechanisms
+  - Implement horizontal scaling capabilities using Deno's worker threads
+  - Add load balancing for multiple server instances with Deno's HTTP server
+  - Create fault tolerance and automatic recovery mechanisms using Deno's error handling
   - _Requirements: 9.4, 9.5, 10.4, 10.5_
+
+- [ ] 15. Create Deno-specific configuration and tooling
+- [ ] 15.1 Set up Deno configuration files
+  - Create deno.json with TypeScript configuration, import maps, and task definitions
+  - Set up .env file handling using Deno's standard library
+  - Configure Deno permissions for network, file system, and environment access
+  - Create development and production configuration profiles
+  - _Requirements: 9.1, 10.1_
+
+- [ ] 15.2 Implement Deno-specific tooling and scripts
+  - Create Deno task scripts for development, testing, and deployment
+  - Implement hot reload functionality for development using Deno's watch mode
+  - Set up Deno formatting and linting configuration
+  - Create compile scripts for standalone executable generation
+  - Add deployment scripts for native binary distribution
+  - _Requirements: 9.1, 9.2_
+
+- [ ] 15.3 Add Deno testing and quality assurance
+  - Configure Deno's built-in test runner for all test suites
+  - Implement test coverage reporting using Deno's coverage tools
+  - Set up continuous integration with Deno-specific GitHub Actions
+  - Create performance benchmarking using Deno's benchmark utilities
+  - _Requirements: 8.1, 8.4_
+
+- [ ] 15.4 Create native deployment configuration
+  - Implement Deno compile configuration for cross-platform binaries
+  - Create installation scripts for different operating systems
+  - Set up process management configuration (systemd, launchd, Windows Service)
+  - Add automatic update mechanisms for deployed binaries
+  - Create deployment validation and health check scripts
+  - _Requirements: 9.1, 9.2, 10.1, 10.2_

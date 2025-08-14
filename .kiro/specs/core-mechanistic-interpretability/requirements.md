@@ -4,6 +4,8 @@
 
 This specification covers the implementation of core mechanistic interpretability experiments for the MLX Engine with NeuroScope integration. These experiments form the foundation for understanding transformer model internals through causal tracing, feature localization, multi-token steering, circuit growth analysis, and cross-domain feature entanglement detection.
 
+**Note:** All capabilities defined in this specification are accessible through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to perform these complex interpretability experiments through standardized MCP tools without requiring direct implementation knowledge.
+
 ## Requirements
 
 ### Requirement 1: Causal Tracing for Known Phenomena

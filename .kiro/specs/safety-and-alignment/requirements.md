@@ -4,6 +4,8 @@
 
 This specification covers safety and alignment experiments that apply mechanistic interpretability insights to improve model safety, implement interpretability-guided fine-tuning, and create comprehensive validation frameworks for model modifications. These experiments ensure responsible development and deployment of interpretability techniques.
 
+**Note:** All safety and alignment capabilities defined in this specification are accessible through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to perform safety analysis, apply interventions, and validate modifications through standardized MCP tools with comprehensive safety controls.
+
 ## Requirements
 
 ### Requirement 1: Safety-Oriented Model Modifications
