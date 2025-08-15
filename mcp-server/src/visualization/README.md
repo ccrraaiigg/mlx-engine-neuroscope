@@ -2,6 +2,17 @@
 
 This directory contains the foundation for integrating Cosmos Graph, a high-performance graph visualization library, into the MLX Engine with NeuroScope Integration project.
 
+## ⚡ Quick Start
+
+Want to see the visualization in action? Run the demo:
+
+```bash
+cd mcp-server/src/visualization
+npm install
+node server.js
+# Open http://localhost:8888/ in your browser
+```
+
 ## 🏗️ Foundation Components
 
 ### Core Modules
@@ -12,10 +23,13 @@ This directory contains the foundation for integrating Cosmos Graph, a high-perf
 - **`converter/graph_converter.js`** - Converts MLX Engine data to Cosmos Graph-compatible format
 - **`generator/visualization_generator.js`** - Orchestrates data fetching and graph generation
 
-### Test Files
+### Demo and Test Files
 
-- **`test_foundation.js`** - Comprehensive test suite for all foundation components
+- **`index.html`** - Main interactive demo with full-screen graph visualization
+- **`simple_test.js`** - Demo script that powers the main visualization
+- **`server.js`** - Local HTTP server for serving the demo and test files
 - **`test_browser.html`** - Interactive browser test page for WebGL and visualization testing
+- **`test_foundation.js`** - Comprehensive test suite for all foundation components
 
 ## 🚀 Getting Started
 
@@ -27,12 +41,14 @@ This directory contains the foundation for integrating Cosmos Graph, a high-perf
 
 ### Installation
 
-The Cosmos Graph library is configured in `mcp-server/package.json`:
+The Cosmos Graph library is configured in this directory's `package.json`:
 
 ```json
 {
   "dependencies": {
-    "@cosmos.gl/graph": "^2.3.1"
+    "@cosmos.gl/graph": "^2.3.1",
+    "d3-color": "^3.1.0",
+    "crossfilter2": "^1.5.4"
   }
 }
 ```
@@ -40,7 +56,7 @@ The Cosmos Graph library is configured in `mcp-server/package.json`:
 To install dependencies:
 
 ```bash
-cd mcp-server
+cd mcp-server/src/visualization
 npm install
 ```
 
@@ -48,26 +64,54 @@ npm install
 
 **Command Line Tests:**
 ```bash
-cd mcp-server
-npm run test:foundation
-# or directly: node src/visualization/test_foundation.js
+cd mcp-server/src/visualization
+node test_foundation.js
+```
+
+**Interactive Demo:**
+```bash
+cd mcp-server/src/visualization
+node server.js
+# Then open the demo in your browser:
+#   http://localhost:8888/
 ```
 
 **Browser Tests:**
 ```bash
-cd mcp-server
-npm run test:browser
-# or directly: node src/visualization/serve_test.js
+cd mcp-server/src/visualization
+node server.js
 # Then open the test page in your browser:
-#   http://localhost:8081/src/visualization/test_browser.html
+#   http://localhost:8888/test_browser.html
 ```
 
 **Sample Graph Demo:**
 ```bash
-cd mcp-server
-npm run demo:sample  # Command-line demo of sample graph structure
-npm run test:sample  # Detailed test of sample graph functionality
+cd mcp-server/src/visualization
+node simple_test.js  # Command-line demo of sample graph structure
 ```
+
+### Interactive Demo
+
+The main demo (`index.html`) provides a full-screen Cosmos Graph visualization:
+
+- **Full-screen visualization** - Immersive graph rendering experience
+- **Sample neural circuit** - Pre-loaded 10-node neural network
+- **Interactive controls** - Click nodes, drag to pan, scroll to zoom
+- **Real-time physics** - Dynamic force-directed layout simulation
+- **WebGL acceleration** - Hardware-accelerated rendering for smooth performance
+
+To run the demo:
+
+```bash
+cd mcp-server/src/visualization
+node server.js
+# Open http://localhost:8888/ in your browser
+```
+
+The server runs on port 8888 and serves:
+- `/` - Main interactive demo (index.html)
+- `/test_browser.html` - Comprehensive test page
+- All static assets including the node_modules directory for browser imports
 
 ### Interactive Browser Testing
 
