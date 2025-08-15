@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This feature integrates Cosmograph, a high-performance graph visualization library, into the MLX Engine with NeuroScope Integration project. Cosmograph will enable interactive visualization of neural network circuits, attention patterns, activation flows, and model architecture graphs. This integration will enhance the mechanistic interpretability capabilities by providing intuitive visual representations of complex model internals.
+This feature integrates Cosmos Graph, a high-performance graph visualization library, into the MLX Engine with NeuroScope Integration project. Cosmos Graph will enable interactive visualization of neural network circuits, attention patterns, activation flows, and model architecture graphs. This integration will enhance the mechanistic interpretability capabilities by providing intuitive visual representations of complex model internals.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ This feature integrates Cosmograph, a high-performance graph visualization libra
 
 #### Acceptance Criteria
 
-1. WHEN a user requests circuit visualization THEN the system SHALL generate a graph representation using Cosmograph
+1. WHEN a user requests circuit visualization THEN the system SHALL generate a graph representation using Cosmos Graph
 2. WHEN displaying circuit graphs THEN the system SHALL show nodes representing neurons/components and edges representing connections
 3. WHEN a user interacts with circuit nodes THEN the system SHALL display detailed information about the selected component
 4. IF circuit data contains activation strengths THEN the system SHALL visualize edge weights through line thickness or color intensity
@@ -30,11 +30,11 @@ This feature integrates Cosmograph, a high-performance graph visualization libra
 
 ### Requirement 3
 
-**User Story:** As a developer integrating with NeuroScope, I want Cosmograph visualizations to be embedded in the web interface, so that users can access graph views alongside other analysis tools.
+**User Story:** As a developer integrating with NeuroScope, I want Cosmos Graph visualizations to be embedded in the web interface, so that users can access graph views alongside other analysis tools.
 
 #### Acceptance Criteria
 
-1. WHEN the NeuroScope web interface loads THEN the system SHALL include Cosmograph visualization components
+1. WHEN the NeuroScope web interface loads THEN the system SHALL include Cosmos Graph visualization components
 2. WHEN activation data is captured THEN the system SHALL automatically generate corresponding graph visualizations
 3. WHEN users switch between different analysis views THEN the system SHALL maintain graph state and positioning
 4. IF the web interface updates THEN the system SHALL synchronize graph data with the current model state
@@ -69,7 +69,7 @@ This feature integrates Cosmograph, a high-performance graph visualization libra
 
 1. WHEN creating custom visualizations THEN the system SHALL provide a plugin-style API for graph types
 2. WHEN registering new graph types THEN the system SHALL automatically integrate them into the UI
-3. WHEN custom graphs are created THEN the system SHALL support standard Cosmograph configuration options
+3. WHEN custom graphs are created THEN the system SHALL support standard Cosmos Graph configuration options
 4. IF visualization plugins are loaded THEN the system SHALL handle errors gracefully and provide fallback options
 
 ### Requirement 7
@@ -89,8 +89,8 @@ This feature integrates Cosmograph, a high-performance graph visualization libra
 
 #### Acceptance Criteria
 
-1. WHEN a user requests graph visualization via chat THEN the MCP server SHALL generate appropriate Cosmograph visualizations
+1. WHEN a user requests graph visualization via chat THEN the MCP server SHALL generate appropriate Cosmos Graph visualizations
 2. WHEN the chatbot processes visualization requests THEN the system SHALL support commands like "show circuit graph for layer 12" or "visualize attention patterns"
-3. WHEN graphs are generated through MCP THEN the system SHALL embed interactive Cosmograph components in the chat interface
+3. WHEN graphs are generated through MCP THEN the system SHALL embed interactive Cosmos Graph components in the chat interface
 4. IF visualization parameters are specified in chat THEN the system SHALL apply custom styling, filtering, and layout options
 5. WHEN users ask follow-up questions about graphs THEN the system SHALL maintain context and allow graph modifications through conversation

@@ -6,7 +6,7 @@
 import { GraphTypes, NodeTypes, LinkTypes } from '../types/graph_types.js';
 
 /**
- * Converts MLX Engine data to Cosmograph-compatible graph structures
+ * Converts MLX Engine data to Cosmos Graph-compatible graph structures
  */
 export class GraphConverter {
   /**

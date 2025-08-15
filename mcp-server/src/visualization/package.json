@@ -1,5 +1,5 @@
 {
-  "name": "graph-visualization",
+  "name": "cosmos-graph-visualization",
   "version": "1.0.0",
   "description": "Local dependencies for the graph visualization",
   "private": true,

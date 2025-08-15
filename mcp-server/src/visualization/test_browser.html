@@ -149,6 +149,7 @@
                 <button id="neural-btn" class="btn" onclick="loadNeuralCircuit()">Load Neural Circuit</button>
                 <button id="attention-btn" class="btn" onclick="loadAttentionGraph()">Load Attention Graph</button>
                 <button id="capabilities-btn" class="btn" onclick="testCapabilities()">Test WebGL Capabilities</button>
+                <button id="physics-btn" class="btn" disabled onclick="togglePhysics()">Pause Physics</button>
                 <button id="export-btn" class="btn" disabled onclick="exportVisualization()">Export Graph</button>
                 <button id="randomize-btn" class="btn" disabled onclick="randomizeLayout()">Randomize Layout</button>
             </div>
@@ -164,6 +165,7 @@
         // Global variables
         let graphRenderer = null;
         let currentGraphData = null;
+        let physicsEnabled = true;
         
         // DOM elements
         const consoleOutput = document.getElementById('console-output');
@@ -253,6 +255,38 @@
                 throw error;
             }
         }
+        
+        // Toggle physics simulation
+        window.togglePhysics = function() {
+            if (!graphRenderer || !graphRenderer.graph) {
+                log('Error: No graph loaded', 'error');
+                return;
+            }
+            
+            try {
+                const physicsBtn = document.getElementById('physics-btn');
+                
+                if (physicsEnabled) {
+                    // Pause physics
+                    graphRenderer.graph.pause();
+                    physicsEnabled = false;
+                    physicsBtn.textContent = 'Resume Physics';
+                    updateStatus('Physics simulation paused', 'info');
+                    log('Physics simulation paused - graph structure preserved');
+                } else {
+                    // Resume physics
+                    graphRenderer.graph.start();
+                    physicsEnabled = true;
+                    physicsBtn.textContent = 'Pause Physics';
+                    updateStatus('Physics simulation resumed', 'info');
+                    log('Physics simulation resumed');
+                }
+                
+            } catch (error) {
+                log(`Physics toggle failed: ${error.message}`, 'error');
+                updateStatus('Physics toggle failed', 'error');
+            }
+        };
         
         // Test WebGL capabilities
         window.testCapabilities = async function() {
@@ -594,8 +628,12 @@
                 
                 await graphRenderer.loadGraph(neuralGraph);
                 
+                // Enable controls and reset physics state
                 document.getElementById('export-btn').disabled = false;
                 document.getElementById('randomize-btn').disabled = false;
+                document.getElementById('physics-btn').disabled = false;
+                physicsEnabled = true;
+                document.getElementById('physics-btn').textContent = 'Pause Physics';
                 
                 updateStatus(`Loaded neural circuit: ${neuralGraph.nodes.length} nodes, ${neuralGraph.links.length} connections`, 'success');
                 log(`Neural circuit loaded with IOI and induction circuits`, 'success');
@@ -623,8 +661,12 @@
                 
                 await graphRenderer.loadGraph(attentionGraph);
                 
+                // Enable controls and reset physics state
                 document.getElementById('export-btn').disabled = false;
                 document.getElementById('randomize-btn').disabled = false;
+                document.getElementById('physics-btn').disabled = false;
+                physicsEnabled = true;
+                document.getElementById('physics-btn').textContent = 'Pause Physics';
                 
                 updateStatus(`Loaded attention graph: ${attentionGraph.nodes.length} heads, ${attentionGraph.links.length} patterns`, 'success');
                 log(`Attention patterns loaded from layers 8 and 12`, 'success');
@@ -654,9 +696,12 @@
                 // Load the graph data into the renderer
                 await graphRenderer.loadGraph(sampleGraph);
                 
-                // Enable the export and randomize buttons
+                // Enable controls and reset physics state
                 document.getElementById('export-btn').disabled = false;
                 document.getElementById('randomize-btn').disabled = false;
+                document.getElementById('physics-btn').disabled = false;
+                physicsEnabled = true;
+                document.getElementById('physics-btn').textContent = 'Pause Physics';
                 
                 // Update status
                 updateStatus(`Loaded graph with ${sampleGraph.nodes.length} nodes and ${sampleGraph.links.length} links`, 'success');

@@ -2,18 +2,18 @@
 
 ## Overview
 
-The Cosmograph Visualization Integration extends the MLX Engine with NeuroScope Integration project by adding high-performance, interactive graph visualizations using the Cosmograph JavaScript library. This integration provides intuitive visual representations of neural network circuits, attention patterns, activation flows, and model architecture graphs, enhancing the mechanistic interpretability capabilities with powerful visual analysis tools.
+The Cosmos Graph Visualization Integration extends the MLX Engine with NeuroScope Integration project by adding high-performance, interactive graph visualizations using the Cosmos Graph JavaScript library. This integration provides intuitive visual representations of neural network circuits, attention patterns, activation flows, and model architecture graphs, enhancing the mechanistic interpretability capabilities with powerful visual analysis tools.
 
-The design leverages Cosmograph's WebGL-based rendering engine to handle large-scale graphs with thousands of nodes while maintaining smooth interaction performance. The integration follows the existing architecture patterns, extending both the **MLX Engine REST API Server** with visualization endpoints and the **Mechanistic Interpretability MCP Server** with graph generation tools.
+The design leverages Cosmos Graph's WebGL-based rendering engine to handle large-scale graphs with thousands of nodes while maintaining smooth interaction performance. The integration follows the existing architecture patterns, extending both the **MLX Engine REST API Server** with visualization endpoints and the **Mechanistic Interpretability MCP Server** with graph generation tools.
 
-**Architecture Integration**: The Cosmograph visualization system operates as a **client-side component** that receives graph data from both the MLX Engine REST API and the MCP Server. This three-tier architecture enables:
+**Architecture Integration**: The Cosmos Graph visualization system operates as a **client-side component** that receives graph data from both the MLX Engine REST API and the MCP Server. This three-tier architecture enables:
 - **MLX Engine**: Provides activation data and model information
 - **MCP Server**: Processes data into graph structures and provides visualization tools
-- **Cosmograph Client**: Renders interactive visualizations in web browsers
+- **Cosmos Graph Client**: Renders interactive visualizations in web browsers
 
 The system supports both **embedded visualizations** in the NeuroScope web interface and **standalone graph applications** for dedicated analysis workflows.
 
-**Testing Environment**: For development and testing, a **Node.js Express server** provides a simple way to serve Cosmograph assets and test the visualization components without the complexity of the full MCP integration.
+**Testing Environment**: For development and testing, a **Node.js Express server** provides a simple way to serve Cosmos Graph assets and test the visualization components without the complexity of the full MCP integration.
 
 ## Architecture
 
@@ -22,7 +22,7 @@ The system supports both **embedded visualizations** in the NeuroScope web inter
 ```mermaid
 graph TB
     subgraph "Client Layer"
-        CG[Cosmograph Renderer]
+        CG[Cosmos Graph Renderer]
         WI[Web Interface]
         CE[Chart Exports]
     end
@@ -80,16 +80,16 @@ graph TB
 
 ### Integration Points
 
-The Cosmograph visualization system integrates with existing components through well-defined interfaces:
+The Cosmos Graph visualization system integrates with existing components through well-defined interfaces:
 
 1. **MLX Engine REST API**: New visualization endpoints for graph data
 2. **MCP Server**: New visualization tools for graph generation
 3. **NeuroScope Bridge**: Graph data conversion to Smalltalk format
-4. **Web Interface**: Embedded Cosmograph components
+4. **Web Interface**: Embedded Cosmos Graph components
 
-**Testing Integration**: A Node.js Express server provides a development environment for testing Cosmograph integration without requiring the full MCP server setup.
+**Testing Integration**: A Node.js Express server provides a development environment for testing Cosmos Graph integration without requiring the full MCP server setup.
 
-### Cosmograph Integration Architecture
+### Cosmos Graph Integration Architecture
 
 ```mermaid
 sequenceDiagram
@@ -97,13 +97,13 @@ sequenceDiagram
     participant MCP as MCP Server
     participant VG as Visualization Generator
     participant MLX as MLX Engine API
-    participant CG as Cosmograph Client
+    participant CG as Cosmos Graph Client
     
     User->>MCP: viz_create_circuit_graph("IOI")
     MCP->>MLX: GET /activations/circuit/IOI
     MLX-->>MCP: Circuit activation data
     MCP->>VG: Generate graph structure
-    VG->>VG: Convert to Cosmograph format
+    VG->>VG: Convert to Cosmos Graph format
     VG-->>MCP: Graph configuration
     MCP-->>User: Graph data + embed code
     User->>CG: Load graph in browser
@@ -113,13 +113,13 @@ sequenceDiagram
 
 ## Components and Interfaces
 
-### 1. Cosmograph Renderer (Client-Side)
+### 1. Cosmos Graph Renderer (Client-Side)
 
-**Purpose**: High-performance WebGL-based graph rendering using the Cosmograph library.
+**Purpose**: High-performance WebGL-based graph rendering using the Cosmos Graph library.
 
 **Key Classes**:
 ```javascript
-class CosmographRenderer {
+class CosmosGraphRenderer {
   constructor(container, config) {
     this.cosmos = null;
     this.container = container;
@@ -194,9 +194,9 @@ class InteractionController {
 }
 ```
 
-**Cosmograph Configuration**:
+**Cosmos Graph Configuration**:
 ```javascript
-// CosmographConfig structure:
+// CosmosGraphConfig structure:
 // {
 //   // Performance settings
 //   nodeSize: number | function(node) { return number; },
@@ -226,7 +226,7 @@ class InteractionController {
 
 ### 2. Visualization Generator (Server-Side)
 
-**Purpose**: Converts MLX Engine activation data and circuit information into Cosmograph-compatible graph structures.
+**Purpose**: Converts MLX Engine activation data and circuit information into Cosmos Graph-compatible graph structures.
 
 **Key Classes**:
 ```javascript
@@ -356,7 +356,7 @@ class LayoutOptimizer {
 
 ### 4. MCP Visualization Tools
 
-**Purpose**: Provides MCP tools for generating and managing Cosmograph visualizations.
+**Purpose**: Provides MCP tools for generating and managing Cosmos Graph visualizations.
 
 **MCP Tools**:
 ```javascript
@@ -397,7 +397,7 @@ const vizTools = [
 
 ### 5. Web Interface Integration
 
-**Purpose**: Embeds Cosmograph visualizations into the existing NeuroScope web interface.
+**Purpose**: Embeds Cosmos Graph visualizations into the existing NeuroScope web interface.
 
 **Key Components**:
 ```javascript
@@ -486,7 +486,7 @@ class ExportManager {
   }
   
   async exportInteractive(graphId) {
-    // Returns Promise<string> - HTML with embedded Cosmograph
+    // Returns Promise<string> - HTML with embedded Cosmos Graph
   }
 }
 
@@ -513,7 +513,7 @@ class ExportManager {
 // GraphExportData structure:
 // {
 //   graph_data: GraphData,
-//   cosmograph_config: CosmographConfig,
+//   cosmos_graph_config: CosmosGraphConfig,
 //   export_metadata: {
 //     exported_at: Date,
 //     version: string,
@@ -593,10 +593,10 @@ class ExportManager {
 // }
 ```
 
-### Cosmograph Integration Models
+### Cosmos Graph Integration Models
 
 ```javascript
-// CosmographConfig structure:
+// CosmosGraphConfig structure:
 // {
 //   // Core settings
 //   nodeSize: number | function(node) { return number; },
@@ -669,7 +669,7 @@ class ExportManager {
 //   success: boolean,
 //   graph_id: string,
 //   graph_data: GraphData,
-//   cosmograph_config: CosmographConfig,
+//   cosmos_graph_config: CosmosGraphConfig,
 //   embed_code: string,
 //   preview_url: string,
 //   export_formats: string[],
@@ -772,9 +772,9 @@ class VisualizationFallback {
 
 ### Unit Testing
 
-1. **Graph Conversion Tests**: Validate conversion from MLX data to Cosmograph format
+1. **Graph Conversion Tests**: Validate conversion from MLX data to Cosmos Graph format
 2. **Layout Algorithm Tests**: Test layout algorithms with various graph types
-3. **Rendering Tests**: Test Cosmograph integration and rendering
+3. **Rendering Tests**: Test Cosmos Graph integration and rendering
 4. **Export Tests**: Validate export functionality across formats
 
 ### Integration Testing
@@ -809,19 +809,19 @@ class VisualizationFallback {
 
 ### Node.js Test Server (Development Only)
 
-For development and testing of Cosmograph integration, a simple Node.js Express server provides module resolution:
+For development and testing of Cosmos Graph integration, a simple Node.js Express server provides module resolution:
 
 **Project Structure**:
 ```
 mcp-server/
 ├── package.json              # Node.js dependencies for testing
 ├── server.js                 # Express server for serving test assets
-├── cosmograph-test.html      # Test visualization interface
-├── node_modules/             # npm dependencies including Cosmograph
-│   └── @cosmograph/
-│       └── cosmograph/
+├── cosmos-graph-test.html    # Test visualization interface
+├── node_modules/             # npm dependencies including Cosmos Graph
+│   └── @cosmos.gl/
+│       └── graph/
 │           └── dist/
-│               └── index.esm.js  # ES module for browser import
+│               └── index.js  # ES module for browser import
 └── src/
     └── visualization/        # MCP visualization implementation
 ```
@@ -830,7 +830,7 @@ mcp-server/
 ```json
 {
   "dependencies": {
-    "@cosmograph/cosmograph": "^1.4.0",
+    "@cosmos.gl/graph": "^2.3.1",
     "express": "^4.18.0"
   },
   "type": "module"
@@ -842,24 +842,24 @@ mcp-server/
 // Serve static files including HTML, CSS, JS
 app.use(express.static(__dirname));
 
-// Critical: Serve node_modules for browser access to Cosmograph
+// Critical: Serve node_modules for browser access to Cosmos Graph
 app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 ```
 
 **Browser Module Loading**:
 ```javascript
-// Import Cosmograph from served node_modules
-import { Cosmograph } from '/node_modules/@cosmograph/cosmograph/dist/index.esm.js';
+// Import Cosmos Graph from served node_modules
+import { Graph } from '/node_modules/@cosmos.gl/graph/dist/index.js';
 
 // Make available globally for event handlers
-window.Cosmograph = Cosmograph;
+window.Graph = Graph;
 ```
 
 **Benefits for Testing**:
 1. **Simplified Module Resolution**: No complex import maps or CDN dependencies
-2. **Reliable Local Dependencies**: Uses exact npm-installed version of Cosmograph
+2. **Reliable Local Dependencies**: Uses exact npm-installed version of Cosmos Graph
 3. **Easy Development**: Standard Node.js development workflow for testing
-4. **Isolated Testing**: Test Cosmograph integration without full MCP server setup
+4. **Isolated Testing**: Test Cosmos Graph integration without full MCP server setup
 
 ## Documentation Updates
 
@@ -871,9 +871,9 @@ A new README must be created for the Node.js visualization server to document th
 
 1. **Getting Started Section**:
 ```markdown
-## Cosmograph Visualization Server
+## Cosmos Graph Visualization Server
 
-A Node.js web application for visualizing neural network circuits, attention patterns, and activation flows using the Cosmograph WebGL library.
+A Node.js web application for visualizing neural network circuits, attention patterns, and activation flows using the Cosmos Graph WebGL library.
 
 ### Quick Start
 
@@ -904,7 +904,7 @@ npm start
 
 #### Basic Visualization Workflow
 
-1. **Initialize Cosmograph**: Click "Initialize Cosmograph" to set up WebGL renderer
+1. **Initialize Cosmos Graph**: Click "Initialize Cosmos Graph" to set up WebGL renderer
 2. **Load Sample Graph**: Click "Load Sample Graph" to display neural circuit
 3. **Interact**: Click and drag nodes, zoom with mouse wheel
 4. **Randomize Layout**: Click "Randomize Layout" to scramble and watch physics
@@ -919,7 +919,7 @@ const activations = await circuitData.json();
 // Convert to graph format
 const graphData = GraphDataGenerator.convertMLXToGraph(activations);
 
-// Load into Cosmograph
+// Load into Cosmos Graph
 cosmos.setData(graphData.nodes, graphData.links);
 ```
 
@@ -953,7 +953,7 @@ Add to your MCP server configuration:
 //   // ... existing config ...
 //   
 //   visualization: {
-//     cosmograph: {
+//     cosmos_graph: {
 //       maxNodes: number,        // Maximum nodes per graph (default: 5000)
 //       maxLinks: number,        // Maximum links per graph (default: 10000)
 //       defaultTheme: string,    // Default theme: 'light' | 'dark' | 'custom'
@@ -979,7 +979,7 @@ Add to your MCP server configuration:
 ```markdown
 ### Browser Requirements for Visualizations
 
-Cosmograph visualizations require modern browser support:
+Cosmos Graph visualizations require modern browser support:
 
 **Minimum Requirements:**
 - WebGL 1.0 support
@@ -1005,7 +1005,7 @@ Cosmograph visualizations require modern browser support:
 
 1. **Graph Not Rendering**
    - Check WebGL support: `navigator.gpu` or WebGL detection
-   - Verify graph data format matches Cosmograph requirements
+   - Verify graph data format matches Cosmos Graph requirements
    - Check browser console for JavaScript errors
 
 2. **Performance Issues**
