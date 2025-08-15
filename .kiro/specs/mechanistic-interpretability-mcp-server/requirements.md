@@ -2,9 +2,9 @@
 
 ## Introduction
 
-This specification defines an MCP (Model Context Protocol) server implemented in **JavaScript** using the **Deno** runtime that enables LLM agents to execute tasks from all mechanistic interpretability specifications in this workspace. The MCP server will provide a comprehensive toolkit for circuit analysis, model modification, safety validation, and ecosystem management through standardized MCP tools that can be invoked by any compatible LLM agent.
+This specification defines an MCP (Model Context Protocol) server implemented in **JavaScript** using the **Node.js** runtime that enables LLM agents to execute tasks from all mechanistic interpretability specifications in this workspace. The MCP server will provide a comprehensive toolkit for circuit analysis, model modification, safety validation, and ecosystem management through standardized MCP tools that can be invoked by any compatible LLM agent.
 
-The server will bridge the gap between high-level agent instructions and low-level mechanistic interpretability operations, enabling automated execution of complex analysis workflows, circuit discovery, model modifications, and safety validations across the entire MLX Engine ecosystem. The choice of JavaScript/Deno provides excellent performance for I/O-intensive operations, built-in security features, native TypeScript support, and seamless integration with web-based APIs and modern development tooling.
+The server will bridge the gap between high-level agent instructions and low-level mechanistic interpretability operations, enabling automated execution of complex analysis workflows, circuit discovery, model modifications, and safety validations across the entire MLX Engine ecosystem. The choice of JavaScript with Node.js provides excellent performance for I/O-intensive operations, mature ecosystem support, extensive package availability through npm, and seamless integration with web-based APIs and development tooling.
 
 ## Requirements
 
@@ -116,26 +116,53 @@ The server will bridge the gap between high-level agent instructions and low-lev
 4. WHEN an agent requests resource management THEN the system SHALL manage computational resources efficiently
 5. WHEN an agent requests logging THEN the system SHALL provide comprehensive logging and debugging capabilities
 
-### Requirement 10: JavaScript/Deno Runtime Integration
+### Requirement 10: JavaScript/Node.js Runtime Integration
 
 **User Story:** As an LLM agent, I want to interact with a performant and secure MCP server so that I can execute mechanistic interpretability operations efficiently.
 
 #### Acceptance Criteria
 
-1. WHEN an agent connects to the server THEN the system SHALL use Deno's built-in HTTP server with TypeScript support
-2. WHEN an agent requests operations THEN the system SHALL leverage Deno's permission system for secure execution
-3. WHEN an agent performs I/O operations THEN the system SHALL use Deno's optimized APIs for file system and network access
-4. WHEN an agent requests data processing THEN the system SHALL use JavaScript's native JSON handling and Web APIs
-5. WHEN an agent encounters errors THEN the system SHALL provide TypeScript-typed error responses with detailed diagnostics
+1. WHEN an agent connects to the server THEN the system SHALL use Node.js HTTP server with modern JavaScript features
+2. WHEN an agent requests operations THEN the system SHALL leverage Node.js security best practices for secure execution
+3. WHEN an agent performs I/O operations THEN the system SHALL use Node.js APIs for file system and network access
+4. WHEN an agent requests data processing THEN the system SHALL use JavaScript's native JSON handling and Node.js streams
+5. WHEN an agent encounters errors THEN the system SHALL provide well-structured error responses with detailed diagnostics
 
-### Requirement 11: Security and Access Control
+### Requirement 11: Tool Schema Specification
+
+**User Story:** As an LLM agent, I want comprehensive JSON schemas for all MCP tools so that I can understand exactly what inputs are required and what outputs to expect from each operation.
+
+#### Acceptance Criteria
+
+1. WHEN an agent requests the tools list THEN the system SHALL provide exhaustive input JSON schemas for every tool parameter
+2. WHEN an agent requests the tools list THEN the system SHALL provide comprehensive output JSON schemas defining all possible response structures
+3. WHEN an agent calls a tool THEN the system SHALL validate inputs against the declared JSON schema and reject invalid requests
+4. WHEN an agent receives tool responses THEN the system SHALL guarantee responses conform to the declared output JSON schema
+5. WHEN an agent encounters schema validation errors THEN the system SHALL provide detailed error messages indicating which schema constraints were violated
+
+### Requirement 12: Interactive Command-Line Chatbot
+
+**User Story:** As a human researcher, I want an interactive command-line chatbot that uses the Anthropic API so that I can have natural language conversations about mechanistic interpretability operations and execute MCP tools through conversational interface.
+
+#### Acceptance Criteria
+
+1. WHEN a human starts the chatbot THEN the system SHALL provide an interactive command-line interface with conversation history
+2. WHEN a human asks questions about mechanistic interpretability THEN the system SHALL use the Anthropic API to provide knowledgeable responses
+3. WHEN a human requests tool execution THEN the system SHALL automatically call appropriate MCP tools and present results in natural language
+4. WHEN a human asks about available capabilities THEN the system SHALL explain all available MCP tools and their purposes conversationally
+5. WHEN a human provides tool parameters THEN the system SHALL validate inputs, execute tools, and explain results in an accessible format
+6. WHEN a human requests help THEN the system SHALL provide contextual assistance and examples for using the mechanistic interpretability capabilities
+7. WHEN a human encounters errors THEN the system SHALL explain errors in plain language and suggest corrective actions
+8. WHEN a human wants to exit THEN the system SHALL provide graceful shutdown with conversation history preservation
+
+### Requirement 13: Security and Access Control
 
 **User Story:** As an LLM agent, I want secure access to operations so that I can perform authorized actions while maintaining system security.
 
 #### Acceptance Criteria
 
-1. WHEN an agent requests authentication THEN the system SHALL provide secure authentication mechanisms using Deno's crypto APIs
+1. WHEN an agent requests authentication THEN the system SHALL provide secure authentication mechanisms using Node.js crypto module
 2. WHEN an agent requests authorization THEN the system SHALL enforce role-based access control for operations
 3. WHEN an agent requests audit logging THEN the system SHALL log all operations with user attribution
-4. WHEN an agent requests secure communication THEN the system SHALL use encrypted communication channels via Deno's TLS support
-5. WHEN an agent requests data protection THEN the system SHALL protect sensitive data and model information using Deno's security model
+4. WHEN an agent requests secure communication THEN the system SHALL use encrypted communication channels via Node.js TLS support
+5. WHEN an agent requests data protection THEN the system SHALL protect sensitive data and model information using Node.js security best practices

@@ -13,6 +13,12 @@ first. Cursor will always offer the user a chance to accept or reject
 changes before they are committed. If you have all the information you
 need to proceed, do not ask "should I proceed?"... just do the work.
 
+## Creating and Modifying Specifications
+
+In the design phase of writing a spec, update any documentation
+related to the spec. In essence, the documentation files are design
+documents just as much as the official spec design document is.
+
 ## Documenting Development Progress
 
 After each successful feature addition, ensure that
@@ -20,7 +26,11 @@ IMPLEMENTATION_SUMMARY.md is up to date.
 
 ## Using the shell
 
-The shell is tcsh, not bash. Always wait for commands to finish.
+The shell is 'tcsh', not 'bash'. Always wait for commands to finish.
+
+## Using TypeScript
+
+Never use TypeScript; use vanilla JavaScript.
 
 ## Using Smalltalk
 
@@ -38,6 +48,12 @@ directory called "class".
 
 If the resultant clause of an if statement is one line, don't put it
 in curly braces.
+
+Never bundle sources. Never use webpack or anything like it.
+
+## Using @cosmos.gl/graph
+
+The API documentation is at /Users/craig/forks/graph/src/stories/.
 
 ## WASM Tools
 

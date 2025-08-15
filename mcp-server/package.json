@@ -1,0 +1,19 @@
+{
+  "name": "graph-visualization-test",
+  "version": "1.0.0",
+  "description": "Graph visualization test with Node.js and vanilla JS using @cosmos.gl/graph",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@cosmos.gl/graph": "^2.3.1",
+    "crossfilter2": "^1.5.4",
+    "d3-color": "^3.1.0",
+    "express": "*",
+    "gl-matrix": "^3.4.3",
+    "regl": "^2.1.0"
+  },
+  "type": "module"
+}

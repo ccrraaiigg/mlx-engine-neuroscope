@@ -4,91 +4,116 @@
 
 The Mechanistic Interpretability MCP Server is a comprehensive Model Context Protocol server that exposes all mechanistic interpretability capabilities as standardized MCP tools. The server acts as a bridge between LLM agents and the complex mechanistic interpretability ecosystem, providing a unified interface for circuit analysis, model modification, safety validation, and ecosystem management.
 
-The server is implemented in **JavaScript** using the **Deno** runtime environment, providing modern TypeScript support, built-in security features, and excellent performance for I/O-intensive operations. Deno's permission system ensures secure execution while its built-in HTTP server and JSON handling capabilities make it ideal for MCP protocol implementation.
+**Architecture Relationship**: The MCP server operates as a **client** to the **MLX Engine REST API Server** (defined in the MLX Engine Integration specification). This client-server architecture enables the MCP server to leverage MLX Engine's model loading, activation capture, and generation capabilities through standardized HTTP API calls, while providing LLM agents with simplified, high-level tools for complex interpretability workflows.
 
-The design follows a modular architecture where each major capability area is implemented as a separate service module, with a central orchestrator managing tool registration, request routing, and resource coordination. The server leverages the existing MLX Engine infrastructure through HTTP API calls while providing agent-friendly abstractions for complex operations.
+The server is implemented in **vanilla JavaScript** using the **Node.js** runtime environment, providing excellent performance for I/O-intensive operations, mature ecosystem support, and extensive package availability through npm. Node.js's robust HTTP server capabilities and JSON handling make it ideal for both MCP protocol implementation and REST API client operations.
+
+The design follows a modular architecture where each major capability area is implemented as a separate service module, with a central orchestrator managing tool registration, request routing, and resource coordination. The server leverages the MLX Engine REST API server for all model operations while providing agent-friendly abstractions and advanced analysis capabilities that extend beyond basic activation capture.
 
 ## Runtime Environment
 
-### Deno Runtime Features
+### Node.js Runtime Features
 
-The server leverages Deno's key features for secure and efficient operation:
+The server leverages Node.js's key features for secure and efficient operation:
 
-- **TypeScript Support**: Native TypeScript compilation without external tooling
-- **Security Model**: Permission-based security with explicit network, file system, and environment access
+- **Vanilla JavaScript**: Pure JavaScript implementation without TypeScript compilation
+- **Security Model**: Process-level security with environment variable management
 - **Standard Library**: Built-in HTTP server, JSON handling, and cryptographic functions
-- **ES Modules**: Modern module system with URL-based imports
-- **Web APIs**: Standard Web APIs for consistent cross-platform behavior
+- **ES Modules**: Modern module system with CommonJS compatibility
+- **NPM Ecosystem**: Extensive package ecosystem for additional functionality
 - **Performance**: V8 JavaScript engine with optimized I/O operations
 
-### JavaScript/TypeScript Implementation
+### Vanilla JavaScript Implementation
 
-```typescript
+```javascript
 // Example MCP tool implementation structure
-interface MCPTool {
-  name: string;
-  description: string;
-  inputSchema: JSONSchema;
-  handler: (params: unknown) => Promise<MCPResult>;
-}
-
 class MCPServer {
-  private tools: Map<string, MCPTool> = new Map();
-  private services: ServiceModule[] = [];
+  constructor() {
+    this.tools = new Map();
+    this.services = [];
+  }
   
-  async start(port: number): Promise<void> {
+  async start(port) {
     // Server initialization
   }
   
-  registerTool(tool: MCPTool): void {
+  registerTool(tool) {
     this.tools.set(tool.name, tool);
   }
 }
+
+// Example tool structure
+const exampleTool = {
+  name: 'core_discover_circuits',
+  description: 'Discover circuits for a specific phenomenon',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      phenomenon: { type: 'string' },
+      model_id: { type: 'string' }
+    },
+    required: ['phenomenon', 'model_id']
+  },
+  handler: async (params) => {
+    // Tool implementation
+  }
+};
 ```
 
 ### Dependencies and Libraries
 
-- **@modelcontextprotocol/sdk**: Official MCP SDK for JavaScript/TypeScript
-- **std/http**: Deno standard library HTTP server and client for REST API calls
-- **std/crypto**: Cryptographic functions for security
-- **std/fs**: File system operations for data management
-- **std/json**: JSON schema validation and processing
-- **npm:zod**: Runtime type validation and schema definition
+- **@modelcontextprotocol/sdk**: Official MCP SDK for JavaScript
+- **express**: HTTP server framework for REST API handling
+- **node-fetch**: HTTP client for REST API calls to MLX Engine
+- **crypto**: Node.js built-in cryptographic functions for security
+- **fs/promises**: Node.js file system operations for data management
+- **ajv**: JSON schema validation and processing
+- **@anthropic-ai/sdk**: Official Anthropic API client for chatbot functionality
+- **readline**: Node.js built-in module for interactive command-line interface
 
 ### Configuration
 
 The MCP server requires configuration to connect to the MLX Engine REST API server:
 
-```typescript
-interface MCPServerConfig {
+```javascript
+// Example configuration object structure
+const mcpServerConfig = {
   // MCP server settings
   mcp: {
-    port: number;
-    host: string;
-  };
+    port: 3000,
+    host: 'localhost'
+  },
   
   // MLX Engine REST API connection
   mlxEngine: {
-    apiUrl: string;          // e.g., "http://localhost:8080"
-    timeout: number;         // Request timeout in milliseconds
-    retryAttempts: number;   // Number of retry attempts for failed requests
-    apiKey?: string;         // Optional API key for authentication
-  };
+    apiUrl: 'http://localhost:8080',
+    timeout: 30000,
+    retryAttempts: 3,
+    apiKey: null // Optional API key for authentication
+  },
+  
+  // Anthropic API for chatbot
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    model: 'claude-3-5-sonnet-20241022',
+    maxTokens: 4096,
+    temperature: 0.7
+  },
   
   // Data storage
   storage: {
-    activationsPath: string; // Path for storing activation data
-    circuitsPath: string;    // Path for circuit library storage
-    cachePath: string;       // Path for analysis result cache
-  };
+    activationsPath: './data/activations',
+    circuitsPath: './data/circuits',
+    cachePath: './data/cache'
+  },
   
   // Analysis settings
   analysis: {
-    maxConcurrentRequests: number;  // Max concurrent MLX API requests
-    defaultTimeout: number;         // Default analysis timeout
-    cacheResults: boolean;          // Whether to cache analysis results
-  };
-}
+    maxConcurrentRequests: 5,
+    defaultTimeout: 60000,
+    cacheResults: true
+  }
+};
 ```
 
 **Environment Variables:**
@@ -101,6 +126,10 @@ MLX_ENGINE_TIMEOUT=30000
 # MCP server settings
 MCP_SERVER_PORT=3000
 MCP_SERVER_HOST=localhost
+
+# Anthropic API for chatbot
+ANTHROPIC_API_KEY=your_anthropic_api_key
+ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
 
 # Storage paths
 ACTIVATIONS_PATH=./data/activations
@@ -234,16 +263,119 @@ Tools are organized by capability area with consistent naming conventions:
 ### MCP Protocol Layer
 
 **MCPServer**: Main server class implementing the MCP protocol
-- Handles tool registration and discovery
+- Handles tool registration and discovery with comprehensive JSON schemas
 - Manages client connections and request routing
 - Provides error handling and response formatting
 - Implements authentication and authorization
 
-**ToolRegistry**: Central registry for all available tools
-- Dynamic tool registration from service modules
-- Tool metadata management and validation
-- Request routing based on tool names
-- Tool dependency resolution
+**ToolRegistry**: Central registry for all available tools with exhaustive schemas
+- Dynamic tool registration from service modules with input/output schema validation
+- Tool metadata management including comprehensive JSON schema definitions
+- Request routing based on tool names with schema-based input validation
+- Tool dependency resolution and schema compatibility checking
+
+**JSON Schema Implementation**: Every MCP tool includes exhaustive schemas
+```javascript
+// Example MCP tool structure with comprehensive schemas
+const createMCPTool = (name, description, inputSchema, outputSchema, handler) => ({
+  name,
+  description,
+  inputSchema: {
+    type: "object",
+    properties: inputSchema.properties,
+    required: inputSchema.required || [],
+    additionalProperties: false
+  },
+  outputSchema: {
+    type: "object", 
+    properties: outputSchema.properties,
+    required: outputSchema.required || [],
+    additionalProperties: false
+  },
+  handler
+});
+
+// Example: Circuit discovery tool schema
+const coreDiscoverCircuitsSchema = {
+  inputSchema: {
+    type: "object",
+    properties: {
+      phenomenon: {
+        type: "string",
+        description: "The target phenomenon to find circuits for (e.g., 'IOI', 'indirect_object_identification')",
+        enum: ["IOI", "indirect_object_identification", "arithmetic", "factual_recall"]
+      },
+      model_id: {
+        type: "string",
+        description: "Identifier of the loaded model to analyze"
+      },
+      confidence_threshold: {
+        type: "number",
+        minimum: 0,
+        maximum: 1,
+        default: 0.7,
+        description: "Minimum confidence score for circuit candidates"
+      },
+      max_circuits: {
+        type: "integer",
+        minimum: 1,
+        maximum: 50,
+        default: 10,
+        description: "Maximum number of circuit candidates to return"
+      }
+    },
+    required: ["phenomenon", "model_id"],
+    additionalProperties: false
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      success: { type: "boolean" },
+      circuits: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            name: { type: "string" },
+            confidence: { type: "number", minimum: 0, maximum: 1 },
+            layers: { type: "array", items: { type: "integer" } },
+            components: { type: "array", items: { type: "string" } },
+            validation_metrics: {
+              type: "object",
+              properties: {
+                performance_recovery: { type: "number" },
+                attribution_score: { type: "number" },
+                consistency_score: { type: "number" }
+              },
+              required: ["performance_recovery", "attribution_score", "consistency_score"]
+            }
+          },
+          required: ["id", "name", "confidence", "layers", "components", "validation_metrics"]
+        }
+      },
+      execution_time_ms: { type: "number" },
+      model_info: {
+        type: "object",
+        properties: {
+          model_id: { type: "string" },
+          architecture: { type: "string" },
+          num_layers: { type: "integer" }
+        },
+        required: ["model_id", "architecture", "num_layers"]
+      }
+    },
+    required: ["success", "circuits", "execution_time_ms", "model_info"],
+    additionalProperties: false
+  }
+};
+```
+
+**Schema Validation**: All tool calls undergo rigorous validation
+- **Input Validation**: AJV-based runtime validation against declared input schemas
+- **Output Validation**: Response validation ensures conformance to output schemas
+- **Error Reporting**: Detailed schema violation messages with specific constraint failures
+- **Runtime Safety**: JavaScript validation ensures runtime schema consistency
 
 ### Core Analysis Service
 
@@ -281,11 +413,13 @@ Tools are organized by capability area with consistent naming conventions:
 - `mlx_stream_analysis`: Uses `POST /stream` endpoint for real-time streaming analysis
 
 **Implementation Details:**
-```typescript
+```javascript
 class ActivationCaptureClient {
-  constructor(private mlxApiUrl: string) {}
+  constructor(mlxApiUrl) {
+    this.mlxApiUrl = mlxApiUrl;
+  }
   
-  async loadModel(modelPath: string): Promise<ModelLoadResult> {
+  async loadModel(modelPath) {
     const response = await fetch(`${this.mlxApiUrl}/models/load`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -294,7 +428,7 @@ class ActivationCaptureClient {
     return await response.json();
   }
   
-  async createHooks(specs: ActivationHookSpec[]): Promise<string[]> {
+  async createHooks(specs) {
     const response = await fetch(`${this.mlxApiUrl}/hooks/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -400,91 +534,129 @@ class ActivationCaptureClient {
 - `data_invalidate_cache`: Cache invalidation management
 - `data_optimize_storage`: Storage optimization
 
+### Interactive Command-Line Interface
+
+**ChatbotService**: Interactive command-line chatbot with Anthropic API integration
+- `startInteractiveSession`: Initializes command-line interface with conversation history
+- `processUserInput`: Handles natural language queries and converts to MCP tool calls
+- `executeToolsFromConversation`: Automatically executes appropriate MCP tools based on user requests
+- `explainResults`: Converts technical MCP tool results into natural language explanations
+- `provideHelp`: Offers contextual assistance and examples for mechanistic interpretability operations
+
+**Implementation Architecture:**
+```javascript
+class InteractiveChatbot {
+  constructor(anthropicClient, mcpServer) {
+    this.anthropicClient = anthropicClient;
+    this.mcpServer = mcpServer;
+    this.conversationHistory = [];
+  }
+  
+  async startSession() {
+    // Initialize readline interface
+    // Display welcome message and available capabilities
+    // Start conversation loop
+  }
+  
+  async processUserQuery(input) {
+    // Send query to Anthropic API with MCP tool context
+    // Parse response for tool calls
+    // Execute MCP tools if requested
+    // Format results for human consumption
+  }
+  
+  async explainCapabilities() {
+    // Generate natural language explanation of all available MCP tools
+    // Provide examples and use cases
+    // Suggest common workflows
+  }
+}
+
 ## Data Models
 
 ### Circuit Representation
 
-```typescript
-interface Circuit {
-  id: string;
-  name: string;
-  description: string;
-  layers: number[];
-  components: string[];
-  confidence: number;
-  metadata: Record<string, unknown>;
-  validation_status: ValidationStatus;
-  created_at: Date;
-  updated_at: Date;
-}
+```javascript
+// Example circuit object structure
+const createCircuit = (id, name, description, layers, components, confidence) => ({
+  id,
+  name,
+  description,
+  layers,
+  components,
+  confidence,
+  metadata: {},
+  validation_status: 'pending', // 'pending', 'validated', 'failed'
+  created_at: new Date(),
+  updated_at: new Date()
+});
 ```
 
 ### Activation Data
 
-```typescript
-interface ActivationData {
-  model_id: string;
-  layer_activations: Record<number, Float32Array>;
-  attention_patterns: Record<number, Float32Array>;
-  residual_stream: Float32Array;
-  tokens: string[];
-  metadata: Record<string, unknown>;
-}
+```javascript
+// Example activation data structure
+const createActivationData = (modelId, layerActivations, attentionPatterns, residualStream, tokens) => ({
+  model_id: modelId,
+  layer_activations: layerActivations, // Object with layer numbers as keys, Float32Array as values
+  attention_patterns: attentionPatterns, // Object with layer numbers as keys, Float32Array as values
+  residual_stream: residualStream, // Float32Array
+  tokens: tokens, // Array of strings
+  metadata: {}
+});
 ```
 
 ### Analysis Result
 
-```typescript
-interface AnalysisResult {
-  operation: string;
-  status: ResultStatus;
-  data: Record<string, unknown>;
-  confidence?: number;
-  validation?: ValidationResult;
-  timestamp: Date;
-  execution_time: number;
-}
+```javascript
+// Example analysis result structure
+const createAnalysisResult = (operation, status, data, confidence = null, validation = null) => ({
+  operation,
+  status, // 'success', 'error', 'partial'
+  data,
+  confidence,
+  validation,
+  timestamp: new Date(),
+  execution_time: 0 // milliseconds
+});
 ```
 
 ### MLX Engine Integration Models
 
-```typescript
-interface MLXEngineRequest {
-  endpoint: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  body?: Record<string, unknown>;
-  headers?: Record<string, string>;
-  timeout?: number;
-}
+```javascript
+// MLX Engine request structure
+const createMLXEngineRequest = (endpoint, method, body = null, headers = {}, timeout = 30000) => ({
+  endpoint,
+  method, // 'GET', 'POST', 'PUT', 'DELETE'
+  body,
+  headers,
+  timeout
+});
 
-interface MLXEngineResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  status_code: number;
-  request_id: string;
-}
+// MLX Engine response structure
+const createMLXEngineResponse = (success, data = null, error = null, statusCode = 200, requestId = null) => ({
+  success,
+  data,
+  error,
+  status_code: statusCode,
+  request_id: requestId
+});
 
-interface ActivationHookSpec {
-  layer_name: string;
-  component: string;
-  hook_id: string;
-  capture_input: boolean;
-  capture_output: boolean;
-}
+// Activation hook specification
+const createActivationHookSpec = (layerName, component, hookId, captureInput = true, captureOutput = true) => ({
+  layer_name: layerName,
+  component,
+  hook_id: hookId,
+  capture_input: captureInput,
+  capture_output: captureOutput
+});
 
-interface GenerationWithActivations {
-  choices: Array<{
-    message: { content: string };
-    finish_reason: string;
-  }>;
-  activations: Record<string, CapturedActivation[]>;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
+// Generation with activations result
+const createGenerationWithActivations = (choices, activations, usage) => ({
+  choices, // Array of choice objects with message and finish_reason
+  activations, // Object with hook IDs as keys, activation arrays as values
+  usage // Object with token counts
+});
 ```
 
 ## Error Handling
@@ -493,28 +665,26 @@ interface GenerationWithActivations {
 
 The MCP server must handle various types of errors from the MLX Engine REST API:
 
-```typescript
+```javascript
 class MLXEngineError extends Error {
-  constructor(
-    message: string,
-    public statusCode: number,
-    public endpoint: string,
-    public requestId?: string
-  ) {
+  constructor(message, statusCode, endpoint, requestId = null) {
     super(message);
     this.name = 'MLXEngineError';
+    this.statusCode = statusCode;
+    this.endpoint = endpoint;
+    this.requestId = requestId;
   }
 }
 
 class MLXEngineConnectionError extends MLXEngineError {
-  constructor(endpoint: string, cause: Error) {
+  constructor(endpoint, cause) {
     super(`Failed to connect to MLX Engine at ${endpoint}: ${cause.message}`, 0, endpoint);
     this.name = 'MLXEngineConnectionError';
   }
 }
 
 class MLXEngineTimeoutError extends MLXEngineError {
-  constructor(endpoint: string, timeout: number) {
+  constructor(endpoint, timeout) {
     super(`Request to ${endpoint} timed out after ${timeout}ms`, 408, endpoint);
     this.name = 'MLXEngineTimeoutError';
   }
@@ -554,14 +724,15 @@ class MLXEngineTimeoutError extends MLXEngineError {
 
 ### Error Response Format
 
-```typescript
-interface MCPError {
-  code: string;
-  message: string;
-  details?: Record<string, unknown>;
-  suggestions?: string[];
-  recoverable: boolean;
-}
+```javascript
+// MCP error response structure
+const createMCPError = (code, message, details = null, suggestions = [], recoverable = false) => ({
+  code,
+  message,
+  details,
+  suggestions,
+  recoverable
+});
 ```
 
 ### Recovery Mechanisms
