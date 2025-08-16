@@ -3,7 +3,7 @@
  * Manages tool registration, discovery, and validation
  */
 
-import { MCPErrorCodes, validateMCPTool } from '../types/mcp.js';
+// MCP validation simplified
 import { getLogger } from '../utils/logging.js';
 
 export class ToolRegistry {
@@ -19,8 +19,11 @@ export class ToolRegistry {
    */
   registerTool(tool) {
     try {
-      // Validate tool definition
-      const validatedTool = validateMCPTool(tool);
+      // Basic tool validation
+      if (!tool.name || !tool.description || !tool.handler) {
+        throw new Error('Tool must have name, description, and handler');
+      }
+      const validatedTool = tool;
 
       // Check if tool already exists
       if (this.tools.has(validatedTool.name)) {

@@ -34,17 +34,18 @@ async function main() {
     const shutdown = () => {
       console.log('Shutting down MCP Server...');
       server.stop();
-      Deno.exit(0);
+      process.exit(0);
     };
 
-    Deno.addSignalListener('SIGINT', shutdown);
-    Deno.addSignalListener('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
   } catch (error) {
     console.error('Failed to start MCP Server:', error);
-    Deno.exit(1);
+    process.exit(1);
   }
 }
 
-if (import.meta.main) {
+// Run if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }

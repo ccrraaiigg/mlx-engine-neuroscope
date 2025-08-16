@@ -1,182 +1,155 @@
 # Mechanistic Interpretability MCP Server
 
-A Model Context Protocol (MCP) server that provides comprehensive mechanistic interpretability capabilities for Large Language Models, with specialized integration for MLX Engine on Apple Silicon.
+An interactive chatbot and MCP server for mechanistic interpretability analysis with MLX Engine integration and beautiful visualizations.
 
-## Features
+## 🚀 Quick Start
 
-- **Circuit Analysis**: Discover and analyze computational circuits within transformer models
-- **Model Modification**: Apply targeted interventions and modifications to model behavior
-- **Safety Validation**: Comprehensive safety testing and validation capabilities
-- **MLX Integration**: Optimized for Apple Silicon using MLX framework
-- **Real-time Analysis**: Stream activations and perform live analysis during inference
+### Prerequisites
 
-## Quick Start
+1. **Node.js 18+** - Required for running the server
+2. **Anthropic API Key** - For the chatbot functionality (already in `keys` file)
+3. **MLX Engine** - Required for real model analysis (must be running)
+
+### Installation
 
 ```bash
-# Install Node.js (if not already installed)
-# Visit https://nodejs.org/ or use a package manager like homebrew:
-# brew install node
+# Clone and navigate to the mcp-server directory
+cd mcp-server
 
 # Install dependencies
 npm install
 
-# Run the server
-npm start
-
-# Or run in development mode with auto-reload
-npm run dev
-
-# Test the server functionality
-node src/test_server.js
+# API keys are already configured in the 'keys' file
+# MLX Engine should be running on http://localhost:8080
 ```
 
-## Interactive Chatbot
-
-The MCP server includes an interactive command-line chatbot that uses the Anthropic API to provide natural language access to mechanistic interpretability operations.
-
-### Setup
-
-1. **API Keys**: Ensure you have API keys configured in the `keys` file:
-   ```
-   anthropic=sk-ant-api03-your-key-here
-   openai=sk-proj-your-key-here
-   ```
-
-2. **Start the chatbot**:
-   ```bash
-   # Run the interactive chatbot
-   npm run chatbot
-   
-   # Or run directly
-   node src/chatbot.js
-   ```
-
-### Usage
-
-The chatbot provides a conversational interface to all MCP server capabilities:
-
-```
-🧠 Mechanistic Interpretability Chatbot
-Connected to MCP Server with 15 tools available.
-
-> Hello! Can you help me discover circuits for indirect object identification?
-
-I'll help you discover circuits for indirect object identification (IOI). This is a well-studied 
-phenomenon in mechanistic interpretability. Let me run the circuit discovery tool for you.
-
-[Executing: core_discover_circuits with phenomenon="IOI"]
-
-✅ Found 3 circuit candidates for IOI:
-- IOI_primary_circuit (confidence: 0.87)
-  - Layers: [8, 9, 10, 11]  
-  - Components: attention_head_8_3, mlp_9, attention_head_10_1, attention_head_11_2
-  - Performance recovery: 92%
-
-Would you like me to analyze any of these circuits in more detail?
-
-> Yes, can you localize the features in the primary circuit?
-
-I'll localize the specific features within the IOI primary circuit...
-
-[Executing: core_localize_features with circuit_id="IOI_primary_circuit"]
-```
-
-### Available Commands
-
-The chatbot understands natural language requests for:
-
-- **Circuit Discovery**: "Find circuits for [phenomenon]", "Discover IOI circuits"
-- **Feature Localization**: "Localize features in [circuit]", "Which neurons are responsible for [feature]?"
-- **Model Analysis**: "Analyze attention patterns", "Show me the residual stream"
-- **Safety Operations**: "Check for harmful circuits", "Validate this modification"
-- **Data Management**: "Export results to JSON", "Show me the activation data"
-
-### Help and Examples
+### Running the Interactive Chatbot
 
 ```bash
-# Get help within the chatbot
-> help
+# Start the interactive chatbot
+npm run chat
 
-# Ask about available capabilities  
-> What can you do?
-
-# Request examples
-> Show me examples of circuit discovery
-
-# Exit the chatbot
-> exit
-```
-
-### Features
-
-- **Natural Language Interface**: Ask questions in plain English
-- **Automatic Tool Selection**: The chatbot automatically chooses the right MCP tools
-- **Conversation History**: Maintains context throughout your session
-- **Rich Output Formatting**: Results are presented in an easy-to-read format
-- **Error Explanation**: Errors are explained in plain language with suggestions
-- **Session Management**: Save and restore conversation sessions
-
-### Configuration
-
-Configure the chatbot behavior via environment variables:
-
-```bash
-# Anthropic API settings
-export ANTHROPIC_API_KEY=your-key-here
-export ANTHROPIC_MODEL=claude-3-sonnet-20240229
-
-# Chatbot settings
-export CHATBOT_MAX_HISTORY=50
-export CHATBOT_SAVE_SESSIONS=true
-export CHATBOT_SESSION_DIR=./sessions
-
-# Start chatbot with custom settings
+# Or use the full command
 npm run chatbot
 ```
 
-## Current Implementation Status
-
-✅ **Task 1.2 Complete**: MCP server core framework implemented
-- MCP SDK integration with @modelcontextprotocol/sdk
-- Tool registry with comprehensive JSON schema validation
-- Request routing system with proper error handling
-- Logging system using Node.js built-in modules
-- Basic core tools for testing (ping, core_discover_circuits, core_localize_features)
-
-🚧 **Next Steps**: Additional tool implementations as defined in tasks.md
-
-## Configuration
-
-### API Keys Setup
-
-Create a `keys` file in the mcp-server directory with your API keys:
+### Example Conversation
 
 ```
-anthropic=sk-ant-api03-your-anthropic-key-here
-openai=sk-proj-your-openai-key-here
+🧠 MI-Chat> discover circuits for indirect object identification in GPT-OSS-20B
+
+🤖 I'll help you discover circuits for indirect object identification (IOI) in GPT-OSS-20B! 
+This is a fascinating phenomenon where the model learns to identify which entity should 
+receive an indirect object in sentences like "John and Mary went to the store, John gave a drink to..."
+
+🔧 Executing core_discover_circuits...
+✅ Tool execution completed:
+{
+  "success": true,
+  "circuits": [
+    {
+      "id": "circuit_001",
+      "name": "IOI_primary_circuit",
+      "confidence": 0.85,
+      "layers": [8, 9, 10],
+      "components": ["attention_head_8_3", "mlp_9", "attention_head_10_1"]
+    }
+  ]
+}
+
+💡 Tip: I can create visualizations of this data! Try asking me to "visualize the results"
+
+🧠 MI-Chat> visualize the circuit
+
+🤖 I'll create a beautiful interactive visualization of the IOI circuit for you!
+
+🔧 Executing viz_circuit_diagram...
+✅ Tool execution completed:
+{
+  "success": true,
+  "visualization_url": "http://localhost:8888/index.html?data=circuit_graph.json",
+  "nodes_count": 5,
+  "links_count": 4
+}
+
+🎨 Opening visualization: http://localhost:8888/index.html?data=circuit_graph.json
 ```
 
-**Note**: The `keys` file is automatically ignored by git for security.
+## 🎯 Available Commands
 
-### Server Configuration
+### System Commands
+- `help` - Show available commands and examples
+- `status` - Display system status and configuration
+- `tools` - List all available analysis tools
+- `history` - Show conversation history
+- `clear` - Clear screen
+- `viz` - Open visualization interface
+- `exit` / `quit` - Exit the chatbot
 
-The server can be configured via environment variables or a `config.json` file:
+### Analysis Examples
+- "Discover circuits for indirect object identification in GPT-OSS-20B"
+- "Analyze mathematical reasoning in the model"
+- "Show me attention patterns in layer 8"
+- "Find neurons that activate for factual recall"
+- "Visualize the circuit diagram"
 
+## 🛠️ Available Tools
+
+### Core Analysis Tools
+- `core_discover_circuits` - Discover circuits for specific phenomena
+- `core_localize_features` - Localize neurons for specific features
+- `ping` - Test connectivity
+
+### MLX Engine Integration Tools
+- `mlx_load_model` - Load models in MLX Engine
+- `mlx_create_hooks` - Create activation hooks
+- `mlx_capture_activations` - Capture activations during generation
+- `mlx_analyze_math` - Analyze mathematical reasoning circuits
+- `mlx_analyze_attention` - Analyze attention patterns
+- `mlx_analyze_factual` - Analyze factual recall circuits
+- `mlx_track_residual` - Track residual stream flow
+- `mlx_export_neuroscope` - Export to NeuroScope format
+
+### Visualization Tools
+- `viz_circuit_diagram` - Create interactive circuit diagrams
+- `viz_attention_patterns` - Visualize attention patterns
+- `viz_activation_flow` - Show activation flow through layers
+- `viz_open_browser` - Open visualization interface
+- `viz_generate_report` - Generate comprehensive analysis reports
+
+## 🎨 Visualization System
+
+The system includes a powerful WebGL-based visualization system using Cosmos Graph:
+
+### Features
+- **Interactive Circuit Diagrams** - Click nodes, drag to explore
+- **Attention Pattern Visualization** - See how attention flows
+- **Activation Flow Graphs** - Track information through layers
+- **Real-time Physics** - Dynamic force-directed layouts
+- **Export Capabilities** - Save visualizations as PNG/SVG
+- **Fallback Support** - Works even without WebGL
+
+### Accessing Visualizations
+1. **Automatic** - Visualizations open automatically after analysis
+2. **Manual** - Type `viz` in the chatbot
+3. **Direct** - Visit http://localhost:8888 in your browser
+
+## 🔧 Configuration
+
+### Environment Variables
 ```bash
-# Environment variables
-export MCP_PORT=3000
-export MCP_HOST=localhost
-export MLX_ENGINE_API_URL=http://localhost:8080
-export LOG_LEVEL=INFO
+# Required
+ANTHROPIC_API_KEY=your-anthropic-api-key-here
 
-# Start server
-npm start
+# Optional
+MLX_ENGINE_API_URL=http://localhost:8080
+MLX_ENGINE_API_KEY=optional-api-key
+MCP_PORT=3000
+LOG_LEVEL=INFO
 ```
 
 ### Configuration File
-
-Copy `config.example.json` to `config.json` and modify as needed:
-
+Create `config.json` for advanced configuration:
 ```json
 {
   "mcp": {
@@ -184,67 +157,103 @@ Copy `config.example.json` to `config.json` and modify as needed:
     "host": "localhost"
   },
   "mlxEngine": {
-    "apiUrl": "http://localhost:8080"
+    "apiUrl": "http://localhost:8080",
+    "timeout": 30000
+  },
+  "anthropic": {
+    "model": "claude-3-sonnet-20240229"
   },
   "logging": {
-    "level": "INFO"
+    "level": "INFO",
+    "format": "text"
   }
 }
 ```
 
-## Development
+## 🧪 Development
 
+### Running Tests
 ```bash
-# Run tests
 npm test
-
-# Format code
-npm run format
-
-# Lint code
-npm run lint
 ```
 
-## Troubleshooting
+### Starting Individual Components
+```bash
+# Start just the visualization server
+npm run viz
 
-### Chatbot Issues
+# Start the MCP server (without chatbot)
+npm start
 
-**"Anthropic API key not found"**
-- Ensure the `keys` file exists in the mcp-server directory
-- Verify the format: `anthropic=sk-ant-api03-your-key-here`
-- Check file permissions are readable
+# Development mode with auto-reload
+npm run dev
+```
 
-**"Connection refused to MCP server"**
-- Start the MCP server first: `npm start`
-- Verify the server is running on the correct port
-- Check firewall settings
+### MLX Engine Connection
+The system connects directly to the MLX Engine REST API:
+- **Real Connection** - All analysis uses actual MLX Engine data
+- **Failure Handling** - Clear error messages when MLX Engine is unavailable
+- **No Mock Data** - Failures will show exactly what needs to be implemented
 
-**"Tool execution failed"**
-- Ensure MLX Engine is running (if using MLX tools)
-- Check the server logs for detailed error messages
-- Verify tool parameters are valid
+## 📊 Example Analysis Workflow
 
-**"Rate limit exceeded"**
-- The Anthropic API has rate limits
-- Wait a moment before making more requests
-- Consider upgrading your API plan for higher limits
+1. **Start the chatbot**: `npm run chat`
+2. **Load a model**: "Load GPT-OSS-20B model"
+3. **Discover circuits**: "Find circuits for mathematical reasoning"
+4. **Visualize results**: "Show me a circuit diagram"
+5. **Analyze attention**: "Analyze attention patterns in layer 8"
+6. **Generate report**: "Create a comprehensive analysis report"
 
-### General Issues
+## 🔍 Troubleshooting
 
-**"Permission denied"**
-- Ensure Node.js has the required permissions for file system and network access
-- Check file system permissions for data directories
+### Common Issues
 
-**"Module not found"**
-- Run `npm install` to ensure dependencies are installed
-- Check your internet connection for downloading dependencies
+**Anthropic API Key Error**
+```bash
+export ANTHROPIC_API_KEY="your-key-here"
+```
 
-## Requirements
+**Visualization Not Opening**
+- Check if port 8888 is available
+- Try manually visiting http://localhost:8888
+- Use `viz` command to restart visualization server
 
-- Node.js 18+
-- MLX Engine API server running (for full functionality)
-- macOS with Apple Silicon (recommended for MLX integration)
+**MLX Engine Connection Failed**
+- Check that MLX Engine is running on http://localhost:8080
+- Verify the MLX Engine REST API is accessible
+- Check MLX_ENGINE_API_URL in your environment if using custom URL
+- This will show exactly which endpoints need to be implemented
 
-## License
+### Debug Mode
+Set `LOG_LEVEL=DEBUG` for detailed logging:
+```bash
+LOG_LEVEL=DEBUG npm run chat
+```
 
-MIT
+## 🎯 Next Steps
+
+This implementation provides the foundation for:
+1. **Real MLX Engine Integration** - Connect to actual model analysis
+2. **Advanced Circuit Discovery** - Implement more sophisticated algorithms
+3. **NeuroScope Bridge** - Full integration with Smalltalk interface
+4. **Multi-Model Support** - Analyze different model architectures
+5. **Collaborative Features** - Share analyses and visualizations
+
+## 📚 Learn More
+
+- [MLX Engine Documentation](../README.md)
+- [Visualization System Guide](src/visualization/README.md)
+- [MCP Protocol Specification](https://modelcontextprotocol.io/)
+- [Mechanistic Interpretability Resources](https://www.anthropic.com/research)
+
+## 🤝 Contributing
+
+This is part of the larger MLX Engine with NeuroScope Integration project. See the main repository for contribution guidelines.
+
+---
+
+**Ready to explore the inner workings of neural networks? Start the chatbot and begin your journey into mechanistic interpretability!**
+
+```bash
+npm run chat
+```

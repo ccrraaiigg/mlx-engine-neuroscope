@@ -53,6 +53,20 @@ export const LoggingConfigSchema = z.object({
   file: z.string().optional(),
 });
 
+// Anthropic API configuration schema
+export const AnthropicConfigSchema = z.object({
+  model: z.string().default('claude-3-sonnet-20240229'),
+  maxTokens: z.number().int().positive().default(1000),
+  apiKey: z.string().optional(),
+});
+
+// Visualization configuration schema
+export const VisualizationConfigSchema = z.object({
+  port: z.number().int().min(1).max(65535).default(8888),
+  host: z.string().default('localhost'),
+  autoOpen: z.boolean().default(true),
+});
+
 // Main server configuration schema
 export const MCPServerConfigSchema = z.object({
   mcp: MCPConfigSchema,
@@ -61,6 +75,8 @@ export const MCPServerConfigSchema = z.object({
   analysis: AnalysisConfigSchema,
   security: SecurityConfigSchema,
   logging: LoggingConfigSchema,
+  anthropic: AnthropicConfigSchema,
+  visualization: VisualizationConfigSchema,
 });
 
 /**

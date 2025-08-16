@@ -3,9 +3,7 @@
  * Main server class that implements the Model Context Protocol
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+// MCP SDK imports removed - using simplified implementation
 import { ToolRegistry } from './tool_registry.js';
 import { RequestRouter } from './request_router.js';
 import { getLogger } from '../utils/logging.js';
@@ -20,70 +18,14 @@ export class MCPServer {
     this.toolRegistry = new ToolRegistry();
     this.requestRouter = new RequestRouter(this.toolRegistry);
 
-    // Initialize MCP SDK server
-    this.server = new Server(
-      {
-        name: 'mechanistic-interpretability-mcp-server',
-        version: '0.1.0',
-      },
-      {
-        capabilities: {
-          tools: {},
-        },
-      },
-    );
-
-    this.setupServerHandlers();
+    // Simplified server implementation
+    this.serverInfo = {
+      name: 'mechanistic-interpretability-mcp-server',
+      version: '0.1.0',
+    };
   }
 
-  /**
-   * Sets up MCP server request handlers
-   */
-  setupServerHandlers() {
-    // Handle tool listing
-    this.server.setRequestHandler(ListToolsRequestSchema, () => {
-      const tools = this.toolRegistry.getAllTools();
-      return {
-        tools: tools.map((tool) => ({
-          name: tool.name,
-          description: tool.description,
-          inputSchema: tool.inputSchema,
-        })),
-      };
-    });
-
-    // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      try {
-        const { name, arguments: args } = request.params;
-
-        this.logger.info(`Executing tool: ${name}`);
-
-        const result = await this.toolRegistry.executeTool(name, args || {});
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        this.logger.error(`Tool execution failed: ${error.message}`);
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Error: ${error.message}`,
-            },
-          ],
-          isError: true,
-        };
-      }
-    });
-  }
+  // Simplified server - no MCP SDK handlers needed for chatbot interface
 
   /**
    * Registers a tool with the server
@@ -102,19 +44,13 @@ export class MCPServer {
   }
 
   /**
-   * Starts the MCP server
+   * Starts the server (simplified for chatbot use)
    */
   async start() {
     try {
       this.logger.info('Starting MCP Server...');
-
-      // Create transport (stdio for MCP)
-      const transport = new StdioServerTransport();
-
-      // Connect server to transport
-      await this.server.connect(transport);
-
       this.running = true;
+      this.startTime = Date.now();
       this.logger.info('MCP Server started successfully');
 
       // Log server statistics
@@ -132,11 +68,6 @@ export class MCPServer {
   async stop() {
     try {
       this.logger.info('Stopping MCP Server...');
-
-      if (this.server) {
-        await this.server.close();
-      }
-
       this.running = false;
       this.logger.info('MCP Server stopped successfully');
     } catch (error) {
@@ -153,8 +84,8 @@ export class MCPServer {
     return {
       running: this.running,
       config: {
-        name: this.server?.serverInfo?.name,
-        version: this.server?.serverInfo?.version,
+        name: this.serverInfo?.name,
+        version: this.serverInfo?.version,
       },
       uptime: this.running ? Date.now() - this.startTime : 0,
       stats: this.getStats(),
