@@ -19,8 +19,13 @@ cd mcp-server
 # Install dependencies
 npm install
 
+# Start the MLX Engine background service
+./start_mlx_service.sh start
+
+# Check that the service is running
+./start_mlx_service.sh status
+
 # API keys are already configured in the 'keys' file
-# MLX Engine should be running on http://localhost:8080
 ```
 
 ### Running the Interactive Chatbot
@@ -142,7 +147,7 @@ The system includes a powerful WebGL-based visualization system using Cosmos Gra
 ANTHROPIC_API_KEY=your-anthropic-api-key-here
 
 # Optional
-MLX_ENGINE_API_URL=http://localhost:8080
+MLX_ENGINE_API_URL=http://localhost:50111
 MLX_ENGINE_API_KEY=optional-api-key
 MCP_PORT=3000
 LOG_LEVEL=INFO
@@ -157,7 +162,7 @@ Create `config.json` for advanced configuration:
     "host": "localhost"
   },
   "mlxEngine": {
-    "apiUrl": "http://localhost:8080",
+    "apiUrl": "http://localhost:50111",
     "timeout": 30000
   },
   "anthropic": {
@@ -204,6 +209,47 @@ The system connects directly to the MLX Engine REST API:
 5. **Analyze attention**: "Analyze attention patterns in layer 8"
 6. **Generate report**: "Create a comprehensive analysis report"
 
+## 🔧 MLX Engine Background Service
+
+The MCP server requires a persistent MLX Engine API service to handle analysis requests. A dedicated background service is provided for this purpose.
+
+### Service Management Commands
+
+```bash
+# Start the service (must be run from mcp-server directory)
+./start_mlx_service.sh start
+
+# Check service status and health
+./start_mlx_service.sh status
+
+# View recent service logs
+./start_mlx_service.sh logs
+
+# Stop the service
+./start_mlx_service.sh stop
+
+# Restart the service
+./start_mlx_service.sh restart
+```
+
+### What the Service Provides
+
+- ✅ **MLX Engine API Server** on port 50111
+- ✅ **Model Loading** and generation capabilities
+- ✅ **Activation Capture** for mechanistic interpretability
+- ✅ **Persistent Background Operation** 
+- ✅ **Comprehensive Logging** to `mlx_engine_service.log`
+- ✅ **Health Monitoring** and status reporting
+
+### Service Requirements
+
+- **Python 3.9+** with MLX Engine dependencies installed
+- **Model Files** in `../models/nightmedia/gpt-oss-20b-q4-hi-mlx/`
+- **Sufficient Memory** for model loading (32GB+ recommended)
+- **Port 50111** available for the API server
+
+The service runs independently and provides the backend functionality that the MCP server tools depend on.
+
 ## 🔍 Troubleshooting
 
 ### Common Issues
@@ -219,10 +265,18 @@ export ANTHROPIC_API_KEY="your-key-here"
 - Use `viz` command to restart visualization server
 
 **MLX Engine Connection Failed**
-- Check that MLX Engine is running on http://localhost:8080
-- Verify the MLX Engine REST API is accessible
+- Start the background service: `./start_mlx_service.sh start`
+- Check service status: `./start_mlx_service.sh status`
+- View service logs: `./start_mlx_service.sh logs`
+- Verify the MLX Engine REST API is accessible at http://localhost:50111
 - Check MLX_ENGINE_API_URL in your environment if using custom URL
-- This will show exactly which endpoints need to be implemented
+
+**MLX Engine Service Issues**
+- Check Python 3 is available: `python3 --version`
+- Verify MLX Engine dependencies: `python3 -c "import mlx_engine"`
+- Ensure model files exist: `ls ../models/nightmedia/gpt-oss-20b-q4-hi-mlx/`
+- Check available memory (32GB+ recommended for full model)
+- Monitor service logs: `tail -f mlx_engine_service.log`
 
 ### Debug Mode
 Set `LOG_LEVEL=DEBUG` for detailed logging:

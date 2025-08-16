@@ -179,71 +179,71 @@ def main():
             ("NeuroScope Demo", lambda: run_neuroscope_demo(data_dir)),
             ("API Reference", show_api_reference)
         ]
-    
-    results = {}
-    
-    for test_name, test_func in tests:
-        print(f"\n🚀 Starting {test_name}...")
-        try:
-            results[test_name] = test_func()
-        except KeyboardInterrupt:
-            print(f"\n⚠️  {test_name} interrupted by user")
-            results[test_name] = False
-            break
-        except Exception as e:
-            print(f"\n❌ {test_name} failed with exception: {e}")
-            results[test_name] = False
-    
-    # Summary
-    print("\n" + "="*60)
-    print("DEMO SUMMARY")
-    print("="*60)
-    
-    for test_name, success in results.items():
-        status = "✅ PASSED" if success else "❌ FAILED"
-        print(f"{test_name:.<40} {status}")
-    
-    successful_tests = sum(results.values())
-    total_tests = len(results)
-    
-    print(f"\nOverall: {successful_tests}/{total_tests} tests successful")
-    
-    if successful_tests == total_tests:
-        print("\n🎉 All demos completed successfully!")
-        print("\nThe NeuroScope REST interface is ready for integration.")
-        print("\nKey features demonstrated:")
-        print("- ✅ Basic model loading and generation")
-        print("- ✅ REST API server functionality") 
-        print("- ✅ Activation capture during generation")
-        print("- ✅ Multiple analysis scenarios")
-        print("- ✅ Comprehensive API reference")
         
-        print("\nNext steps:")
-        print("1. Implement the REST client in NeuroScope")
-        print("2. Add activation visualization components")
-        print("3. Create circuit analysis workflows")
-        print("4. Test with real mechanistic interpretability tasks")
+        results = {}
         
-        return 0
-    else:
-        print(f"\n⚠️  {total_tests - successful_tests} out of {total_tests} demos failed.")
-        print("Check the output above for details.")
+        for test_name, test_func in tests:
+            print(f"\n🚀 Starting {test_name}...")
+            try:
+                results[test_name] = test_func()
+            except KeyboardInterrupt:
+                print(f"\n⚠️  {test_name} interrupted by user")
+                results[test_name] = False
+                break
+            except Exception as e:
+                print(f"\n❌ {test_name} failed with exception: {e}")
+                results[test_name] = False
         
-        # List specific failures
-        failed_tests = [name for name, success in results.items() if not success]
-        if failed_tests:
-            print("\nFailed tests:")
-            for test_name in failed_tests:
-                print(f"- ❌ {test_name}")
+        # Summary
+        print("\n" + "="*60)
+        print("DEMO SUMMARY")
+        print("="*60)
         
-        print("\nCommon issues:")
-        print("- Model not found (download required)")
-        print("- Missing dependencies (pip install flask mlx)")
-        print("- Memory limitations (reduce model size)")
-        print("- Activation hooks endpoint not implemented")
-        print("- Missing analysis configuration variables")
+        for test_name, success in results.items():
+            status = "✅ PASSED" if success else "❌ FAILED"
+            print(f"{test_name:.<40} {status}")
         
-        return 1
+        successful_tests = sum(results.values())
+        total_tests = len(results)
+        
+        print(f"\nOverall: {successful_tests}/{total_tests} tests successful")
+        
+        if successful_tests == total_tests:
+            print("\n🎉 All demos completed successfully!")
+            print("\nThe NeuroScope REST interface is ready for integration.")
+            print("\nKey features demonstrated:")
+            print("- ✅ Basic model loading and generation")
+            print("- ✅ REST API server functionality") 
+            print("- ✅ Activation capture during generation")
+            print("- ✅ Multiple analysis scenarios")
+            print("- ✅ Comprehensive API reference")
+            
+            print("\nNext steps:")
+            print("1. Implement the REST client in NeuroScope")
+            print("2. Add activation visualization components")
+            print("3. Create circuit analysis workflows")
+            print("4. Test with real mechanistic interpretability tasks")
+            
+            return 0
+        else:
+            print(f"\n⚠️  {total_tests - successful_tests} out of {total_tests} demos failed.")
+            print("Check the output above for details.")
+            
+            # List specific failures
+            failed_tests = [name for name, success in results.items() if not success]
+            if failed_tests:
+                print("\nFailed tests:")
+                for test_name in failed_tests:
+                    print(f"- ❌ {test_name}")
+            
+            print("\nCommon issues:")
+            print("- Model not found (download required)")
+            print("- Missing dependencies (pip install flask mlx)")
+            print("- Memory limitations (reduce model size)")
+            print("- Activation hooks endpoint not implemented")
+            print("- Missing analysis configuration variables")
+            
+            return 1
     
     finally:
         # Restore original stdout and close log file

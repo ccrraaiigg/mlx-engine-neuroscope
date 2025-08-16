@@ -31,8 +31,9 @@
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
-    "zod": "^3.22.4",
-    "express": "^4.18.2"
+    "@modelcontextprotocol/sdk": "^1.17.3",
+    "express": "^4.18.2",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
@@ -49,7 +50,9 @@
     ]
   },
   "eslintConfig": {
-    "extends": ["standard"],
+    "extends": [
+      "standard"
+    ],
     "env": {
       "node": true,
       "es2022": true,

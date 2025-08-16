@@ -388,7 +388,7 @@ def generate_neuroscope_client_template():
     
     template = '''
 class NeuroScopeMLXClient {
-    constructor(baseUrl = "http://127.0.0.1:8080") {
+    constructor(baseUrl = "http://127.0.0.1:50111") {
         this.baseUrl = baseUrl;
     }
     

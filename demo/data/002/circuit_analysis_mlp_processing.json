@@ -1,0 +1,1477 @@
+{
+  "timestamp": "2025-08-15T18:38:05.437977",
+  "demo_type": "circuit_analysis",
+  "analysis_name": "mlp_processing",
+  "analysis_description": "Analyze MLP processing patterns",
+  "hooks_used": 2,
+  "generated_text": "This is a meta question. The user wants an explanation. \nWe should respond with a simple explanation. \nSure, we can explain recursion concept.",
+  "activations": {
+    "attention_layer_10": [
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_10",
+        "is_input": false,
+        "layer_name": "model.layers.10.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      }
+    ],
+    "attention_layer_2": [
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "attention",
+        "dtype": "float32",
+        "hook_id": "attention_layer_2",
+        "is_input": false,
+        "layer_name": "model.layers.2.self_attn",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      }
+    ],
+    "mlp_layer_15": [
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_15",
+        "is_input": false,
+        "layer_name": "model.layers.15.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      }
+    ],
+    "mlp_layer_5": [
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      },
+      {
+        "component": "mlp",
+        "dtype": "float32",
+        "hook_id": "mlp_layer_5",
+        "is_input": false,
+        "layer_name": "model.layers.5.mlp",
+        "shape": [
+          1,
+          32,
+          768
+        ]
+      }
+    ]
+  },
+  "usage": {
+    "completion_tokens": 23,
+    "prompt_tokens": 28,
+    "total_tokens": 51
+  },
+  "hook_configurations": [
+    {
+      "layer_name": "model.layers.5.mlp",
+      "component": "mlp",
+      "hook_id": "mlp_layer_5",
+      "capture_output": true
+    },
+    {
+      "layer_name": "model.layers.15.mlp",
+      "component": "mlp",
+      "hook_id": "mlp_layer_15",
+      "capture_output": true
+    }
+  ]
+}

@@ -73,7 +73,7 @@ Deno.test('RequestRouter - route MCP requests', async () => {
 Deno.test('MCPServer - initialization and tool management', async () => {
   const config = {
     mcp: { port: 3000, host: 'localhost' },
-    mlxEngine: { apiUrl: 'http://localhost:8080' },
+    mlxEngine: { apiUrl: 'http://localhost:50111' },
     storage: { activationsPath: './data/activations' },
     analysis: { defaultTimeout: 60000 },
     security: { enableAuth: false },

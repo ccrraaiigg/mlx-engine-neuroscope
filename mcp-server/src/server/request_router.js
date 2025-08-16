@@ -32,7 +32,9 @@ export class RequestRouter {
         tools: tools.map((tool) => ({
           name: tool.name,
           description: tool.description,
-          inputSchema: tool.inputSchema,
+          // Cursor expects snake_case per MCP docs
+          input_schema: tool.inputSchema,
+          output_schema: tool.outputSchema,
         })),
       };
     });
@@ -44,11 +46,14 @@ export class RequestRouter {
       }
 
       const result = await this.toolRegistry.executeTool(params.name, params.arguments || {});
+      // Return raw result as per MCP tools/call
       return {
-        content: [{
-          type: 'text',
-          text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: typeof result === 'string' ? result : JSON.stringify(result),
+          },
+        ],
         isError: false,
       };
     });
@@ -58,13 +63,19 @@ export class RequestRouter {
       return {
         protocolVersion: '2024-11-05',
         capabilities: {
-          tools: {},
+          tools: { listChanged: true, list_changed: true },
+          prompts: {},
         },
         serverInfo: {
           name: 'mechanistic-interpretability-mcp-server',
           version: '0.1.0',
         },
       };
+    });
+
+    // Prompts list method (empty for now)
+    this.requestHandlers.set('prompts/list', () => {
+      return { prompts: [] };
     });
 
     // Ping method

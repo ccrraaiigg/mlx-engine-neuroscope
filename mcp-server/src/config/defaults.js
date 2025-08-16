@@ -10,7 +10,7 @@ export const defaultConfig = {
   },
   
   mlxEngine: {
-    apiUrl: 'http://localhost:8080',
+    apiUrl: 'http://localhost:50111',
     timeout: 30000,
     retryAttempts: 3,
     maxConcurrentRequests: 10,

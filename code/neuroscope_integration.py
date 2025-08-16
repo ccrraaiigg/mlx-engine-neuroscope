@@ -17,7 +17,7 @@ import base64
 class LMStudioNeuroScopeClient:
     """Client for interfacing between NeuroScope and LM Studio with activation capture."""
     
-    def __init__(self, base_url: str = "http://127.0.0.1:8080"):
+    def __init__(self, base_url: str = "http://127.0.0.1:50111"):
         """
         Initialize the client.
         
@@ -292,7 +292,7 @@ Object subclass: #LMStudioRESTClient
 
 LMStudioRESTClient class >> default
     "Return a default client instance"
-    ^self new baseUrl: 'http://127.0.0.1:8080'
+    ^self new baseUrl: 'http://127.0.0.1:50111'
 
 LMStudioRESTClient >> baseUrl: aString
     "Set the base URL for the LM Studio API"

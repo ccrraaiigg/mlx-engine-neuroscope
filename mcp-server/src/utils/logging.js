@@ -28,25 +28,26 @@ class Logger {
 
   debug(message) {
     if (this.shouldLog('DEBUG')) {
-      console.debug(this.formatMessage('DEBUG', message));
+      // Always log to stderr to avoid interfering with stdio JSON-RPC streams
+      process.stderr.write(this.formatMessage('DEBUG', message) + '\n');
     }
   }
 
   info(message) {
     if (this.shouldLog('INFO')) {
-      console.info(this.formatMessage('INFO', message));
+      process.stderr.write(this.formatMessage('INFO', message) + '\n');
     }
   }
 
   warn(message) {
     if (this.shouldLog('WARN')) {
-      console.warn(this.formatMessage('WARN', message));
+      process.stderr.write(this.formatMessage('WARN', message) + '\n');
     }
   }
 
   error(message) {
     if (this.shouldLog('ERROR')) {
-      console.error(this.formatMessage('ERROR', message));
+      process.stderr.write(this.formatMessage('ERROR', message) + '\n');
     }
   }
 }

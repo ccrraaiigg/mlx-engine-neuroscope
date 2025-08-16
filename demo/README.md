@@ -163,7 +163,7 @@ The demo automatically generates:
 ### Common Issues
 1. **Model Not Found**: Ensure model is downloaded and path is correct
 2. **Memory Issues**: Reduce model size or increase system RAM
-3. **Port Conflicts**: Change API server port if 8080 is in use
+3. **Port Conflicts**: Change API server port if 50111 is in use
 4. **Dependencies**: Install all required packages with pip
 
 ### Testing Strategy
