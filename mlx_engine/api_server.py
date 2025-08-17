@@ -68,9 +68,18 @@ class MLXEngineAPI:
         
         @self.app.route('/health', methods=['GET'])
         def health():
-            """Health check endpoint."""
+            """Health check endpoint with version and timestamp."""
+            import datetime
             logger.info(f"Health check endpoint called")
-            return jsonify({'status': 'healthy', 'service': 'mlx-engine-neuroscope'})
+            return jsonify({
+                'status': 'healthy', 
+                'service': 'mlx-engine-neuroscope',
+                'component': 'MLX Engine REST API',
+                'version': '1.2.0',
+                'timestamp': datetime.datetime.now().isoformat(),
+                'current_model': self.current_model,
+                'ready': self.current_model is not None
+            })
             
         # Debug route to list all registered routes
         @self.app.route('/debug/routes', methods=['GET'])

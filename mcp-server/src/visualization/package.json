@@ -5,7 +5,8 @@
   "private": true,
   "dependencies": {
     "@cosmos.gl/graph": "^2.3.1",
-    "d3-color": "^3.1.0",
-    "crossfilter2": "^1.5.4"
+    "@interacta/css-labels": "^0.2.0",
+    "crossfilter2": "^1.5.4",
+    "d3-color": "^3.1.0"
   }
 }

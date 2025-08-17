@@ -1,0 +1,20 @@
+2025-08-16 14:29:12.758 [error] Mechanistic Interpretability MCP Server v26 running on stdio
+
+2025-08-16 14:29:12.758 [error] Registered 22 tools for GPT-OSS-20B circuit analysis, health monitoring, and WebGL2 visualization
+
+2025-08-16 14:29:12.759 [info] Successfully connected to stdio server
+2025-08-16 14:29:12.759 [info] Storing stdio client
+2025-08-16 14:29:12.763 [info] Connected to stdio server, fetching offerings
+2025-08-16 14:29:12.763 [info] Found 22 tools and 0 prompts
+2025-08-16 14:29:29.921 [info] Handling CallTool action for tool 'version'
+2025-08-16 14:29:29.921 [info] Calling tool 'version' with toolCallId: toolu_vrtx_01XHYhMD3uHStfEoQaG6BrXL
+2025-08-16 14:29:29.924 [info] Successfully called tool 'version'
+2025-08-16 14:29:39.112 [info] Handling CallTool action for tool 'circuit_diagram'
+2025-08-16 14:29:39.112 [info] Calling tool 'circuit_diagram' with toolCallId: toolu_vrtx_01PYTxghPU6LMJES9sWqduyy
+2025-08-16 14:29:39.116 [error] Client error for command Unexpected token '�', "🎨 Node cr"... is not valid JSON
+2025-08-16 14:29:39.116 [error] Client error for command Unexpected token '�', "🎨 Node cr"... is not valid JSON
+2025-08-16 14:29:39.116 [error] Client error for command Unexpected token '�', "🎨 Node cr"... is not valid JSON
+2025-08-16 14:29:39.116 [info] Successfully called tool 'circuit_diagram'
+2025-08-16 14:29:39.891 [info] Handling CallTool action for tool 'open_browser'
+2025-08-16 14:29:39.891 [info] Calling tool 'open_browser' with toolCallId: toolu_vrtx_012ASvJmvYCAHLr2w4PH3vuX
+2025-08-16 14:29:40.121 [info] Successfully called tool 'open_browser'

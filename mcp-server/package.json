@@ -17,7 +17,9 @@
     "format": "prettier --write src/**/*.js",
     "chatbot": "node src/cli/interactive_chat.js",
     "chat": "node src/cli/interactive_chat.js",
-    "viz": "node src/visualization/server.js"
+    "chat:test": "node test_interactive_chat.js",
+    "viz": "node src/visualization/server.js",
+    "demo": "echo '🎬 Starting Neural Circuit Demo...' && npm run chat"
   },
   "keywords": [
     "mcp",

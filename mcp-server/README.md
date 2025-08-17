@@ -34,9 +34,21 @@ npm install
 # Start the interactive chatbot
 npm run chat
 
-# Or use the full command
+# Or run a demo session
+npm run demo
+
+# Test the chatbot functionality
+npm run chat:test
+
+# Alternative command
 npm run chatbot
 ```
+
+The chatbot will automatically:
+- ✅ **Check MCP server version** (ensures version 25+)
+- ✅ **Verify service health** (MLX Engine + Visualization server)
+- ✅ **Load demo documentation** into its knowledge base
+- ✅ **Connect to real backend services** (same as Cursor uses)
 
 ### Example Conversation
 

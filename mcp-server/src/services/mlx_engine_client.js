@@ -93,11 +93,12 @@ export class MLXEngineClient {
     this.logger.info(`Loading model: ${modelId}`);
     
     const requestBody = {
+      model_path: `/Users/craig/me/behavior/forks/mlx-engine-neuroscope/models/nightmedia/${modelId}`,
       model_id: modelId,
       ...options,
     };
 
-    return await this.makeRequest('/models/load', {
+    return await this.makeRequest('/v1/models/load', {
       method: 'POST',
       body: requestBody,
     });
@@ -111,11 +112,36 @@ export class MLXEngineClient {
   async createHooks(hookSpecs) {
     this.logger.info(`Creating ${hookSpecs.length} activation hooks`);
     
+    // Convert hookSpecs to the format expected by the real API
+    // Create separate hooks for each component in each layer
+    const hooks = [];
+    for (const spec of hookSpecs) {
+      for (const component of spec.components) {
+        if (component === 'attention') {
+          hooks.push({
+            layer_name: `model.layers.${spec.layer}.self_attn`,
+            component: 'attention',
+            hook_id: `layer_${spec.layer}_attention`,
+            capture_input: false,
+            capture_output: true
+          });
+        } else if (component === 'mlp') {
+          hooks.push({
+            layer_name: `model.layers.${spec.layer}.mlp`,
+            component: 'mlp',
+            hook_id: `layer_${spec.layer}_mlp`,
+            capture_input: false,
+            capture_output: true
+          });
+        }
+      }
+    }
+    
     const requestBody = {
-      hooks: hookSpecs,
+      hooks: hooks,
     };
 
-    return await this.makeRequest('/hooks/create', {
+    return await this.makeRequest('/v1/activations/hooks', {
       method: 'POST',
       body: requestBody,
     });
@@ -130,13 +156,23 @@ export class MLXEngineClient {
   async generateWithActivations(prompt, options = {}) {
     this.logger.info(`Generating with activations for prompt: "${prompt.substring(0, 50)}..."`);
     
+    // Use explicit activation hooks for reliable capture
+    const activation_hooks = [
+      { layer_name: 'model.layers.0.self_attn', component: 'attention', hook_id: 'layer_0_attention' },
+      { layer_name: 'model.layers.0.mlp', component: 'mlp', hook_id: 'layer_0_mlp' },
+      { layer_name: 'model.layers.1.self_attn', component: 'attention', hook_id: 'layer_1_attention' },
+      { layer_name: 'model.layers.1.mlp', component: 'mlp', hook_id: 'layer_1_mlp' }
+    ];
+    
     const requestBody = {
-      prompt,
-      capture_activations: true,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: options.max_tokens || 50,
+      temperature: options.temperature || 0.7,
+      activation_hooks: activation_hooks,
       ...options,
     };
 
-    return await this.makeRequest('/generate', {
+    return await this.makeRequest('/v1/chat/completions/with_activations', {
       method: 'POST',
       body: requestBody,
     });

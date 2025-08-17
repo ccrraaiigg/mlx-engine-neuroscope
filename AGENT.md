@@ -46,14 +46,21 @@ directory called "class".
 
 ## Using JavaScript
 
-If the resultant clause of an if statement is one line, don't put it
-in curly braces.
+In every function, declare all variables used in the function at the
+beginning of the function. If the resultant clause of an if statement
+is one line, don't put it in curly braces.
 
 Never bundle sources. Never use webpack or anything like it.
 
-## Using @cosmos.gl/graph
+## Using Cosmos Graph (@cosmos.gl/graph)
 
-The API documentation is at /Users/craig/forks/graph/src/stories/.
+The API documentation is at /Users/craig/forks/graph/src/stories/. Use
+@interacta/css-labels for labels.
+
+## Using the mcp-server MCP Server
+
+When you need fresh log content from Cursor, you need to ask the user
+to refresh the logfile (mcp-server/log).
 
 ## WASM Tools
 

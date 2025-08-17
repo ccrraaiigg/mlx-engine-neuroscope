@@ -130,8 +130,8 @@ async function mlxCaptureActivations(params) {
     return {
       success: true,
       prompt: params.prompt,
-      generated_text: result.text,
-      activations: result.activations,
+      generated_text: result.choices?.[0]?.message?.content || result.text || '',
+      activations: result.activations || {},
       attention: result.attention,
       residual_stream: result.residual_stream,
       generation_time_ms: result.generation_time_ms,

@@ -1,0 +1,40 @@
+{
+  "nodes": [
+    {
+      "id": "attention_head_5_2",
+      "type": "attention",
+      "layer": 5,
+      "head": 2,
+      "label": "Attention 5.2"
+    },
+    {
+      "id": "mlp_8",
+      "type": "mlp",
+      "layer": 8,
+      "label": "MLP Layer 8"
+    },
+    {
+      "id": "attention_head_10_1",
+      "type": "attention",
+      "layer": 10,
+      "head": 1,
+      "label": "Attention 10.1"
+    }
+  ],
+  "links": [
+    {
+      "source": "attention_head_5_2",
+      "target": "mlp_8",
+      "weight": 0.78
+    },
+    {
+      "source": "mlp_8",
+      "target": "attention_head_10_1",
+      "weight": 0.65
+    }
+  ],
+  "metadata": {
+    "title": "Math Circuit: 7 + 5",
+    "type": "mathematical_reasoning"
+  }
+}
