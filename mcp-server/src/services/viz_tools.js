@@ -2,7 +2,7 @@
  * Visualization Tools
  * 
  * Tools that create visualizations from analysis data and integrate
- * with the Cosmos Graph visualization system.
+ * with the 3D Force Graph visualization system.
  */
 
 import { getLogger } from '../utils/logging.js';
@@ -245,7 +245,7 @@ async function vizGenerateReport(params) {
 // Helper functions for data conversion
 
 /**
- * Converts circuit data to Cosmos Graph format
+ * Converts circuit data to 3D Force Graph format
  * @param {object} circuitData - Circuit analysis data
  * @param {string} circuitName - Name of the circuit
  * @returns {object} Graph data

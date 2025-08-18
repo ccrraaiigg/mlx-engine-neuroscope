@@ -33,13 +33,13 @@ from mlx_engine.model_kit.model_kit import ModelKit
 from mlx_engine.vision_model_kit.vision_model_kit import VisionModelKit
 # Import activation hooks with debug logging
 try:
-    logger.info("Attempting to import from activation_hooks_fixed...")
-    from mlx_engine.activation_hooks_fixed import serialize_activations, ActivationHookSpec
+    logger.info("Attempting to import from activation_hooks...")
+    from mlx_engine.activation_hooks import serialize_activations, ActivationHookSpec
     logger.info(f"Successfully imported ActivationHookSpec: {ActivationHookSpec}")
     logger.info(f"ActivationHookSpec module: {ActivationHookSpec.__module__}")
     logger.info(f"ActivationHookSpec attributes: {dir(ActivationHookSpec)}")
 except ImportError as e:
-    logger.error(f"Failed to import from activation_hooks_fixed: {e}")
+    logger.error(f"Failed to import from activation_hooks: {e}")
     raise
 
 # Configure logging
@@ -110,6 +110,81 @@ class MLXEngineAPI:
                 ]
             })
         
+        @self.app.route('/v1/models/available', methods=['GET'])
+        def available_models_endpoint():
+            """Get information about available models."""
+            try:
+                import os
+                import glob
+                from pathlib import Path
+                
+                # Specific model location
+                model_search_paths = [
+                    "/Users/craig/.lmstudio/models/nightmedia"
+                ]
+                
+                # Only looking for gpt-oss-20b
+                model_patterns = [
+                    "**/gpt-oss-20b*"
+                ]
+                
+                available_models = []
+                found_paths = set()
+                
+                # Search for models in common locations
+                for search_path in model_search_paths:
+                    if os.path.exists(search_path):
+                        for pattern in model_patterns:
+                            for model_path in glob.glob(os.path.join(search_path, pattern), recursive=True):
+                                if os.path.isdir(model_path) and model_path not in found_paths:
+                                    # Check if it looks like a valid model directory
+                                    model_files = os.listdir(model_path)
+                                    has_model_files = any(
+                                        f.endswith('.bin') or f.endswith('.safetensors') or 
+                                        f == 'config.json' or f == 'tokenizer.json'
+                                        for f in model_files
+                                    )
+                                    
+                                    if has_model_files:
+                                        model_name = Path(model_path).name
+                                        available_models.append({
+                                            'model_id': model_name,
+                                            'model_path': model_path,
+                                            'size_mb': self._get_directory_size(model_path),
+                                            'files': model_files[:10]  # First 10 files for reference
+                                        })
+                                        found_paths.add(model_path)
+                
+                # Also include currently loaded models
+                loaded_models = []
+                for model_id, model in self.models.items():
+                    loaded_models.append({
+                        'model_id': model_id,
+                        'status': 'loaded',
+                        'supports_activations': hasattr(model, 'activation_hook_manager'),
+                        'is_current': model_id == self.current_model
+                    })
+                
+                return jsonify({
+                    'available_models': available_models,
+                    'loaded_models': loaded_models,
+                    'current_model': self.current_model,
+                    'search_paths': model_search_paths,
+                    'total_available': len(available_models),
+                    'total_loaded': len(loaded_models)
+                })
+                
+            except Exception as e:
+                import traceback
+                error_details = {
+                    'error': str(e),
+                    'error_type': type(e).__name__,
+                    'traceback': traceback.format_exc()
+                }
+                logger.error(f"Failed to get available models: {e}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                return jsonify(error_details), 500
+        
         @self.app.route('/v1/models/load', methods=['POST'])
         def load_model_endpoint():
             """Load a model from path."""
@@ -143,8 +218,25 @@ class MLXEngineAPI:
                 })
                 
             except Exception as e:
-                logger.error(f"Failed to load model: {e}")
-                return jsonify({'error': str(e)}), 500
+                import traceback
+                error_details = {
+                    'error': str(e),
+                    'error_type': type(e).__name__,
+                    'model_path': model_path,
+                    'model_id': model_id,
+                    'traceback': traceback.format_exc(),
+                    'provided_parameters': {
+                        'vocab_only': data.get('vocab_only', False),
+                        'max_kv_size': data.get('max_kv_size', 4096),
+                        'trust_remote_code': data.get('trust_remote_code', False),
+                        'kv_bits': data.get('kv_bits'),
+                        'kv_group_size': data.get('kv_group_size'),
+                        'quantized_kv_start': data.get('quantized_kv_start')
+                    }
+                }
+                logger.error(f"Failed to load model {model_id} from {model_path}: {e}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                return jsonify(error_details), 500
         
         @self.app.route('/v1/chat/completions', methods=['POST'])
         def chat_completions():
@@ -185,8 +277,25 @@ class MLXEngineAPI:
                     return self._complete_generation(model, tokens, max_tokens, temperature, top_p, stop)
                     
             except Exception as e:
-                logger.error(f"Generation failed: {e}")
-                return jsonify({'error': str(e)}), 500
+                import traceback
+                error_details = {
+                    'error': str(e),
+                    'error_type': type(e).__name__,
+                    'model_id': model_id,
+                    'current_model': self.current_model,
+                    'available_models': list(self.models.keys()),
+                    'prompt_length': len(prompt) if 'prompt' in locals() else 0,
+                    'traceback': traceback.format_exc(),
+                    'request_parameters': {
+                        'max_tokens': data.get('max_tokens', 100),
+                        'temperature': data.get('temperature', 0.7),
+                        'top_p': data.get('top_p', 0.9),
+                        'stop': data.get('stop')
+                    }
+                }
+                logger.error(f"Generation failed for model {model_id}: {e}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                return jsonify(error_details), 500
         
         @self.app.route('/v1/activations/hooks', methods=['POST', 'DELETE'])
         def manage_activation_hooks():
@@ -316,17 +425,51 @@ class MLXEngineAPI:
                     return result
                     
             except Exception as e:
-                logger.error(f"Generation with activations failed: {e}")
+                import traceback
                 # Clear cache on error too
                 try:
                     import mlx.core as mx
                     mx.clear_cache()
                 except:
                     pass
-                return jsonify({'error': str(e)}), 500
+                
+                error_details = {
+                    'error': str(e),
+                    'error_type': type(e).__name__,
+                    'model_id': model_id,
+                    'current_model': self.current_model,
+                    'available_models': list(self.models.keys()),
+                    'prompt_length': len(prompt) if 'prompt' in locals() else 0,
+                    'activation_hooks_count': len(activation_hooks) if activation_hooks else 0,
+                    'traceback': traceback.format_exc(),
+                    'request_parameters': {
+                        'max_tokens': data.get('max_tokens', 100),
+                        'temperature': data.get('temperature', 0.7),
+                        'top_p': data.get('top_p', 0.9),
+                        'stop': data.get('stop'),
+                        'activation_hooks': activation_hooks
+                    }
+                }
+                logger.error(f"Generation with activations failed for model {model_id}: {e}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                return jsonify(error_details), 500
         
         # Removed duplicate route registrations for /v1/activations/hooks
         # The functionality is now handled by the manage_activation_hooks endpoint
+    
+    def _get_directory_size(self, directory_path: str) -> float:
+        """Get the size of a directory in MB."""
+        try:
+            import os
+            total_size = 0
+            for dirpath, dirnames, filenames in os.walk(directory_path):
+                for filename in filenames:
+                    filepath = os.path.join(dirpath, filename)
+                    if os.path.exists(filepath):
+                        total_size += os.path.getsize(filepath)
+            return round(total_size / (1024 * 1024), 2)  # Convert to MB
+        except Exception:
+            return 0.0
     
     def _messages_to_prompt(self, messages: List[Dict[str, str]]) -> str:
         """Convert chat messages to a single prompt string."""

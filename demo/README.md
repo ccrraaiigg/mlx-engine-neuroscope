@@ -1,25 +1,24 @@
 # NeuroScope REST Interface Demo
 
-This demo shows how NeuroScope will interact with the MLX Engine REST API for mechanistic interpretability analysis. It elaborates on `test_gpt_oss_20b.py` by demonstrating the complete REST interface workflow.
+This demo shows how NeuroScope will interact with the MLX Engine REST API for mechanistic interpretability analysis. It provides a comprehensive, all-in-one demonstration of the complete workflow.
 
 ## Overview
 
-The demo consists of several components that demonstrate the complete workflow for NeuroScope integration:
+The demo is a single integrated script that demonstrates the complete workflow for NeuroScope integration:
 
-1. **`demo_neuroscope_rest_interface.py`** - Main demo showing REST API usage
-2. **`run_neuroscope_demo.py`** - Simple runner script to execute all demos
-3. **`../code/neuroscope_api_reference.py`** - Comprehensive API reference and examples
-4. **`data/`** - Generated activation data and format documentation
+1. **`demo_neuroscope_rest_interface.py`** - Complete integrated demo with all functionality
+2. **`../code/neuroscope_api_reference.py`** - Comprehensive API reference and examples  
+3. **`data/`** - Generated activation data and format documentation
 
 ## What's Demonstrated
 
-### 1. Basic REST Interface
-- **Health Checks**: Verify API server is running
-- **Model Loading**: Load models via REST API
-- **Standard Generation**: Basic chat completions
+### 1. Complete Integrated Workflow
+- **Basic Engine Test**: Core model functionality validation
+- **Basic REST Interface**: Health checks, model loading, standard generation
 - **Activation Capture**: Generate text while capturing neural activations
 - **Circuit Analysis**: Comprehensive analysis across multiple layers
 - **Streaming Concept**: Real-time activation capture during generation
+- **Integration Workflow**: Complete NeuroScope integration demonstration
 
 ### 2. Integration Workflow
 The demo shows the complete NeuroScope integration workflow:
@@ -45,32 +44,25 @@ NeuroScope → REST API → MLX Engine → Model → Activations → Analysis
 
 ### Quick Start
 
-From the project root directory:
+From the demo directory:
 
 ```bash
-python demo/run_neuroscope_demo.py
+python demo_neuroscope_rest_interface.py
 ```
 
-This will:
-1. Check requirements
-2. Run the NeuroScope REST interface demo (includes all basic test validation)
-3. Display the API reference
+This single script runs the complete integrated demo:
+1. Basic Engine Test (core model functionality)
+2. Basic REST Interface (API validation)
+3. Activation Capture (neural activation analysis)
+4. Circuit Analysis (multi-layer analysis)
+5. Streaming Concept (real-time processing)
+6. Integration Workflow (complete NeuroScope workflow)
 
-**Note**: The comprehensive demo includes the same validation as `test_gpt_oss_20b.py` but via REST API, so running both would be redundant.
-
-### Individual Components
-
-Run specific parts of the demo:
+### Additional Components
 
 ```bash
-# Basic functionality test (direct MLX engine testing)
-python code/test_gpt_oss_20b.py
-
-# Full NeuroScope REST demo
-python demo/demo_neuroscope_rest_interface.py
-
-# API reference and examples
-python code/neuroscope_api_reference.py
+# API reference and examples (optional)
+python ../code/neuroscope_api_reference.py
 ```
 
 ## Key Features Demonstrated
@@ -134,29 +126,26 @@ The demo automatically generates:
 - `data/circuit_analysis_mlp_processing.json` - MLP analysis data
 - `data/circuit_analysis_mlp_processing_format.md` - MLP format docs
 
-## Test Architecture
+## Demo Architecture
 
-### Two Complementary Testing Approaches
+### Integrated Testing Approach
 
-**`../code/test_gpt_oss_20b.py` - Direct MLX Engine Testing**
-- **Purpose**: Validates core MLX engine functionality without REST overhead
-- **Use Cases**: 
-  - Debugging MLX engine issues in isolation
-  - Quick validation of model loading and generation
-  - Standalone testing via `run_with_limits.sh`
-  - Baseline performance measurement
-- **When to use**: When you need to isolate MLX engine issues from REST API issues
+**NeuroScope Demo - Complete Integration Testing**
+- **Purpose**: Validates the complete NeuroScope integration workflow in a single script
+- **Includes**:
+  - Core MLX engine functionality validation (Basic Engine Test)
+  - REST API validation (Basic REST Interface)
+  - Neural activation capture (Activation Capture)
+  - Multi-layer circuit analysis (Circuit Analysis)
+  - Real-time processing (Streaming Concept)
+  - Complete workflow demonstration (Integration Workflow)
+- **Benefits**: 
+  - Single model load for all tests (efficient)
+  - Comprehensive end-to-end validation
+  - Real-time console output with complete logging
+  - All functionality in one place
 
-**NeuroScope Demo - REST API Integration Testing**
-- **Purpose**: Validates the complete NeuroScope integration workflow
-- **Use Cases**:
-  - End-to-end NeuroScope functionality testing
-  - REST API validation
-  - Activation capture testing
-  - Production workflow validation
-- **When to use**: For comprehensive integration testing and NeuroScope development
-
-**Key Insight**: The NeuroScope Demo includes all the validation of the basic test, so running both would be redundant for integration testing. However, the basic test remains valuable for isolated MLX engine debugging and lightweight validation.
+**Key Insight**: This unified approach eliminates redundancy and provides a complete testing experience in a single script execution.
 
 ## Troubleshooting
 
@@ -167,9 +156,9 @@ The demo automatically generates:
 4. **Dependencies**: Install all required packages with pip
 
 ### Testing Strategy
-- **Start with**: `python demo/run_neuroscope_demo.py` for comprehensive testing
-- **Debug with**: `python code/test_gpt_oss_20b.py` if you suspect MLX engine issues
-- **Isolate issues**: Use the basic test to separate MLX problems from REST API problems
+- **Use**: `python demo_neuroscope_rest_interface.py` for comprehensive testing
+- **Benefit**: All functionality validated in a single efficient run with detailed logging
+- **Debugging**: Detailed debug output shows exactly where any issues occur
 
 ## Integration with NeuroScope
 

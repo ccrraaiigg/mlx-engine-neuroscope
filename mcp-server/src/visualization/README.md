@@ -119,7 +119,7 @@ The browser test page (`test_browser.html`) provides comprehensive testing of al
 
 - ✅ **WebGL capabilities detection** - Tests browser support and performance level
 - ✅ **Graph data conversion** - Tests circuit, attention, and flow data conversion
-- ✅ **WebGL Graph Rendering** - Hardware-accelerated graph visualization with @cosmos.gl/graph
+- ✅ **WebGL Graph Rendering** - Hardware-accelerated graph visualization with 3D Force Graph
 - ✅ **Interactive features** - Click nodes, hover for details, zoom/pan controls
 - ✅ **Physics simulation** - Real-time node positioning and layout randomization
 - ✅ **Export functionality** - Downloads high-quality PNG images
@@ -138,7 +138,7 @@ The "Load Sample Graph" feature creates a 10-node neural network circuit:
 
 **Automatic rendering mode selection:**
 
-1. **Cosmos Graph WebGL** (primary):
+1. **3D Force Graph WebGL** (primary):
    - Hardware-accelerated WebGL rendering via local npm package
    - Real-time physics simulation with interactive controls
    - Click nodes for details, hover for labels
@@ -265,22 +265,27 @@ const attentionViz = await generator.generateAttentionGraph([8, 12]);
 const flowViz = await generator.generateActivationFlowGraph(['hello', 'world']);
 ```
 
-### Cosmos Graph Rendering
+### 3D Force Graph Rendering
 
 ```javascript
-import { Graph } from '@cosmos.gl/graph';
+import { ForceGraph3DRenderer } from './renderer/force_graph_3d_renderer.js';
 
 // Initialize renderer
 const container = document.getElementById('graph-container');
-const graph = new Graph(container, {
-  pointSize: 6,
-  linkWidth: 2,
-  backgroundColor: '#ffffff',
-  showLabels: true
+const renderer = new ForceGraph3DRenderer(container, {
+  backgroundColor: '#0d1117',
+  nodeColor: '#58a6ff',
+  linkColor: '#30363d',
+  nodeOpacity: 0.8,
+  linkOpacity: 0.6,
+  nodeRelSize: 4,
+  linkWidth: 1.5,
+  showNodeLabels: true,
+  controlType: 'trackball',
+  enableNodeDrag: true
 });
 
 // Load and render graph
-await renderer.initialize();
 await renderer.loadGraph(graphData);
 
 // Set up interactions
@@ -352,7 +357,7 @@ This foundation enables the following upcoming tasks:
 
 ## 📚 References
 
-- [Cosmos Graph Documentation](https://cosmos.uber.com/graph/)
+- [3D Force Graph Documentation](https://github.com/vasturiano/3d-force-graph)
 - [WebGL Specification](https://www.khronos.org/webgl/)
 - [MLX Engine API Documentation](../../../README.md)
 - [MCP Server Documentation](../../README.md)

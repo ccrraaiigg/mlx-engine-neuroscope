@@ -120,45 +120,8 @@ export class VisualizationGenerator {
     try {
       console.log(`Generating comparison graph for: ${graphIds.join(', ')}`);
       
-      // This is a placeholder for comparison graph generation
-      // In a full implementation, this would fetch multiple graphs and create a comparison view
-      const comparisonData = {
-        id: `comparison_${Date.now()}`,
-        nodes: [],
-        links: [],
-        metadata: {
-          title: 'Graph Comparison',
-          description: 'Side-by-side graph comparison',
-          type: GraphTypes.COMPARISON,
-          created_at: new Date(),
-          model_info: {
-            model_id: 'comparison',
-            architecture: 'comparison',
-            num_layers: 0
-          },
-          analysis_info: {
-            compared_graphs: graphIds,
-            phenomenon: 'comparison'
-          }
-        },
-        layout: {
-          algorithm: 'hierarchical',
-          parameters: {
-            repulsion: 0.8,
-            linkSpring: 0.8,
-            linkDistance: 40
-          }
-        },
-        styling: {
-          theme: 'light',
-          colorScheme: ['#4285f4', '#34a853', '#fbbc04', '#ea4335'],
-          nodeScale: [3, 15],
-          linkScale: [1, 5]
-        }
-      };
-      
-      console.log('Comparison graph generated (placeholder)');
-      return comparisonData;
+      // AGENT.md: Never fake anything. Report exact parameters and error details.
+      throw new Error(`Graph comparison not yet implemented. No mock data per AGENT.md guidelines. Requested graphs: ${graphIds.join(', ')}. Real implementation requires fetching and comparing actual graph data.`);
     } catch (error) {
       console.error('Failed to generate comparison graph:', error);
       throw new Error(`Comparison graph generation failed: ${error.message}`);
@@ -176,12 +139,11 @@ export class VisualizationGenerator {
       if (this.mlxClient && this.mlxClient.getCircuit) {
         return await this.mlxClient.getCircuit(circuitId);
       } else {
-        // Mock data for development/testing
-        return this._getMockCircuitData(circuitId);
+        throw new Error('MLX Client not available');
       }
     } catch (error) {
-      console.warn('Failed to fetch circuit data, using mock data:', error);
-      return this._getMockCircuitData(circuitId);
+      console.error('Failed to fetch circuit data:', error);
+      throw error;
     }
   }
 
@@ -196,12 +158,11 @@ export class VisualizationGenerator {
       if (this.mlxClient && this.mlxClient.getActivations) {
         return await this.mlxClient.getActivations(circuitId);
       } else {
-        // Mock data for development/testing
-        return this._getMockActivationData(circuitId);
+        throw new Error('MLX Client not available');
       }
     } catch (error) {
-      console.warn('Failed to fetch activation data, using mock data:', error);
-      return this._getMockActivationData(circuitId);
+      console.error('Failed to fetch activation data:', error);
+      throw error;
     }
   }
 
@@ -216,12 +177,11 @@ export class VisualizationGenerator {
       if (this.mlxClient && this.mlxClient.getAttentionPatterns) {
         return await this.mlxClient.getAttentionPatterns(layerRange);
       } else {
-        // Mock data for development/testing
-        return this._getMockAttentionData(layerRange);
+        throw new Error('MLX Client not available');
       }
     } catch (error) {
-      console.warn('Failed to fetch attention data, using mock data:', error);
-      return this._getMockAttentionData(layerRange);
+      console.error('Failed to fetch attention data:', error);
+      throw error;
     }
   }
 
@@ -236,12 +196,11 @@ export class VisualizationGenerator {
       if (this.mlxClient && this.mlxClient.getActivationFlow) {
         return await this.mlxClient.getActivationFlow(tokens);
       } else {
-        // Mock data for development/testing
-        return this._getMockActivationFlowData(tokens);
+        throw new Error('MLX Client not available');
       }
     } catch (error) {
-      console.warn('Failed to fetch activation flow data, using mock data:', error);
-      return this._getMockActivationFlowData(tokens);
+      console.error('Failed to fetch activation flow data:', error);
+      throw error;
     }
   }
 
@@ -256,124 +215,13 @@ export class VisualizationGenerator {
       if (this.mlxClient && this.mlxClient.getModelInfo) {
         return await this.mlxClient.getModelInfo(modelId);
       } else {
-        // Mock data for development/testing
-        return this._getMockModelInfo(modelId);
+        throw new Error('MLX Client not available');
       }
     } catch (error) {
-      console.warn('Failed to fetch model info, using mock data:', error);
-      return this._getMockModelInfo(modelId);
+      console.error('Failed to fetch model info:', error);
+      throw error;
     }
   }
 
-  /**
-   * Generate mock circuit data for development
-   * @private
-   * @param {string} circuitId
-   * @returns {Object}
-   */
-  _getMockCircuitData(circuitId) {
-    return {
-      id: circuitId,
-      name: `Mock Circuit ${circuitId}`,
-      description: 'Mock circuit data for development',
-      components: [
-        { id: 'comp1', name: 'Input Layer', type: 'layer', layer: 0 },
-        { id: 'comp2', name: 'Hidden Layer 1', type: 'layer', layer: 1 },
-        { id: 'comp3', name: 'Hidden Layer 2', type: 'layer', layer: 2 },
-        { id: 'comp4', name: 'Output Layer', type: 'layer', layer: 3 }
-      ],
-      connections: [
-        { source: 'comp1', target: 'comp2', strength: 0.8 },
-        { source: 'comp2', target: 'comp3', strength: 0.6 },
-        { source: 'comp3', target: 'comp4', strength: 0.9 }
-      ],
-      model_info: {
-        model_id: 'mock-model',
-        architecture: 'transformer',
-        num_layers: 4
-      }
-    };
-  }
 
-  /**
-   * Generate mock activation data for development
-   * @private
-   * @param {string} circuitId
-   * @returns {Object}
-   */
-  _getMockActivationData(circuitId) {
-    return {
-      comp1: 0.7,
-      comp2: 0.9,
-      comp3: 0.5,
-      comp4: 0.8
-    };
-  }
-
-  /**
-   * Generate mock attention data for development
-   * @private
-   * @param {[number, number]} layerRange
-   * @returns {Object[]}
-   */
-  _getMockAttentionData(layerRange) {
-    const data = [];
-    for (let layer = layerRange[0]; layer <= layerRange[1]; layer++) {
-      data.push({
-        layer,
-        heads: [
-          { attention_weights: [0.8, 0.6, 0.4], strength: 0.6 },
-          { attention_weights: [0.5, 0.9, 0.3], strength: 0.7 },
-          { attention_weights: [0.7, 0.4, 0.8], strength: 0.8 }
-        ],
-        connections: [
-          { source_layer: layer, source_head: 0, target_layer: layer, target_head: 1, weight: 0.5 },
-          { source_layer: layer, source_head: 1, target_layer: layer, target_head: 2, weight: 0.7 }
-        ]
-      });
-    }
-    return data;
-  }
-
-  /**
-   * Generate mock activation flow data for development
-   * @private
-   * @param {string[]} tokens
-   * @returns {Object}
-   */
-  _getMockActivationFlowData(tokens) {
-    return {
-      tokens: tokens.map((text, index) => ({
-        text,
-        activation_strength: 0.5 + Math.random() * 0.5
-      })),
-      flows: tokens.slice(0, -1).map((_, index) => ({
-        source_token: index,
-        target_token: index + 1,
-        strength: 0.3 + Math.random() * 0.7
-      })),
-      model_info: {
-        model_id: 'mock-model',
-        architecture: 'transformer'
-      }
-    };
-  }
-
-  /**
-   * Generate mock model info for development
-   * @private
-   * @param {string} modelId
-   * @returns {Object}
-   */
-  _getMockModelInfo(modelId) {
-    return {
-      model_id: modelId,
-      architecture: 'transformer',
-      num_layers: 12,
-      layers: Array.from({ length: 12 }, (_, i) => ({
-        type: 'transformer',
-        size: 768 + Math.random() * 256
-      }))
-    };
-  }
 }

@@ -1,0 +1,86 @@
+{
+  "circuit_discovery": {
+    "phenomenon": "factual_recall",
+    "model_id": "gpt-oss-20b",
+    "prompt_used": "The capital of France is",
+    "generated_text": "Paris",
+    "circuits_discovered": 6,
+    "circuits": [
+      {
+        "circuit_id": "factual_recall_model.layers.0.self_attn_attention",
+        "phenomenon": "factual_recall",
+        "layer_name": "model.layers.0.self.attn",
+        "component": "attention",
+        "activation_count": 40,
+        "confidence": 0.9
+      },
+      {
+        "circuit_id": "factual_recall_model.layers.5.self_attn_attention",
+        "phenomenon": "factual_recall",
+        "layer_name": "model.layers.5.self.attn",
+        "component": "attention",
+        "activation_count": 40,
+        "confidence": 0.9
+      },
+      {
+        "circuit_id": "factual_recall_model.layers.10.self_attn_attention",
+        "phenomenon": "factual_recall",
+        "layer_name": "model.layers.10.self.attn",
+        "component": "attention",
+        "activation_count": 40,
+        "confidence": 0.9
+      },
+      {
+        "circuit_id": "factual_recall_model.layers.2.mlp_attention",
+        "phenomenon": "factual_recall",
+        "layer_name": "model.layers.2.mlp",
+        "component": "mlp",
+        "activation_count": 80,
+        "confidence": 0.9
+      },
+      {
+        "circuit_id": "factual_recall_model.layers.8.mlp_attention",
+        "phenomenon": "factual_recall",
+        "layer_name": "model.layers.8.mlp",
+        "component": "mlp",
+        "activation_count": 80,
+        "confidence": 0.9
+      },
+      {
+        "circuit_id": "factual_recall_model.layers.15.mlp_attention",
+        "phenomenon": "factual_recall",
+        "layer_name": "model.layers.15.mlp",
+        "component": "mlp",
+        "activation_count": 80,
+        "confidence": 0.9
+      }
+    ],
+    "total_activations_captured": 360
+  },
+  "activation_capture": {
+    "prompt": "The capital of France is",
+    "generated_text": "Paris",
+    "activations": {
+      "model.layers.0.self_attn_attention": [
+        15,
+        3
+      ],
+      "model.layers.5.self_attn_attention": [
+        15,
+        3
+      ],
+      "model.layers.10.self_attn_attention": [
+        15,
+        3
+      ]
+    },
+    "metadata": {
+      "total_tokens": 21,
+      "model_info": {
+        "name": "gpt-oss-20b",
+        "layers": 20,
+        "hidden_size": 768
+      }
+    }
+  }
+}

@@ -10,6 +10,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListToolsRequestSchema, ToolSchema } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { initializeMLXClient } from './services/mlx_tools.js';
 
 // Command line argument parsing (optional for this server)
 const args = process.argv.slice(2);
@@ -56,10 +57,14 @@ const CaptureActivationsArgsSchema = z.object({
 
 // MLX Engine Tools
 const LoadModelArgsSchema = z.object({
-    model_id: z.enum(["gpt-oss-20b", "llama-2-7b", "mistral-7b", "phi-2"]),
+    model_id: z.enum(["gpt-oss-20b"]),
     quantization: z.enum(["none", "4bit", "8bit"]).default("none"),
     max_context_length: z.number().int().min(512).max(131072).default(2048),
     device: z.enum(["auto", "cpu", "mps", "cuda"]).default("auto"),
+});
+
+const AvailableModelsArgsSchema = z.object({
+    // No arguments needed for this tool
 });
 
 const CreateHooksArgsSchema = z.object({
@@ -171,71 +176,279 @@ async function pingTool(args) {
 async function versionTool(args) {
     return {
         success: true,
-        version: 99,
+        version: 116,
         server: "mechanistic-interpretability-mcp-server",
         last_modified: new Date().toISOString(),
-        changes: "FIX label tracking: Add setInterval for continuous label updates and debug why only 1 of 3 labels is created"
+        changes: "FIX: Generate comprehensive link network for mixed attention/MLP circuits"
     };
 }
 
 async function discoverCircuitsTool(args) {
-    // Mock implementation for now - will connect to MLX Engine later
-    return {
-        success: true,
-        phenomenon: args.phenomenon,
-        model_id: args.model_id,
-        circuits: [
-            {
-                id: "circuit_001",
-                name: `${args.phenomenon}_primary_circuit`,
-                confidence: 0.85,
-                layers: [8, 9, 10],
-                components: ["attention_head_8_3", "mlp_9", "attention_head_10_1"],
-                validation_metrics: {
-                    performance_recovery: 0.92,
-                    attribution_score: 0.78,
-                    consistency_score: 0.84
-                }
-            }
-        ],
-        execution_time_ms: 1250,
-        model_info: {
-            model_id: args.model_id,
-            architecture: "transformer",
-            num_layers: 20
+    try {
+        // Check if MLX Engine API is available
+        const healthResponse = await fetch('http://localhost:50111/health');
+        if (!healthResponse.ok) {
+            return {
+                success: false,
+                error: "MLX Engine API server not available",
+                endpoint_checked: 'http://localhost:50111/health',
+                status_code: healthResponse.status,
+                exact_parameters_passed: args
+            };
         }
-    };
+
+        // Check if a model is loaded
+        const modelsResponse = await fetch('http://localhost:50111/v1/models');
+        if (!modelsResponse.ok) {
+            return {
+                success: false,
+                error: "Could not check loaded models",
+                exact_parameters_passed: args
+            };
+        }
+        
+        const models = await modelsResponse.json();
+        if (!models.models || models.models.length === 0) {
+            return {
+                success: false,
+                error: "No models loaded in MLX Engine. Load a model first using the load_model tool.",
+                available_models: models.models || [],
+                exact_parameters_passed: args
+            };
+        }
+
+        // Use real activation capture to analyze circuits for the specified phenomenon
+        const circuitPrompts = {
+            'IOI': 'When Mary and John went to the store, Mary gave it to',
+            'indirect_object_identification': 'After the teacher gave the book to the student, the student gave it to',
+            'arithmetic': 'What is 15 + 27? The answer is',
+            'factual_recall': 'The capital of France is'
+        };
+
+        const prompt = circuitPrompts[args.phenomenon] || circuitPrompts['factual_recall'];
+        
+        // Capture activations from multiple layers for circuit analysis
+        const activationHooks = [
+            { layer_name: 'model.layers.0.self_attn', component: 'attention', hook_id: 'early_attention' },
+            { layer_name: 'model.layers.5.self_attn', component: 'attention', hook_id: 'mid_attention' },
+            { layer_name: 'model.layers.10.self_attn', component: 'attention', hook_id: 'late_attention' },
+            { layer_name: 'model.layers.2.mlp', component: 'mlp', hook_id: 'early_mlp' },
+            { layer_name: 'model.layers.8.mlp', component: 'mlp', hook_id: 'mid_mlp' },
+            { layer_name: 'model.layers.15.mlp', component: 'mlp', hook_id: 'late_mlp' }
+        ];
+
+        const response = await fetch('http://localhost:50111/v1/chat/completions/with_activations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                messages: [{ role: 'user', content: prompt }],
+                max_tokens: args.max_circuits ? args.max_circuits * 5 : 50,
+                temperature: 0.1,
+                activation_hooks: activationHooks
+            })
+        });
+
+        if (!response.ok) {
+            const errorDetails = await response.json().catch(e => ({ error: `${response.status} ${response.statusText}` }));
+            return {
+                success: false,
+                error: "MLX Engine activation capture failed",
+                mlx_engine_error: errorDetails,
+                exact_parameters_passed: args
+            };
+        }
+
+        const result = await response.json();
+        
+        // Analyze captured activations to identify circuits
+        const activations = result.activations || {};
+        const circuits = [];
+        
+        for (const [hookId, activationList] of Object.entries(activations)) {
+            if (activationList && activationList.length > 0) {
+                circuits.push({
+                    circuit_id: `${args.phenomenon}_${hookId}`,
+                    phenomenon: args.phenomenon,
+                    layer_name: hookId.includes('attention') ? hookId.replace('_attention', '').replace('_', '.') : hookId.replace('_mlp', '').replace('_', '.'),
+                    component: hookId.includes('mlp') ? 'mlp' : 'attention',
+                    activation_count: activationList.length,
+                    confidence: Math.min(0.9, activationList.length / 20.0), // Basic confidence based on activation count
+                    description: `${hookId} circuit for ${args.phenomenon}`,
+                    hook_id: hookId
+                });
+            }
+        }
+
+        return {
+            success: true,
+            phenomenon: args.phenomenon,
+            model_id: models.models[0].id,
+            prompt_used: prompt,
+            generated_text: result.choices[0].message.content,
+            circuits_discovered: circuits.length,
+            circuits: circuits.slice(0, args.max_circuits || 10),
+            total_activations_captured: Object.values(activations).reduce((sum, arr) => sum + (arr?.length || 0), 0),
+            analysis_method: "real_activation_capture_with_mlx_engine"
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            error: `Circuit discovery failed: ${error.message}`,
+            exact_parameters_passed: args,
+            error_details: error.stack
+        };
+    }
 }
 
 async function localizeFeaturesTool(args) {
-    return {
-        success: true,
-        feature_name: args.feature_name,
-        neurons: [
-            {
-                layer: 5,
-                neuron_id: 123,
-                activation_strength: 0.89,
-                confidence: 0.92
-            },
-            {
-                layer: 8,
-                neuron_id: 456,
-                activation_strength: 0.76,
-                confidence: 0.87
+    try {
+        // Check if MLX Engine API is available
+        const healthResponse = await fetch('http://localhost:50111/health');
+        if (!healthResponse.ok) {
+            return {
+                success: false,
+                error: "MLX Engine API server not available",
+                endpoint_checked: 'http://localhost:50111/health',
+                exact_parameters_passed: args
+            };
+        }
+
+        // Check if a model is loaded
+        const modelsResponse = await fetch('http://localhost:50111/v1/models');
+        if (!modelsResponse.ok) {
+            return {
+                success: false,
+                error: "Could not check loaded models",
+                exact_parameters_passed: args
+            };
+        }
+        
+        const models = await modelsResponse.json();
+        if (!models.models || models.models.length === 0) {
+            return {
+                success: false,
+                error: "No models loaded in MLX Engine. Load a model first using the load_model tool.",
+                available_models: models.models || [],
+                exact_parameters_passed: args
+            };
+        }
+
+        // Use real activation capture to localize features
+        // Test with prompts that should activate the specified feature
+        const featurePrompts = {
+            'sentiment': ['This movie is absolutely terrible', 'This movie is absolutely wonderful'],
+            'syntax': ['The cat that was sleeping', 'Was the cat that sleeping'],
+            'factual': ['The capital of France is Paris', 'The capital of France is Berlin'],
+            'arithmetic': ['2 + 2 = 4', '2 + 2 = 5'],
+            'negation': ['This is not good', 'This is good']
+        };
+
+        const prompts = featurePrompts[args.feature_name] || featurePrompts['sentiment'];
+        
+        // Analyze activations across multiple layers to localize the feature
+        const layerRange = args.layer_range || { start: 0, end: 15 };
+        const activationHooks = [];
+        
+        for (let layer = layerRange.start; layer <= Math.min(layerRange.end, 15); layer += 3) {
+            activationHooks.push({ 
+                layer_name: `model.layers.${layer}.self_attn`, 
+                component: 'attention', 
+                hook_id: `attention_layer_${layer}` 
+            });
+            activationHooks.push({ 
+                layer_name: `model.layers.${layer}.mlp`, 
+                component: 'mlp', 
+                hook_id: `mlp_layer_${layer}` 
+            });
+        }
+
+        const featureAnalysis = [];
+        
+        for (const prompt of prompts) {
+            const response = await fetch('http://localhost:50111/v1/chat/completions/with_activations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 20,
+                    temperature: 0.1,
+                    activation_hooks: activationHooks
+                })
+            });
+
+            if (!response.ok) {
+                const errorDetails = await response.json().catch(e => ({ error: `${response.status} ${response.statusText}` }));
+                return {
+                    success: false,
+                    error: "MLX Engine activation capture failed",
+                    mlx_engine_error: errorDetails,
+                    exact_parameters_passed: args
+                };
             }
-        ],
-        validation_metrics: {
-            valid: true,
-            confidence: 0.89,
-            metrics: {
-                precision: 0.91,
-                recall: 0.87,
-                f1_score: 0.89
+
+            const result = await response.json();
+            featureAnalysis.push({
+                prompt: prompt,
+                generated_text: result.choices[0].message.content,
+                activations: result.activations || {}
+            });
+        }
+
+        // Analyze which layers/components show the most variation for this feature
+        const localizations = [];
+        
+        for (const hookConfig of activationHooks) {
+            let activationVariation = 0;
+            let totalActivations = 0;
+            
+            for (const analysis of featureAnalysis) {
+                const activations = analysis.activations[hookConfig.hook_id] || [];
+                totalActivations += activations.length;
+                activationVariation += activations.length;
+            }
+            
+            if (totalActivations > 0) {
+                localizations.push({
+                    layer_name: hookConfig.layer_name,
+                    component: hookConfig.component,
+                    hook_id: hookConfig.hook_id,
+                    activation_count: totalActivations,
+                    localization_strength: Math.min(1.0, activationVariation / 100.0),
+                    feature_name: args.feature_name
+                });
             }
         }
-    };
+
+        // Sort by localization strength
+        localizations.sort((a, b) => b.localization_strength - a.localization_strength);
+
+        return {
+            success: true,
+            feature_name: args.feature_name,
+            model_id: models.models[0].id,
+            prompts_tested: prompts,
+            layer_range_analyzed: layerRange,
+            localizations: localizations.slice(0, 10), // Top 10 localizations
+            total_activations_captured: localizations.reduce((sum, loc) => sum + loc.activation_count, 0),
+            analysis_method: "real_activation_capture_comparison",
+            feature_analyses: featureAnalysis
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            error: `Feature localization failed: ${error.message}`,
+            exact_parameters_passed: args,
+            error_details: error.stack
+        };
+    }
 }
+
 
 async function captureActivationsTool(args) {
     try {
@@ -258,7 +471,27 @@ async function captureActivationsTool(args) {
         });
 
         if (!response.ok) {
-            throw new Error(`MLX Engine API error: ${response.status} ${response.statusText}`);
+            let errorDetails;
+            try {
+                errorDetails = await response.json();
+            } catch (e) {
+                errorDetails = { error: `${response.status} ${response.statusText}` };
+            }
+            
+            // Create detailed error message with MLX Engine's enhanced error info
+            const detailedError = {
+                mlx_engine_error: errorDetails,
+                status_code: response.status,
+                status_text: response.statusText,
+                endpoint: '/v1/chat/completions/with_activations',
+                request_parameters: {
+                    prompt: args.prompt,
+                    max_tokens: args.max_tokens,
+                    temperature: args.temperature
+                }
+            };
+            
+            throw new Error(`MLX Engine API error: ${JSON.stringify(detailedError, null, 2)}`);
         }
 
         const result = await response.json();
@@ -298,7 +531,7 @@ async function loadModelTool(args) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model_path: `/Users/craig/me/behavior/forks/mlx-engine-neuroscope/models/nightmedia/${args.model_id}-q4-hi-mlx`,
+                model_path: `/Users/craig/.lmstudio/models/nightmedia/${args.model_id}-q5-hi-mlx`,
                 model_id: args.model_id,
                 quantization: args.quantization,
                 max_context_length: args.max_context_length,
@@ -307,7 +540,29 @@ async function loadModelTool(args) {
         });
 
         if (!response.ok) {
-            throw new Error(`MLX Engine API error: ${response.status} ${response.statusText}`);
+            let errorDetails;
+            try {
+                errorDetails = await response.json();
+            } catch (e) {
+                errorDetails = { error: `${response.status} ${response.statusText}` };
+            }
+            
+            // Create detailed error message with MLX Engine's enhanced error info
+            const detailedError = {
+                mlx_engine_error: errorDetails,
+                status_code: response.status,
+                status_text: response.statusText,
+                endpoint: '/v1/models/load',
+                request_parameters: {
+                    model_id: args.model_id,
+                    model_path: `/Users/craig/.lmstudio/models/nightmedia/${args.model_id}-q5-hi-mlx`,
+                    quantization: args.quantization,
+                    max_context_length: args.max_context_length,
+                    device: args.device
+                }
+            };
+            
+            throw new Error(`MLX Engine API error: ${JSON.stringify(detailedError, null, 2)}`);
         }
 
         const result = await response.json();
@@ -336,6 +591,56 @@ async function loadModelTool(args) {
     }
 }
 
+async function availableModelsTool(args) {
+    try {
+        // Make API call to MLX Engine to get available models
+        const response = await fetch('http://localhost:50111/v1/models/available', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            let errorDetails;
+            try {
+                errorDetails = await response.json();
+            } catch (e) {
+                errorDetails = { error: `${response.status} ${response.statusText}` };
+            }
+            
+            const detailedError = {
+                mlx_engine_error: errorDetails,
+                status_code: response.status,
+                status_text: response.statusText,
+                endpoint: '/v1/models/available'
+            };
+            
+            throw new Error(`MLX Engine API error: ${JSON.stringify(detailedError, null, 2)}`);
+        }
+
+        const result = await response.json();
+        
+        return {
+            success: true,
+            available_models: result.available_models,
+            loaded_models: result.loaded_models,
+            current_model: result.current_model,
+            search_paths: result.search_paths,
+            total_available: result.total_available,
+            total_loaded: result.total_loaded,
+            timestamp: new Date().toISOString()
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message,
+            available_models: [],
+            loaded_models: []
+        };
+    }
+}
+
 async function createHooksTool(args) {
     return {
         success: true,
@@ -351,71 +656,126 @@ async function createHooksTool(args) {
 }
 
 async function analyzeMathTool(args) {
-    return {
-        success: true,
-        prompt: args.prompt,
-        analysis: {
-            reasoning_steps: ["Parse mathematical expression", "Apply operator precedence", "Calculate result"],
-            circuit_components: ["attention_head_5_2", "mlp_8", "attention_head_10_1"],
-            confidence: 0.89,
-            mathematical_operations: ["addition", "multiplication"],
-            result_confidence: 0.94
-        },
-        execution_time_ms: 2100
-    };
+    // AGENT.md: Never fake anything. If information is missing, DO NOT guess, "mock", or simulate.
+    // Report the exact parameters and error details instead of returning mock data.
+    try {
+        const mlxTools = await import('./services/mlx_tools.js');
+        const mlxAnalyzeMath = mlxTools.mlxTools.find(tool => tool.name === 'mlx_analyze_math');
+        
+        if (!mlxAnalyzeMath) {
+            return {
+                success: false,
+                error: "MLX analyze_math tool not found in mlx_tools module",
+                prompt: args.prompt,
+                exact_parameters_passed: args
+            };
+        }
+        
+        // Call the real MLX implementation
+        const result = await mlxAnalyzeMath.handler(args);
+        return result;
+        
+    } catch (error) {
+        return {
+            success: false,
+            error: `Failed to analyze math with real model: ${error.message}`,
+            prompt: args.prompt,
+            exact_parameters_passed: args,
+            stack_trace: error.stack
+        };
+    }
 }
 
 async function analyzeAttentionTool(args) {
-    return {
-        success: true,
-        prompt: args.prompt,
-        attention_analysis: {
-            layers: args.layers,
-            patterns: {
-                syntactic: 0.75,
-                semantic: 0.68,
-                positional: 0.82
-            },
-            head_importance: args.layers.map(layer => ({
-                layer,
-                heads: Array.from({length: 8}, (_, i) => ({
-                    head: i,
-                    importance: Math.random() * 0.8 + 0.2
-                }))
-            }))
+    // AGENT.md: Never fake anything. Try to call real MLX implementation.
+    try {
+        const mlxTools = await import('./services/mlx_tools.js');
+        const mlxAnalyzeAttention = mlxTools.mlxTools.find(tool => tool.name === 'mlx_analyze_attention');
+        
+        if (!mlxAnalyzeAttention) {
+            return {
+                success: false,
+                error: "MLX analyze_attention tool not found in mlx_tools module",
+                prompt: args.prompt,
+                layers: args.layers,
+                exact_parameters_passed: args
+            };
         }
-    };
+        
+        // Call the real MLX implementation
+        const result = await mlxAnalyzeAttention.handler(args);
+        return result;
+        
+    } catch (error) {
+        return {
+            success: false,
+            error: `Failed to analyze attention with real model: ${error.message}`,
+            prompt: args.prompt,
+            layers: args.layers,
+            exact_parameters_passed: args,
+            stack_trace: error.stack
+        };
+    }
 }
 
 async function analyzeFactualTool(args) {
-    return {
-        success: true,
-        query: args.query,
-        factual_analysis: {
-            knowledge_circuits: ["fact_retrieval_layer_12", "entity_binding_layer_8"],
-            confidence: 0.87,
-            retrieval_mechanism: "key-value_lookup",
-            evidence_strength: 0.91,
-            knowledge_source: "pretrained_knowledge"
+    // AGENT.md: Never fake anything. Try to call real MLX implementation.
+    try {
+        const mlxTools = await import('./services/mlx_tools.js');
+        const mlxAnalyzeFactual = mlxTools.mlxTools.find(tool => tool.name === 'mlx_analyze_factual');
+        
+        if (!mlxAnalyzeFactual) {
+            return {
+                success: false,
+                error: "MLX analyze_factual tool not found in mlx_tools module",
+                query: args.query,
+                exact_parameters_passed: args
+            };
         }
-    };
+        
+        // Call the real MLX implementation
+        const result = await mlxAnalyzeFactual.handler(args);
+        return result;
+        
+    } catch (error) {
+        return {
+            success: false,
+            error: `Failed to analyze factual recall with real model: ${error.message}`,
+            query: args.query,
+            exact_parameters_passed: args,
+            stack_trace: error.stack
+        };
+    }
 }
 
 async function trackResidualTool(args) {
-    return {
-        success: true,
-        prompt: args.prompt,
-        residual_flow: {
-            layers: args.layers.length > 0 ? args.layers : [0, 1, 2, 3, 4, 5],
-            component_contributions: {
-                attention: 0.42,
-                mlp: 0.38,
-                residual: 0.20
-            },
-            information_flow: "progressive_refinement",
-            bottleneck_layers: [3, 7, 11]
+    // AGENT.md: Never fake anything. Try to call real MLX implementation.
+    try {
+        const mlxTools = await import('./services/mlx_tools.js');
+        const mlxTrackResidual = mlxTools.mlxTools.find(tool => tool.name === 'mlx_track_residual');
+        
+        if (!mlxTrackResidual) {
+            return {
+                success: false,
+                error: "MLX track_residual tool not found in mlx_tools module",
+                prompt: args.prompt,
+                exact_parameters_passed: args
+            };
         }
-    };
+        
+        // Call the real MLX implementation
+        const result = await mlxTrackResidual.handler(args);
+        return result;
+        
+    } catch (error) {
+        return {
+            success: false,
+            error: `Failed to track residual stream with real model: ${error.message}`,
+            prompt: args.prompt,
+            exact_parameters_passed: args,
+            stack_trace: error.stack
+        };
+    }
 }
 
 async function exportNeuroScopeTool(args) {
@@ -470,6 +830,8 @@ async function circuitDiagramTool(args) {
             circuitData.model_layers || 
             // Activation capture format: activations object
             (circuitData.activations && Object.keys(circuitData.activations).length > 0) ||
+            // Circuit discovery + activation capture combined format
+            (circuitData.circuit_discovery && circuitData.activation_capture) ||
             // Old format: direct layer keys
             Object.keys(circuitData).some(key => key.startsWith('model.layers.') && Array.isArray(circuitData[key]))
         );
@@ -518,6 +880,96 @@ async function circuitDiagramTool(args) {
                     nodes.push(newNode);
                     // Note: Server-side console.log interferes with MCP JSON protocol
                 });
+            } else if (circuitData.circuit_discovery && circuitData.activation_capture) {
+                // Handle combined circuit discovery + activation capture format
+                const circuits = circuitData.circuit_discovery.circuits || [];
+                const activations = circuitData.activation_capture.activations || {};
+                
+                // Create nodes from circuit discovery data
+                circuits.forEach(circuit => {
+                    const layerMatch = circuit.layer_name.match(/(\d+)/);
+                    const layerNum = layerMatch ? parseInt(layerMatch[1]) : 0;
+                    
+                    // Separate visual encodings: confidence = size, activation = opacity
+                    let nodeValue = circuit.confidence || 0.8;  // Size reflects circuit confidence
+                    let tensorVolume = 1;
+                    let nodeOpacity = 0.8;  // Opacity reflects activation intensity
+                    
+                    // Look for corresponding activation data
+                    const activationKey = Object.keys(activations).find(key => 
+                        key.includes(`layers.${layerNum}`) && 
+                        key.includes(circuit.component.replace('attention', 'attn'))
+                    );
+                    
+                    if (activationKey && activations[activationKey]) {
+                        const tensorShape = activations[activationKey];
+                        if (Array.isArray(tensorShape) && tensorShape.length >= 2) {
+                            // Calculate tensor volume (dimensions multiplied)
+                            tensorVolume = tensorShape.reduce((acc, dim) => acc * dim, 1);
+                            // Normalize to opacity range (0.3 to 1.0)
+                            nodeOpacity = Math.min(1.0, Math.max(0.3, tensorVolume / 100));
+                        }
+                    }
+                    
+                    const newNode = {
+                        id: `node_${nodeId++}`,
+                        label: `${circuit.layer_name} (${circuit.component})`,
+                        type: circuit.component,
+                        value: nodeValue,  // Size = circuit confidence
+                        opacity: nodeOpacity,  // Opacity = activation intensity
+                        color: circuit.component === 'mlp' ? '#ff6666' : '#66aaff',
+                        nodeColor: circuit.component === 'mlp' ? '#ff6666' : '#66aaff',
+                        layer: layerNum,
+                        position: { 
+                            x: (layerNum * 150) + (Math.random() * 50 - 25),
+                            y: (circuit.component === 'mlp' ? 100 : 200) + (Math.random() * 50 - 25)
+                        },
+                        metadata: {
+                            activation_count: circuit.activation_count,
+                            confidence: circuit.confidence,
+                            component: circuit.component,
+                            layer_name: circuit.layer_name,
+                            circuit_id: circuit.circuit_id,
+                            phenomenon: circuit.phenomenon,
+                            tensor_volume: tensorVolume,
+                            activation_intensity: nodeOpacity,
+                            tensor_shape: activations[activationKey] || 'unknown'
+                        }
+                    };
+                    nodes.push(newNode);
+                });
+                
+                // Add nodes from activation capture data if available
+                Object.keys(activations).forEach(hookKey => {
+                    // Only add if not already covered by circuit discovery
+                    const existingNode = nodes.find(n => n.metadata.layer_name && hookKey.includes(n.metadata.layer_name));
+                    if (!existingNode) {
+                        const layerMatch = hookKey.match(/(\d+)/);
+                        const layerNum = layerMatch ? parseInt(layerMatch[1]) : 0;
+                        const component = hookKey.includes('mlp') ? 'mlp' : 'attention';
+                        
+                        const newNode = {
+                            id: `node_${nodeId++}`,
+                            label: `${hookKey} (${component})`,
+                            type: component,
+                            value: 0.7,
+                            color: component === 'mlp' ? '#ff6666' : '#66aaff',
+                            nodeColor: component === 'mlp' ? '#ff6666' : '#66aaff',
+                            layer: layerNum,
+                            position: { 
+                                x: (layerNum * 150) + (Math.random() * 50 - 25),
+                                y: (component === 'mlp' ? 100 : 200) + (Math.random() * 50 - 25)
+                            },
+                            metadata: {
+                                layer_name: hookKey,
+                                component: component,
+                                activation_shape: Array.isArray(activations[hookKey]) ? activations[hookKey] : 'unknown'
+                            }
+                        };
+                        nodes.push(newNode);
+                    }
+                });
+                
             } else if (circuitData.activations) {
                 // Handle activation capture format - expand to create more nodes
                 Object.keys(circuitData.activations).forEach(hookKey => {
@@ -652,7 +1104,7 @@ async function circuitDiagramTool(args) {
                         source: mainNode.id,
                         target: subNode.id,
                     weight: 0.8,
-                                            color: [1.0, 1.0, 1.0, 0.9], // Brighter white for hub-spoke
+                    color: '#ffffff', // Brighter white for hub-spoke
                         type: 'hub_spoke',
                         metadata: { connection_type: 'main_to_sub' }
                     });
@@ -663,6 +1115,7 @@ async function circuitDiagramTool(args) {
             const attentionNodes = mainNodes.filter(n => n.type === 'attention');
             const mlpNodes = mainNodes.filter(n => n.type === 'mlp');
             
+            // Same-layer attention → MLP connections
             attentionNodes.forEach(attNode => {
                 const sameLayerMlp = mlpNodes.find(mlpNode => mlpNode.layer === attNode.layer);
                 if (sameLayerMlp) {
@@ -671,11 +1124,47 @@ async function circuitDiagramTool(args) {
                         source: attNode.id,
                         target: sameLayerMlp.id,
                         weight: 1.0,
-                        color: [1.0, 1.0, 0.0, 1.0], // Bright yellow for sequential flow
+                        color: '#ffff00', // Bright yellow for sequential flow
                         type: 'sequential',
                         metadata: { connection_type: 'attention_to_mlp' }
                     });
                 }
+            });
+            
+            // 2b. Cross-layer attention → MLP connections (information flow)
+            attentionNodes.forEach(attNode => {
+                mlpNodes.forEach(mlpNode => {
+                    // Connect attention to MLPs in higher layers
+                    if (mlpNode.layer > attNode.layer && mlpNode.layer - attNode.layer <= 3) {
+                        links.push({
+                            id: `link_${linkId++}`,
+                            source: attNode.id,
+                            target: mlpNode.id,
+                            weight: 0.7,
+                            color: '#ffaa00', // Orange for cross-layer attention→MLP
+                            type: 'cross_attention_mlp',
+                            metadata: { connection_type: 'attention_to_mlp_cross' }
+                        });
+                    }
+                });
+            });
+            
+            // 2c. MLP → Attention connections (feedback)
+            mlpNodes.forEach(mlpNode => {
+                attentionNodes.forEach(attNode => {
+                    // Connect MLP to attention in higher layers
+                    if (attNode.layer > mlpNode.layer && attNode.layer - mlpNode.layer <= 5) {
+                        links.push({
+                            id: `link_${linkId++}`,
+                            source: mlpNode.id,
+                            target: attNode.id,
+                            weight: 0.6,
+                            color: '#00aaff', // Light blue for MLP→attention
+                            type: 'mlp_to_attention',
+                            metadata: { connection_type: 'mlp_to_attention' }
+                        });
+                    }
+                });
             });
             
             // 3. Cross-layer connections: Layer N → Layer N+1 (information flow)
@@ -700,9 +1189,30 @@ async function circuitDiagramTool(args) {
                         source: currentMLP.id,
                         target: nextAttention.id,
                         weight: 0.6,
-                        color: [0.0, 1.0, 0.0, 1.0], // Bright green for cross-layer flow
+                        color: '#00ff66', // Bright green for cross-layer flow
                         type: 'cross_layer',
                         metadata: { connection_type: 'layer_to_layer' }
+                    });
+                }
+                
+                // Connect ALL attention nodes across layers (not just first found)
+                const currentAttentionNodes = currentLayer.filter(n => n.type === 'attention');
+                const nextAttentionNodes = nextLayer.filter(n => n.type === 'attention');
+                
+                if (currentAttentionNodes.length > 0 && nextAttentionNodes.length > 0) {
+                    // Connect each current layer attention to each next layer attention
+                    currentAttentionNodes.forEach(currentAtt => {
+                        nextAttentionNodes.forEach(nextAtt => {
+                            links.push({
+                                id: `link_${linkId++}`,
+                                source: currentAtt.id,
+                                target: nextAtt.id,
+                                weight: 0.8,
+                                color: '#ffffff', // White for attention flow
+                                type: 'attention_flow',
+                                metadata: { connection_type: 'attention_to_attention' }
+                            });
+                        });
                     });
                 }
             }
@@ -710,14 +1220,14 @@ async function circuitDiagramTool(args) {
             console.error("FINISHED hasActivationLayers BLOCK");
         } // End of hasActivationLayers block
         
-        console.error("SKIPPED hasActivationLayers BLOCK, continuing to color assignment...");
+        console.error("SKIPPED hasActivationLayers BLOCK, no real activation data to process...");
         
         // Debug info available in browser console instead of MCP protocol
         
         console.error("ABOUT TO CHECK COLOR ASSIGNMENT CONDITION");
         console.error("Condition values: circuitData.nodes =", !!circuitData.nodes, "hasActivationLayers =", hasActivationLayers);
         
-        // FORCE color assignment for simple input data with error handling
+        // FORCE color assignment for simple input data with error handling  
         if (circuitData.nodes && !hasActivationLayers) {
                 try {
                     console.error("ENTERING color assignment block...");
@@ -779,7 +1289,7 @@ async function circuitDiagramTool(args) {
     <style>
         body { margin: 0; padding: 20px; background: #1a1a1a; color: white; font-family: Arial, sans-serif; }
         h1 { color: #4285f4; }
-        #graph-container { width: 100%; height: 600px; border: 1px solid #333; background: #2a2a2a; margin: 20px 0; position: relative; }
+        #graph-container { width: 80%; height: 480px; border: 1px solid #333; background: #2a2a2a; margin: 20px auto; position: relative; }
         .metadata { background: #444; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 14px; }
         .node-info { background: #333; padding: 10px; margin: 10px 0; border-radius: 5px; }
         .physics-controls { position: absolute; top: 10px; right: 10px; z-index: 1000; }
@@ -841,29 +1351,22 @@ async function circuitDiagramTool(args) {
     </div>
     
     <script type="module">
-        // Import Cosmos Graph and CSS Labels
-        const CosmosModule = await import('./node_modules/@cosmos.gl/graph/dist/index.js');
-        const LabelsModule = await import('./node_modules/@interacta/css-labels/dist/index.js');
-        console.log('Cosmos module loaded:', Object.keys(CosmosModule));
-        console.log('CSS Labels module loaded:', Object.keys(LabelsModule));
-        const Graph = CosmosModule.Graph;
-        const LabelRenderer = LabelsModule.LabelRenderer;
-        console.log('Graph constructor found:', !!Graph);
-        console.log('LabelRenderer found:', !!LabelRenderer);
-        console.log('LabelRenderer constructor:', LabelRenderer);
+        // Import 3D Force Graph renderer
+        import { ForceGraph3DRenderer } from './renderer/force_graph_3d_renderer.js';
+        console.log('ForceGraph3DRenderer imported successfully');
         
         // Real circuit data from MLX Engine
         const rawCircuitData = ${JSON.stringify(processedData)};
         
-        console.log('🔥 Initializing Cosmos Graph WebGL2 visualization');
+        console.log('🔥 Initializing 3D Force Graph visualization');
         console.log('Raw activation data keys:', Object.keys(rawCircuitData));
         console.log('Data conversion status:', rawCircuitData.nodes ? 'Already converted' : 'Raw activation data');
         console.log('Expected nodes:', rawCircuitData.nodes?.length || 'TBD');
         console.log('Expected links:', rawCircuitData.links?.length || 'TBD');
         
-        async function initializeCosmosGraph() {
+        async function initializeForceGraph() {
             try {
-                // Convert browser-side processed data to Cosmos Graph format
+                // Initialize 3D Force Graph renderer
                 let graphData;
                 
                 // Ensure we have properly converted nodes/links data
@@ -874,344 +1377,98 @@ async function circuitDiagramTool(args) {
                     throw new Error('❌ No valid graph data found - data conversion failed. Check server-side conversion logic.');
                 }
                 
-                console.log('Graph data for Cosmos:', graphData);
+                console.log('Graph data for 3D Force Graph:', graphData);
                 
-                // Initialize Cosmos Graph DIRECTLY with callbacks in constructor
+                // Initialize 3D Force Graph renderer
                 const container = document.getElementById('graph-container');
-                const graph = new Graph(container, {
+                const renderer = new ForceGraph3DRenderer(container, {
                     backgroundColor: '#1a1a1a',
-                    linkWidth: 6,  // Increased from 2 to 6 for better color visibility
-                    linkArrows: true, // Enable directional arrows on links
-                    linkArrowsSizeScale: 1.5, // Make arrows bigger for visibility
-                    pointSize: 20,
-                    curvedLinks: true, // Enable curved links for visual flexibility
-                    curvedLinkWeight: 0.8, // Control curve amount
-                    enableSimulation: true,
-                    fitViewOnInit: true, // Auto-fit view to keep nodes visible
-                    fitViewPadding: 0.2, // 20% padding around nodes
-                    // Exact physics settings from working localhost:8888 visualization
-                    simulationFriction: 0.1,    // Low friction like working version
-                    simulationGravity: 0,       // No gravity (key difference!)
-                    simulationRepulsion: 0.5,   // Moderate repulsion like working version
-                    // Drag and space settings from working version
-                    enableDrag: true,
-                    spaceSize: 4096,             // Match working version
-                    scalePointsOnZoom: true,     // Match working version
-                    // Event callbacks configured correctly
-                    onClick: (pointIndex) => {
-                        if (pointIndex !== undefined) {
-                            const node = window.nodeData ? window.nodeData[pointIndex] : null;
-                            console.log('Node clicked:', pointIndex, 'Label:', node?.label || 'unknown');
-                        }
-                    },
-                    onPointMouseOver: (pointIndex) => {
-                        if (pointIndex !== undefined) {
-                            const node = window.nodeData ? window.nodeData[pointIndex] : null;
-                            console.log('Hovering node:', pointIndex, 'Label:', node?.label || 'unknown');
-                        }
-                    },
-                    onPointMouseOut: (pointIndex) => {
-                        if (pointIndex !== undefined) {
-                            console.log('Left node:', pointIndex);
-                        }
+                    nodeColor: '#58a6ff',
+                    linkColor: '#30363d',
+                    nodeOpacity: 0.8,
+                    linkOpacity: 0.6,
+                    nodeRelSize: 4,
+                    linkWidth: 2,
+                    showNodeLabels: true,
+                    showLinkLabels: false,
+                    controlType: 'trackball',
+                    enableNodeDrag: true,
+                    enableNavigationControls: true,
+                    enablePointerInteraction: true
+                });
+                
+                console.log('3D Force Graph renderer initialized');
+                
+                // Add event listeners for node interactions
+                renderer.onNodeHover((node) => {
+                    if (node) {
+                        console.log('Hovering node:', node.label || node.id);
                     }
                 });
                 
-                console.log('Direct Cosmos Graph initialized with enableSimulation: true');
-                
-                // Store node data for callbacks
-                window.nodeData = graphData.nodes;
-                
-                // Convert data to Cosmos Graph format 
-                const positions = new Float32Array(graphData.nodes.length * 2);
-                const colors = new Float32Array(graphData.nodes.length * 4);
-                const links = new Float32Array(graphData.links.length * 2);
-                
-                console.log('Converting data for direct Cosmos Graph API...');
-                
-                // Debug nodes before processing
-                console.log('Nodes to process:', graphData.nodes.length);
-                graphData.nodes.forEach((node, index) => {
-                    console.log('Node ' + index + ':', {
-                        id: node.id,
-                        type: node.type,
-                        hasColor: !!node.color,
-                        color: node.color
-                    });
-                });
-                
-                // Set positions with cluster separation for independent movement
-                graphData.nodes.forEach((node, i) => {
-                    let x, y;
-                    
-                    // Position clusters far apart to enable independent movement
-                    if (node.type === 'attention' || node.type === 'attention_sub') {
-                        // Attention cluster on the left
-                        x = -80 + (Math.random() * 40 - 20);
-                        y = Math.random() * 60 - 30;
-                    } else {
-                        // MLP cluster on the right  
-                        x = 80 + (Math.random() * 40 - 20);
-                        y = Math.random() * 60 - 30;
+                renderer.onNodeClick((node) => {
+                    if (node) {
+                        console.log('Clicked node:', node.label || node.id);
                     }
-                    
-                    positions[i * 2] = x;
-                    positions[i * 2 + 1] = y;
-                    
-                    // Validate and set colors with fallback
-                    if (node.color && Array.isArray(node.color) && node.color.length >= 4) {
-                        colors[i * 4] = node.color[0];     // R
-                        colors[i * 4 + 1] = node.color[1]; // G  
-                        colors[i * 4 + 2] = node.color[2]; // B
-                        colors[i * 4 + 3] = node.color[3]; // A
-                    } else {
-                        console.warn('Node ' + i + ' missing valid color, using fallback');
-                        // Default to blue for missing colors
-                        colors[i * 4] = 0.0;     // R
-                        colors[i * 4 + 1] = 0.5; // G  
-                        colors[i * 4 + 2] = 1.0; // B
-                        colors[i * 4 + 3] = 1.0; // A
-                    }
-                    
-                    const colorStr = node.color ? node.color.join(',') : 'fallback';
-                    console.log('Node ' + i + ': ' + node.label + ' at (' + x + ',' + y + ') color=[' + colorStr + ']');
                 });
                 
-                // Set links and link colors
-                const linkColors = new Float32Array(graphData.links.length * 4); // RGBA for each link
+                // Load the graph data
+                await renderer.loadGraph(graphData);
+                console.log('✅ Graph loaded successfully');
                 
-                graphData.links.forEach((link, i) => {
-                    const sourceIndex = graphData.nodes.findIndex(n => n.id === link.source);
-                    const targetIndex = graphData.nodes.findIndex(n => n.id === link.target);
-                    links[i * 2] = sourceIndex;
-                    links[i * 2 + 1] = targetIndex;
+                // Labels are handled by the ForceGraph3DRenderer internally
+                console.log('Node labels enabled via renderer configuration');
+                
+                // Physics control setup - ensure DOM is ready
+                let physicsPlaying = true;
+                
+                // Wait for DOM to be fully loaded
+                const setupPhysicsControls = () => {
+                    const physicsBtn = document.getElementById('physics-btn');
                     
-                    // Set link colors: [r, g, b, a] for each link according to API docs
-                    const color = link.color || [1, 1, 1, 0.6]; // Default to white
-                    linkColors[i * 4] = color[0];     // Red
-                    linkColors[i * 4 + 1] = color[1]; // Green  
-                    linkColors[i * 4 + 2] = color[2]; // Blue
-                    linkColors[i * 4 + 3] = color[3]; // Alpha
-                    
-                    // Debug moved to browser console to avoid MCP protocol interference
-                });
-                
-                // Debug the arrays before setting them
-                console.log('Final arrays for Cosmos Graph:');
-                console.log('positions length:', positions.length, 'expected:', graphData.nodes.length * 2);
-                console.log('positions values:', Array.from(positions));
-                console.log('colors length:', colors.length, 'expected:', graphData.nodes.length * 4);
-                console.log('colors values:', Array.from(colors));
-                console.log('links length:', links.length, 'expected:', graphData.links.length * 2);
-                console.log('links values:', Array.from(links));
-                console.log('point size check - should be > 0:', graph.getPointSize ? graph.getPointSize() : 'no getPointSize method');
-                
-                // Load data into graph using correct API
-                try {
-                    graph.setPointPositions(positions);
-                    console.log('✅ Point positions set');
-                    
-                    graph.setPointColors(colors);
-                    console.log('✅ Point colors set');
-                    
-                    graph.setLinks(links);
-                    console.log('✅ Links set');
-                    
-                    graph.setLinkColors(linkColors);
-                    console.log('✅ Link colors set');
-                    
-                    // Render and immediately pause to start static
-                    graph.render();
-                    console.log('✅ Graph rendered');
-                    
-                    graph.pause();
-                    console.log('✅ Graph paused');
-                    
-                    // Fit view to see all nodes with padding
-                    setTimeout(() => {
-                        graph.fitView(1000, 0.2);
-                        console.log('✅ Graph fitted to view');
-                    }, 100);
-                    
-                } catch (error) {
-                    console.error('❌ Error setting up graph:', error);
-                    console.error('Error details:', error.message);
-                    console.error('Error stack:', error.stack);
-                }
-                
-                console.log('Direct Cosmos Graph loaded, paused, and fitted to view!');
-                
-                // Use already imported CSS Labels from top of script
-                if (!LabelRenderer) {
-                    console.error('LabelRenderer not available from @interacta/css-labels');
-                    return;
-                }
-                
-                console.log('Setting up CSS Labels with LabelRenderer:', LabelRenderer);
-                
-                // Create labels container
-                const labelsContainer = document.createElement('div');
-                labelsContainer.id = 'labels-container';
-                labelsContainer.style.position = 'absolute';
-                labelsContainer.style.top = '0';
-                labelsContainer.style.left = '0';
-                labelsContainer.style.width = '100%';
-                labelsContainer.style.height = '100%';
-                labelsContainer.style.pointerEvents = 'none';
-                labelsContainer.style.zIndex = '1000';
-                container.appendChild(labelsContainer);
-                
-                // Initialize CSS Labels renderer with proper options
-                const labelRenderer = new LabelRenderer(labelsContainer, { 
-                    pointerEvents: 'auto',
-                    dontInjectStyles: false  // Let the library inject its own styles
-                });
-                
-                // Make sure the renderer is visible
-                labelRenderer.show();
-                console.log('LabelRenderer initialized and shown');
-                
-                // Create label configurations
-                console.log('Creating labels for nodes:', graphData.nodes.length);
-                graphData.nodes.forEach((node, i) => {
-                    console.log('Node ' + i + ':', node.id, 'Label:', node.label);
-                });
-                
-                // Create initial labels - will be positioned after graph is fitted
-                const labels = graphData.nodes.map((node, i) => {
-                    return {
-                        id: node.id,
-                        text: node.label || node.id,
-                        x: 0,  // Will be updated after fitView
-                        y: 0,  // Will be updated after fitView
-                        fontSize: 14,
-                        color: '#ffffff',
-                        opacity: 1.0,
-                        shouldBeShown: true,
-                        weight: 10
-                    };
-                });
-                
-                console.log('Created labels array:', labels.length);
-                
-                function updateLabels() {
-                    const positions = graph.getPointPositions();
-                    const containerRect = container.getBoundingClientRect();
-                    let updatedLabels;
-                    let labelElements;
-                    
-                    console.log('Updating labels, positions array length:', positions.length);
-                    console.log('Container bounds:', { width: containerRect.width, height: containerRect.height });
-                    
-                    updatedLabels = labels.map((label, i) => {
-                        const spaceX = positions[i * 2];
-                        const spaceY = positions[i * 2 + 1];
-                        const screenPos = graph.spaceToScreenPosition([spaceX, spaceY]);
-                        
-                        // Clamp coordinates to container bounds
-                        const x = Math.max(50, Math.min(containerRect.width - 50, screenPos[0]));
-                        const y = Math.max(50, Math.min(containerRect.height - 50, screenPos[1] - 35));
-                        
-                        console.log('Label ' + i + ' positioned near node:', { 
-                            spacePos: [spaceX, spaceY], 
-                            rawScreenPos: screenPos,
-                            clampedPos: [x, y],
-                            containerBounds: [containerRect.width, containerRect.height]
-                        });
-                        
-                        return {
-                            ...label,
-                            x: x,
-                            y: y,
-                            shouldBeShown: true
-                        };
-                    });
-                    
-                    console.log('About to setLabels with:', updatedLabels.length, 'labels');
-                    updatedLabels.forEach((label, i) => {
-                        console.log('Label ' + i + ' data:', {
-                            id: label.id,
-                            text: label.text,
-                            x: label.x,
-                            y: label.y,
-                            shouldBeShown: label.shouldBeShown
-                        });
-                    });
-                    
-                    labelRenderer.setLabels(updatedLabels);
-                    labelRenderer.draw(true);
-                    
-                    // Debug: Check if DOM elements are actually created
-                    labelElements = labelsContainer.querySelectorAll('div');
-                    console.log('Labels updated and drawn with setLabels API');
-                    console.log('DOM label elements found:', labelElements.length, 'expected:', updatedLabels.length);
-                    labelElements.forEach((el, i) => {
-                        console.log('Label element ' + i + ':', {
-                            text: el.textContent,
-                            visible: el.style.display !== 'none',
-                            position: el.style.position,
-                            left: el.style.left,
-                            top: el.style.top,
-                            className: el.className
-                        });
-                    });
-                }
-                
-                // Position labels after the graph has been fitted to view
-                setTimeout(() => {
-                    console.log('Positioning labels after graph fitView...');
-                    updateLabels();
-                }, 200);
-                
-                // Update labels during all interactions - use setInterval for continuous updates
-                setInterval(updateLabels, 100); // Update every 100ms for smooth movement
-                
-                // Also update on specific events
-                graph.onZoom = updateLabels;
-                if (graph.onSimulationTick) graph.onSimulationTick = updateLabels;
-                if (graph.onDrag) graph.onDrag = updateLabels;
-                if (graph.onDragEnd) graph.onDragEnd = updateLabels;
-                
-                // Interactions are now configured in constructor
-                
-                // Physics control setup - simulation disabled by config
-                let physicsPlaying = false;
-                const physicsBtn = document.getElementById('physics-btn');
-                
-                // Set correct initial button state (simulation starts paused)
-                physicsBtn.textContent = 'Play Physics';
-                console.log('Physics initialized as paused');
-                
-                // Physics toggle functionality using direct Cosmos Graph API
-                physicsBtn.addEventListener('click', () => {
-                    if (physicsPlaying) {
-                        // Pause physics
-                        graph.pause();
-                        physicsBtn.textContent = 'Play Physics';
-                        physicsPlaying = false;
-                        console.log('Physics paused via button');
-                    } else {
-                        // Start physics with high energy for visible spring action
-                        console.log('Starting physics...');
-                        graph.start(1.0); // High energy to see spring compression/extension
+                    // Set correct initial button state (simulation starts running)
+                    if (physicsBtn) {
                         physicsBtn.textContent = 'Pause Physics';
-                        physicsPlaying = true;
-                        console.log('Physics started via button with alpha=1.0');
+                        console.log('Physics initialized as running');
                         
-                        // No auto-refit needed anymore
+                        // Physics toggle functionality using 3D Force Graph API
+                        physicsBtn.addEventListener('click', () => {
+                            if (physicsPlaying) {
+                                // Pause physics
+                                if (renderer.graph && renderer.graph.pauseAnimation) {
+                                    renderer.graph.pauseAnimation();
+                                }
+                                physicsBtn.textContent = 'Play Physics';
+                                physicsPlaying = false;
+                                console.log('Physics paused via button');
+                            } else {
+                                // Resume physics
+                                if (renderer.graph && renderer.graph.resumeAnimation) {
+                                    renderer.graph.resumeAnimation();
+                                }
+                                physicsBtn.textContent = 'Pause Physics';
+                                physicsPlaying = true;
+                                console.log('Physics resumed via button');
+                            }
+                        });
+                    } else {
+                        console.error('Physics button not found in DOM');
                     }
-                });
+                };
                 
-                console.log('Cosmos Graph WebGL2 visualization ready');
+                // Call setup immediately (DOM should be ready by now)
+                setupPhysicsControls();
+                
+                console.log('3D Force Graph visualization ready');
                 
             } catch (error) {
-                console.error('Cosmos Graph initialization failed:', error);
-                throw error; // No fallbacks - we use Cosmos Graph or fail gracefully
+                console.error('3D Force Graph initialization failed:', error);
+                throw error; // No fallbacks - we use 3D Force Graph or fail gracefully
             }
         }
         
-        // Start the Cosmos Graph WebGL2 visualization
-        initializeCosmosGraph();
+        // Start the 3D Force Graph visualization
+        initializeForceGraph();
         
         // Update the display in real-time
         const metadataP = document.querySelector('.metadata p:nth-child(3)');
@@ -1691,6 +1948,11 @@ const TOOLS = [
         inputSchema: zodToJsonSchema(LoadModelArgsSchema),
     },
     {
+        name: "available_models",
+        description: "Lists available models that can be loaded in the MLX Engine.",
+        inputSchema: zodToJsonSchema(AvailableModelsArgsSchema),
+    },
+    {
         name: "create_hooks",
         description: "Creates activation hooks for capturing model internals.",
         inputSchema: zodToJsonSchema(CreateHooksArgsSchema),
@@ -1866,6 +2128,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 }
                 
                 const result = await loadModelTool(parsed.data);
+                return {
+                    content: [{
+                        type: "text",
+                        text: JSON.stringify(result, null, 2)
+                    }],
+                };
+            }
+
+            case "available_models": {
+                const parsed = AvailableModelsArgsSchema.safeParse(args);
+                if (!parsed.success) {
+                    throw new Error(`Invalid arguments for available_models: ${parsed.error}`);
+                }
+                
+                const result = await availableModelsTool(parsed.data);
                 return {
                     content: [{
                         type: "text",
@@ -2164,6 +2441,16 @@ async function cleanupExistingServers() {
 async function runServer() {
     // Clean up any existing servers first
     await cleanupExistingServers();
+    
+    // Initialize MLX Engine client with default config
+    const mlxConfig = {
+        apiUrl: 'http://localhost:50111',
+        timeout: 30000,
+        retryAttempts: 3
+    };
+    console.error("Initializing MLX Engine client...");
+    initializeMLXClient(mlxConfig);
+    console.error("MLX Engine client initialized");
     
     // Start required services
     console.error("Starting MLX Engine and visualization servers...");

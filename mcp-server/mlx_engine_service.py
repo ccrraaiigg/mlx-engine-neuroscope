@@ -20,16 +20,24 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from mlx_engine.api_server import MLXEngineAPI
 
-# Configure logging
+# Configure logging to both file and console
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
+    format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler('mlx_engine_service.log'),
+        logging.FileHandler('mlx_engine_service.log', mode='w'),  # Overwrite each time
         logging.StreamHandler()
-    ]
+    ],
+    force=True  # Override any existing logging configuration
 )
 logger = logging.getLogger(__name__)
+
+# Test logging immediately
+logger.info("="*50)
+logger.info("MLX Engine Service module loaded")
+logger.info(f"PID: {os.getpid()}")
+logger.info(f"Working directory: {os.getcwd()}")
+logger.info("="*50)
 
 class MLXEngineService:
     """Background service for MLX Engine API server."""
@@ -41,12 +49,57 @@ class MLXEngineService:
         self.api_server = None
         self.server_thread = None
         self.is_running = False
+        self.pid_file = Path("mlx_engine_service.pid")
         
+    def _check_existing_instance(self):
+        """Check if another instance is already running."""
+        if self.pid_file.exists():
+            try:
+                with open(self.pid_file, 'r') as f:
+                    old_pid = int(f.read().strip())
+                
+                # Check if the process is still running
+                try:
+                    os.kill(old_pid, 0)  # Signal 0 just checks if process exists
+                    logger.warning(f"MLX Engine service already running with PID {old_pid}")
+                    return True
+                except OSError:
+                    # Process not running, remove stale PID file
+                    logger.info(f"Removing stale PID file for PID {old_pid}")
+                    self.pid_file.unlink()
+                    return False
+            except (ValueError, FileNotFoundError):
+                # Invalid or missing PID file
+                if self.pid_file.exists():
+                    self.pid_file.unlink()
+                return False
+        return False
+    
+    def _write_pid_file(self):
+        """Write the current PID to the PID file."""
+        with open(self.pid_file, 'w') as f:
+            f.write(str(os.getpid()))
+        logger.info(f"PID file written: {self.pid_file}")
+    
+    def _remove_pid_file(self):
+        """Remove the PID file."""
+        if self.pid_file.exists():
+            self.pid_file.unlink()
+            logger.info("PID file removed")
+    
     def start(self):
         """Start the MLX Engine service."""
         logger.info("Starting MLX Engine Service...")
         logger.info(f"Host: {self.host}")
         logger.info(f"Port: {self.port}")
+        
+        # Check if another instance is already running
+        if self._check_existing_instance():
+            logger.error("Another MLX Engine service instance is already running. Exiting.")
+            sys.exit(1)
+        
+        # Write PID file
+        self._write_pid_file()
         
         try:
             # Create API server instance
@@ -87,16 +140,18 @@ class MLXEngineService:
         """Pre-load a model if specified."""
         try:
             logger.info(f"Pre-loading model from {self.model_path}...")
-            # Note: Model loading will be handled via API calls from MCP server
-            # This is just a placeholder for future enhancement
-            logger.info("Model pre-loading placeholder - will load via API calls")
+            # AGENT.md: Never fake anything. Model loading will be handled via real API calls from MCP server
+            logger.info("Model loading will be handled via API calls when needed - no placeholder pre-loading")
         except Exception as e:
-            logger.warning(f"Model pre-loading failed: {e}")
+            logger.warning(f"Model path configuration failed: {e}")
     
     def stop(self):
         """Stop the MLX Engine service."""
         logger.info("Stopping MLX Engine Service...")
         self.is_running = False
+        
+        # Remove PID file
+        self._remove_pid_file()
         
         if self.api_server:
             # Flask doesn't have a clean shutdown method in this context
@@ -118,6 +173,11 @@ def signal_handler(signum, frame):
     global service
     if service:
         service.stop()
+    # Ensure PID file is removed even if service.stop() fails
+    pid_file = Path("mlx_engine_service.pid")
+    if pid_file.exists():
+        pid_file.unlink()
+        logger.info("PID file cleaned up on signal")
     sys.exit(0)
 
 def main():

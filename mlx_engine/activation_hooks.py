@@ -218,21 +218,19 @@ class ActivationHookManager:
             print(f"[ERROR] Failed to find module for {spec.layer_name} with component {component}")
             return False
             
-        print(f"[DEBUG] Found target module: {target_module}")
+        print(f"[DEBUG] Found target module: {type(target_module).__name__}")
         print(f"[DEBUG] Target module type: {type(target_module).__name__}")
-        print(f"[DEBUG] Target module dir: {[attr for attr in dir(target_module) if not attr.startswith('_')]}")
+        print(f"[DEBUG] Target module has {len([attr for attr in dir(target_module) if not attr.startswith('_')])} attributes")
         
         # Check if the module is callable
         is_callable = hasattr(target_module, '__call__')
         print(f"[DEBUG] Module is callable: {is_callable}")
         if is_callable:
-            print(f"[DEBUG] Module callable attributes: {[attr for attr in dir(target_module.__call__) if not attr.startswith('_')]}")
+            print(f"[DEBUG] Module __call__ method available")
             
         # Check if the module has a forward method
         has_forward = hasattr(target_module, 'forward')
         print(f"[DEBUG] Module has forward method: {has_forward}")
-        if has_forward:
-            print(f"[DEBUG] Forward method attributes: {[attr for attr in dir(target_module.forward) if not attr.startswith('_')]}")
             
         # Check if the module is an instance of nn.Module
         is_nn_module = isinstance(target_module, nn.Module)
@@ -256,7 +254,6 @@ class ActivationHookManager:
             print(f"[DEBUG] Patching __call__ method for MLX model at {spec.layer_name}.{spec.component}")
             print(f"[DEBUG] Target module type: {type(target_module).__name__}")
             print(f"[DEBUG] Target module ID: {id(target_module)}")
-            print(f"[DEBUG] Target module attributes: {[attr for attr in dir(target_module) if not attr.startswith('_')]}")
             
             original_call = target_module.__call__
             
@@ -404,22 +401,21 @@ class ActivationHookManager:
                 current = get_attr_or_item(current, part)
                 print(f"[DEBUG]   Resolved {'.'.join(parts[:i+1])} -> {type(current).__name__}")
             
-            # If we have a component, handle it based on its type
+            # If we have a component, check if we need to resolve it further
             if component is not None:
-                if isinstance(component, ComponentType):
-                    # For enum components, use their value as the attribute name
-                    component_path = component.value
-                    if hasattr(current, component_path):
-                        current = getattr(current, component_path)
-                        print(f"[DEBUG]   Resolved component {component_path} -> {type(current).__name__}")
-                    else:
-                        print(f"[WARNING] Component {component_path} not found in {type(current).__name__}")
+                component_value = component.value if isinstance(component, ComponentType) else str(component)
+                
+                # Check if the layer_name already specifies the component (e.g., 'model.layers.0.self_attn')
+                # In this case, we don't need to resolve the component further
+                if any(comp in layer_name for comp in ['self_attn', 'mlp', 'attention', 'residual']):
+                    print(f"[DEBUG] Layer name already includes component, using resolved module directly")
                 else:
-                    # For string components, treat as a path to traverse
-                    component_parts = [p for p in str(component).split('.') if p]
-                    for part in component_parts:
-                        current = get_attr_or_item(current, part)
-                        print(f"[DEBUG]   Resolved component part {part} -> {type(current).__name__}")
+                    # Only resolve component if it's not already in the layer path
+                    if hasattr(current, component_value):
+                        current = getattr(current, component_value)
+                        print(f"[DEBUG]   Resolved component {component_value} -> {type(current).__name__}")
+                    else:
+                        print(f"[DEBUG] Component {component_value} not found in {type(current).__name__}, using layer module directly")
             
             print(f"[DEBUG] Found module: {current}")
             print(f"[DEBUG] Module type: {type(current).__name__}")
@@ -436,9 +432,9 @@ class ActivationHookManager:
                 print(f"[DEBUG] Dict keys: {list(current.keys())}")
             return None
         
-        print(f"[DEBUG] Found target module: {current}")
+        print(f"[DEBUG] Found module: {type(current).__name__}")
         print(f"[DEBUG] Module type: {type(current).__name__}")
-        print(f"[DEBUG] Module attributes: {[attr for attr in dir(current) if not attr.startswith('_')]}")
+        print(f"[DEBUG] Module has {len([attr for attr in dir(current) if not attr.startswith('_')])} attributes")
         
         # Check if the component exists in the module
         component_name = component.value if hasattr(component, 'value') else component
@@ -541,7 +537,17 @@ class ActivationHookManager:
                 if not hasattr(module, part):
                     # Try to handle list/dict access
                     if isinstance(module, (list, tuple)) and part.isdigit():
-                         format: str = 'numpy') -> Dict[str, Any]:
+                        return module[int(part)]
+                    return None
+                module = getattr(module, part)
+            
+            return module
+        except (AttributeError, IndexError, KeyError, ValueError) as e:
+            print(f"[ERROR] Failed to find module: {e}")
+            return None
+
+
+def serialize_activations(activations: Dict[str, List[Any]], format: str = 'numpy') -> Dict[str, Any]:
     """Serialize captured activations for transmission."""
     serialized = {}
     

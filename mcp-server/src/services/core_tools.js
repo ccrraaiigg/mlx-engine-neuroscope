@@ -13,33 +13,16 @@ const logger = getLogger('CoreTools');
  * @returns {Promise<object>} Circuit discovery results
  */
 async function coreDiscoverCircuits(params) {
-  logger.info(`Discovering circuits for phenomenon: ${params.phenomenon}`);
+  logger.info(`Circuit discovery requested for phenomenon: ${params.phenomenon}`);
 
-  // Simulate circuit discovery process
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
+  // AGENT.md: Never fake anything. Report exact parameters and error details.
   return {
-    success: true,
-    circuits: [
-      {
-        id: 'circuit_001',
-        name: `${params.phenomenon}_primary_circuit`,
-        confidence: 0.85,
-        layers: [8, 9, 10],
-        components: ['attention_head_8_3', 'mlp_9', 'attention_head_10_1'],
-        validation_metrics: {
-          performance_recovery: 0.92,
-          attribution_score: 0.78,
-          consistency_score: 0.88,
-        },
-      },
-    ],
-    execution_time_ms: 1000,
-    model_info: {
-      model_id: params.model_id,
-      architecture: 'transformer',
-      num_layers: 12,
-    },
+    success: false,
+    error: "Circuit discovery not yet implemented in MLX Engine. No mock data per AGENT.md guidelines.",
+    phenomenon: params.phenomenon,
+    model_id: params.model_id,
+    exact_parameters_passed: params,
+    note: "Real circuit discovery requires implementing activation patching and causal tracing in the MLX Engine API"
   };
 }
 
@@ -49,36 +32,15 @@ async function coreDiscoverCircuits(params) {
  * @returns {Promise<object>} Feature localization results
  */
 async function coreLocalizeFeatures(params) {
-  logger.info(`Localizing features: ${params.feature_name}`);
+  logger.info(`Feature localization requested: ${params.feature_name}`);
 
-  // Simulate feature localization
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
+  // AGENT.md: Never fake anything. Report exact parameters and error details.
   return {
-    success: true,
+    success: false,
+    error: "Feature localization not yet implemented in MLX Engine. No mock data per AGENT.md guidelines.",
     feature_name: params.feature_name,
-    neurons: [
-      {
-        layer: 6,
-        neuron_id: 234,
-        activation_strength: 0.92,
-        confidence: 0.87,
-      },
-      {
-        layer: 8,
-        neuron_id: 156,
-        activation_strength: 0.78,
-        confidence: 0.82,
-      },
-    ],
-    validation_metrics: {
-      valid: true,
-      confidence: 0.85,
-      metrics: {
-        precision: 0.89,
-        recall: 0.76,
-      },
-    },
+    exact_parameters_passed: params,
+    note: "Real feature localization requires implementing PCA and probing classifiers in the MLX Engine API"
   };
 }
 

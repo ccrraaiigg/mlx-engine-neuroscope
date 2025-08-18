@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT-OSS-20B Proper Workflow (France→Paris) - Full Network</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #1a1a1a; color: white; font-family: Arial, sans-serif; }
+        h1 { color: #4285f4; }
+        #graph-container { width: 80%; height: 480px; border: 1px solid #333; background: #2a2a2a; margin: 20px auto; position: relative; }
+        .metadata { background: #444; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 14px; }
+        .node-info { background: #333; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .physics-controls { position: absolute; top: 10px; right: 10px; z-index: 1000; }
+        .physics-btn { 
+            background: #4285f4; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .physics-btn:hover { background: #5294ff; }
+        .physics-btn:active { background: #3275e5; }
+        
+        /* CSS Labels styles - explicit styles for visibility */
+        .css-label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,1);
+            z-index: 1000;
+            pointer-events: none;
+            white-space: nowrap;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+        
+        #labels-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <h1>GPT-OSS-20B Proper Workflow (France→Paris) - Full Network</h1>
+    <div class="metadata">
+        <h3>📊 Real Activation Data Summary</h3>
+        <p><strong>Model:</strong> GPT-OSS-20B (20 layers, 768 hidden dimensions)</p>
+        <p><strong>Nodes:</strong> 9 | <strong>Links:</strong> 10</p>
+        <p><strong>Input:</strong> "What is 7 + 5?" | <strong>Output:</strong> "12"</p>
+        <p><strong>Total Activations Captured:</strong> 48 tensors across layers 0 and 5</p>
+    </div>
+    <div id="graph-container">
+        <div class="physics-controls">
+            <button id="physics-btn" class="physics-btn">Play Physics</button>
+        </div>
+    </div>
+    
+    <script type="module">
+        // Import 3D Force Graph renderer
+        import { ForceGraph3DRenderer } from './renderer/force_graph_3d_renderer.js';
+        console.log('ForceGraph3DRenderer imported successfully');
+        
+        // Real circuit data from MLX Engine
+        const rawCircuitData = {"id":"circuit_1755516456324","nodes":[{"id":"node_0","label":"model.layers.0.self.attn (attention)","type":"attention","value":0.9,"opacity":0.45,"color":"#66aaff","nodeColor":"#66aaff","layer":0,"position":{"x":17.54779882755686,"y":223.19660008724418},"metadata":{"activation_count":40,"confidence":0.9,"component":"attention","layer_name":"model.layers.0.self.attn","circuit_id":"factual_recall_model.layers.0.self_attn_attention","phenomenon":"factual_recall","tensor_volume":45,"activation_intensity":0.45,"tensor_shape":[15,3]}},{"id":"node_1","label":"model.layers.5.self.attn (attention)","type":"attention","value":0.9,"opacity":0.45,"color":"#66aaff","nodeColor":"#66aaff","layer":5,"position":{"x":747.1995256540325,"y":177.2549185180372},"metadata":{"activation_count":40,"confidence":0.9,"component":"attention","layer_name":"model.layers.5.self.attn","circuit_id":"factual_recall_model.layers.5.self_attn_attention","phenomenon":"factual_recall","tensor_volume":45,"activation_intensity":0.45,"tensor_shape":[15,3]}},{"id":"node_2","label":"model.layers.10.self.attn (attention)","type":"attention","value":0.9,"opacity":0.45,"color":"#66aaff","nodeColor":"#66aaff","layer":10,"position":{"x":1489.6491360183159,"y":184.83249812534189},"metadata":{"activation_count":40,"confidence":0.9,"component":"attention","layer_name":"model.layers.10.self.attn","circuit_id":"factual_recall_model.layers.10.self_attn_attention","phenomenon":"factual_recall","tensor_volume":45,"activation_intensity":0.45,"tensor_shape":[15,3]}},{"id":"node_3","label":"model.layers.2.mlp (mlp)","type":"mlp","value":0.9,"opacity":0.8,"color":"#ff6666","nodeColor":"#ff6666","layer":2,"position":{"x":303.79670807516135,"y":80.72726569273917},"metadata":{"activation_count":80,"confidence":0.9,"component":"mlp","layer_name":"model.layers.2.mlp","circuit_id":"factual_recall_model.layers.2.mlp_attention","phenomenon":"factual_recall","tensor_volume":1,"activation_intensity":0.8,"tensor_shape":"unknown"}},{"id":"node_4","label":"model.layers.8.mlp (mlp)","type":"mlp","value":0.9,"opacity":0.8,"color":"#ff6666","nodeColor":"#ff6666","layer":8,"position":{"x":1221.8956917111332,"y":117.34978085415102},"metadata":{"activation_count":80,"confidence":0.9,"component":"mlp","layer_name":"model.layers.8.mlp","circuit_id":"factual_recall_model.layers.8.mlp_attention","phenomenon":"factual_recall","tensor_volume":1,"activation_intensity":0.8,"tensor_shape":"unknown"}},{"id":"node_5","label":"model.layers.15.mlp (mlp)","type":"mlp","value":0.9,"opacity":0.8,"color":"#ff6666","nodeColor":"#ff6666","layer":15,"position":{"x":2262.815641828823,"y":96.23809135412094},"metadata":{"activation_count":80,"confidence":0.9,"component":"mlp","layer_name":"model.layers.15.mlp","circuit_id":"factual_recall_model.layers.15.mlp_attention","phenomenon":"factual_recall","tensor_volume":1,"activation_intensity":0.8,"tensor_shape":"unknown"}},{"id":"node_6","label":"model.layers.0.self_attn_attention (attention)","type":"attention","value":0.7,"color":"#66aaff","nodeColor":"#66aaff","layer":0,"position":{"x":-8.85301233384002,"y":186.57075774817855},"metadata":{"layer_name":"model.layers.0.self_attn_attention","component":"attention","activation_shape":[15,3]}},{"id":"node_7","label":"model.layers.5.self_attn_attention (attention)","type":"attention","value":0.7,"color":"#66aaff","nodeColor":"#66aaff","layer":5,"position":{"x":770.1682422034495,"y":224.727184393024},"metadata":{"layer_name":"model.layers.5.self_attn_attention","component":"attention","activation_shape":[15,3]}},{"id":"node_8","label":"model.layers.10.self_attn_attention (attention)","type":"attention","value":0.7,"color":"#66aaff","nodeColor":"#66aaff","layer":10,"position":{"x":1510.2634410683957,"y":189.59267736944207},"metadata":{"layer_name":"model.layers.10.self_attn_attention","component":"attention","activation_shape":[15,3]}}],"links":[{"id":"link_0","source":"node_0","target":"node_3","weight":0.7,"color":"#ffaa00","type":"cross_attention_mlp","metadata":{"connection_type":"attention_to_mlp_cross"}},{"id":"link_1","source":"node_1","target":"node_4","weight":0.7,"color":"#ffaa00","type":"cross_attention_mlp","metadata":{"connection_type":"attention_to_mlp_cross"}},{"id":"link_2","source":"node_6","target":"node_3","weight":0.7,"color":"#ffaa00","type":"cross_attention_mlp","metadata":{"connection_type":"attention_to_mlp_cross"}},{"id":"link_3","source":"node_7","target":"node_4","weight":0.7,"color":"#ffaa00","type":"cross_attention_mlp","metadata":{"connection_type":"attention_to_mlp_cross"}},{"id":"link_4","source":"node_3","target":"node_1","weight":0.6,"color":"#00aaff","type":"mlp_to_attention","metadata":{"connection_type":"mlp_to_attention"}},{"id":"link_5","source":"node_3","target":"node_7","weight":0.6,"color":"#00aaff","type":"mlp_to_attention","metadata":{"connection_type":"mlp_to_attention"}},{"id":"link_6","source":"node_4","target":"node_2","weight":0.6,"color":"#00aaff","type":"mlp_to_attention","metadata":{"connection_type":"mlp_to_attention"}},{"id":"link_7","source":"node_4","target":"node_8","weight":0.6,"color":"#00aaff","type":"mlp_to_attention","metadata":{"connection_type":"mlp_to_attention"}},{"id":"link_8","source":"node_3","target":"node_1","weight":0.6,"color":"#00ff66","type":"cross_layer","metadata":{"connection_type":"layer_to_layer"}},{"id":"link_9","source":"node_4","target":"node_2","weight":0.6,"color":"#00ff66","type":"cross_layer","metadata":{"connection_type":"layer_to_layer"}}],"metadata":{"title":"GPT-OSS-20B Proper Workflow (France→Paris) - Full Network","type":"circuit"}};
+        
+        console.log('🔥 Initializing 3D Force Graph visualization');
+        console.log('Raw activation data keys:', Object.keys(rawCircuitData));
+        console.log('Data conversion status:', rawCircuitData.nodes ? 'Already converted' : 'Raw activation data');
+        console.log('Expected nodes:', rawCircuitData.nodes?.length || 'TBD');
+        console.log('Expected links:', rawCircuitData.links?.length || 'TBD');
+        
+        async function initializeForceGraph() {
+            try {
+                // Initialize 3D Force Graph renderer
+                let graphData;
+                
+                // Ensure we have properly converted nodes/links data
+                if (rawCircuitData.nodes && rawCircuitData.links) {
+                    console.log('✅ Using converted graph data');
+                    graphData = rawCircuitData;
+                } else {
+                    throw new Error('❌ No valid graph data found - data conversion failed. Check server-side conversion logic.');
+                }
+                
+                console.log('Graph data for 3D Force Graph:', graphData);
+                
+                // Initialize 3D Force Graph renderer
+                const container = document.getElementById('graph-container');
+                const renderer = new ForceGraph3DRenderer(container, {
+                    backgroundColor: '#1a1a1a',
+                    nodeColor: '#58a6ff',
+                    linkColor: '#30363d',
+                    nodeOpacity: 0.8,
+                    linkOpacity: 0.6,
+                    nodeRelSize: 4,
+                    linkWidth: 2,
+                    showNodeLabels: true,
+                    showLinkLabels: false,
+                    controlType: 'trackball',
+                    enableNodeDrag: true,
+                    enableNavigationControls: true,
+                    enablePointerInteraction: true
+                });
+                
+                console.log('3D Force Graph renderer initialized');
+                
+                // Add event listeners for node interactions
+                renderer.onNodeHover((node) => {
+                    if (node) {
+                        console.log('Hovering node:', node.label || node.id);
+                    }
+                });
+                
+                renderer.onNodeClick((node) => {
+                    if (node) {
+                        console.log('Clicked node:', node.label || node.id);
+                    }
+                });
+                
+                // Load the graph data
+                await renderer.loadGraph(graphData);
+                console.log('✅ Graph loaded successfully');
+                
+                // Labels are handled by the ForceGraph3DRenderer internally
+                console.log('Node labels enabled via renderer configuration');
+                
+                // Physics control setup - ensure DOM is ready
+                let physicsPlaying = true;
+                
+                // Wait for DOM to be fully loaded
+                const setupPhysicsControls = () => {
+                    const physicsBtn = document.getElementById('physics-btn');
+                    
+                    // Set correct initial button state (simulation starts running)
+                    if (physicsBtn) {
+                        physicsBtn.textContent = 'Pause Physics';
+                        console.log('Physics initialized as running');
+                        
+                        // Physics toggle functionality using 3D Force Graph API
+                        physicsBtn.addEventListener('click', () => {
+                            if (physicsPlaying) {
+                                // Pause physics
+                                if (renderer.graph && renderer.graph.pauseAnimation) {
+                                    renderer.graph.pauseAnimation();
+                                }
+                                physicsBtn.textContent = 'Play Physics';
+                                physicsPlaying = false;
+                                console.log('Physics paused via button');
+                            } else {
+                                // Resume physics
+                                if (renderer.graph && renderer.graph.resumeAnimation) {
+                                    renderer.graph.resumeAnimation();
+                                }
+                                physicsBtn.textContent = 'Pause Physics';
+                                physicsPlaying = true;
+                                console.log('Physics resumed via button');
+                            }
+                        });
+                    } else {
+                        console.error('Physics button not found in DOM');
+                    }
+                };
+                
+                // Call setup immediately (DOM should be ready by now)
+                setupPhysicsControls();
+                
+                console.log('3D Force Graph visualization ready');
+                
+            } catch (error) {
+                console.error('3D Force Graph initialization failed:', error);
+                throw error; // No fallbacks - we use 3D Force Graph or fail gracefully
+            }
+        }
+        
+        // Start the 3D Force Graph visualization
+        initializeForceGraph();
+        
+        // Update the display in real-time
+        const metadataP = document.querySelector('.metadata p:nth-child(3)');
+        if (metadataP && rawCircuitData.nodes) {
+            metadataP.innerHTML = '<strong>Nodes:</strong> ' + rawCircuitData.nodes.length + ' | <strong>Links:</strong> ' + (rawCircuitData.links?.length || 0);
+        }
+    </script>
+    
+    <div class="node-info">
+        <h3>🧠 Circuit Structure (Real Data)</h3>
+        <p><strong>Nodes:</strong> 9 components across layers</p>
+        <p><strong>Links:</strong> 10 connections showing information flow</p>
+        <details>
+            <summary>View Raw Data</summary>
+            <pre style="max-height: 300px; overflow-y: auto;">"{\n  \"circuit_discovery\": {\n    \"phenomenon\": \"factual_recall\",\n    \"model_id\": \"gpt-oss-20b\",\n    \"prompt_used\": \"The capital of France is\",\n    \"generated_text\": \"Paris\",\n    \"circuits_discovered\": 6,\n    \"circuits\": [\n      {\n        \"circuit_id\": \"factual_recall_model.layers.0.self_attn_attention\",\n        \"phenomenon\": \"factual_recall\",\n        \"layer_name\": \"model.layers.0.self.attn\",\n        \"component\": \"attention\",\n        \"activation_count\": 40,\n        \"confidence\": 0.9\n      },\n      {\n        \"circuit_id\": \"factual_recall_model.layers.5.self_attn_attention\",\n        \"phenomenon\": \"factual_recall\",\n        \"layer_name\": \"model.layers.5.self.attn\",\n        \"component\": \"attention\",\n        \"activation_count\": 40,\n        \"confidence\": 0.9\n      },\n      {\n        \"circuit_id\": \"factual_recall_model.layers.10.self_attn_attention\",\n        \"phenomenon\": \"factual_recall\",\n        \"layer_name\": \"model.layers.10.self.attn\",\n        \"component\": \"attention\",\n        \"activation_count\": 40,\n        \"confidence\": 0.9\n      },\n      {\n        \"circuit_id\": \"factual_recall_model.layers.2.mlp_attention\",\n        \"phenomenon\": \"factual_recall\",\n        \"layer_name\": \"model.layers.2.mlp\",\n        \"component\": \"mlp\",\n        \"activation_count\": 80,\n        \"confidence\": 0.9\n      },\n      {\n        \"circuit_id\": \"factual_recall_model.layers.8.mlp_attention\",\n        \"phenomenon\": \"factual_recall\",\n        \"layer_name\": \"model.layers.8.mlp\",\n        \"component\": \"mlp\",\n        \"activation_count\": 80,\n        \"confidence\": 0.9\n      },\n      {\n        \"circuit_id\": \"factual_recall_model.layers.15.mlp_attention\",\n        \"phenomenon\": \"factual_recall\",\n        \"layer_name\": \"model.layers.15.mlp\",\n        \"component\": \"mlp\",\n        \"activation_count\": 80,\n        \"confidence\": 0.9\n      }\n    ],\n    \"total_activations_captured\": 360\n  },\n  \"activation_capture\": {\n    \"prompt\": \"The capital of France is\",\n    \"generated_text\": \"Paris\",\n    \"activations\": {\n      \"model.layers.0.self_attn_attention\": [15, 3],\n      \"model.layers.5.self_attn_attention\": [15, 3],\n      \"model.layers.10.self_attn_attention\": [15, 3]\n    },\n    \"metadata\": {\n      \"total_tokens\": 21,\n      \"model_info\": {\n        \"name\": \"gpt-oss-20b\",\n        \"layers\": 20,\n        \"hidden_size\": 768\n      }\n    }\n  }\n}"</pre>
+        </details>
+    </div>
+</body>
+</html>

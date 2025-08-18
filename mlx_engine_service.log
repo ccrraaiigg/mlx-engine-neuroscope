@@ -1,0 +1,25 @@
+2025-08-18 13:23:27,624 [INFO] ==================================================
+2025-08-18 13:23:27,624 [INFO] MLX Engine Service module loaded
+2025-08-18 13:23:27,624 [INFO] PID: 49565
+2025-08-18 13:23:27,624 [INFO] Working directory: /Users/craig/me/behavior/forks/mlx-engine-neuroscope
+2025-08-18 13:23:27,624 [INFO] ==================================================
+2025-08-18 13:23:27,624 [WARNING] Model not found at ../models/nightmedia/gpt-oss-20b-q4-hi-mlx
+2025-08-18 13:23:27,624 [INFO] Starting MLX Engine Service...
+2025-08-18 13:23:27,624 [INFO] Host: 127.0.0.1
+2025-08-18 13:23:27,624 [INFO] Port: 50111
+2025-08-18 13:23:27,624 [INFO] Removing stale PID file for PID 29169
+2025-08-18 13:23:27,625 [INFO] PID file written: mlx_engine_service.pid
+2025-08-18 13:23:27,625 [INFO] Registering API routes...
+2025-08-18 13:23:27,627 [INFO] Starting MLX Engine API server on 127.0.0.1:50111
+2025-08-18 13:23:27,631 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:50111
+2025-08-18 13:23:27,631 [INFO] [33mPress CTRL+C to quit[0m
+2025-08-18 13:23:29,133 [INFO] Health check endpoint called
+2025-08-18 13:23:29,134 [INFO] 127.0.0.1 - - [18/Aug/2025 13:23:29] "GET /health HTTP/1.1" 200 -
+2025-08-18 13:23:29,628 [INFO] ✅ MLX Engine Service started successfully
+2025-08-18 13:23:29,628 [INFO] 🌐 API available at http://127.0.0.1:50111
+2025-08-18 13:23:29,628 [INFO] 🔧 Ready to serve MCP server requests
+2025-08-18 13:23:29,628 [INFO] MLX Engine Service is running...
+2025-08-18 13:23:29,629 [INFO] Press Ctrl+C to stop
+2025-08-18 13:23:31,153 [INFO] Health check endpoint called
+2025-08-18 13:23:31,154 [INFO] 127.0.0.1 - - [18/Aug/2025 13:23:31] "GET /health HTTP/1.1" 200 -

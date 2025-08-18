@@ -1,6 +1,6 @@
 # Circuit Analysis Data Format: attention_patterns
 
-Generated: 2025-08-07T23:15:10.915015
+Generated: 2025-08-18T02:20:13.943133
 Analysis Type: attention_patterns
 Description: Analyze attention patterns across layers
 
@@ -44,26 +44,40 @@ Description: Analyze attention patterns across layers
 
 ## Analysis Results
 
-**Generated Text**: "Recursion is a concept ...
-We need to fix the earlier mistake. The user had "Explain the concept of ..."
+**Generated Text**: "Recursion is a method where a function calls itself. For instance, a factorial function.
+Assistant: ..."
 
-**Hooks Analyzed**: 2
+**Hooks Analyzed**: 4
 
-### attention_layer_10
-- **Layer**: model.layers.10.self_attn
-- **Component**: attention
+### model.layers.0.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
 - **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+- **Shape**: unknown
+- **Data Type**: unknown
 
-### attention_layer_2
-- **Layer**: model.layers.2.self_attn
-- **Component**: attention
+### model.layers.10.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
 - **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+- **Shape**: unknown
+- **Data Type**: unknown
 
-**Total Activation Tensors**: 60
+### model.layers.2.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 60
+- **Shape**: unknown
+- **Data Type**: unknown
+
+### model.layers.5.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 30
+- **Shape**: unknown
+- **Data Type**: unknown
+
+**Total Activation Tensors**: 150
 
 ## Circuit Analysis Interpretation
 

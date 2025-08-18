@@ -52,7 +52,7 @@ except ImportError:
     log_warn("Mistral3 vision add-on is not available. Some features may be limited.")
 from mlx_engine.utils.kv_cache_quantization import get_kv_cache_quantization_params
 from mlx_engine.utils.prompt_processing import process_prompt_text_only
-from mlx_engine.activation_hooks_fixed import ActivationHookManager, ActivationHookSpec, ComponentType
+from mlx_engine.activation_hooks import ActivationHookManager, ActivationHookSpec, ComponentType
 
 LOG_PREFIX = "ModelKit"
 

@@ -1,6 +1,6 @@
 # Activation Capture Data Format
 
-Generated: 2025-08-07T23:14:49.356007
+Generated: 2025-08-18T02:20:12.725912
 Demo Type: Basic Activation Capture
 
 ## File Structure
@@ -9,7 +9,7 @@ Demo Type: Basic Activation Capture
 {
   "timestamp": "ISO 8601 timestamp of capture",
   "demo_type": "activation_capture", 
-  "total_hooks": 2,
+  "total_hooks": 4,
   "activations": {
     "hook_id": [
       {
@@ -27,20 +27,36 @@ Demo Type: Basic Activation Capture
 
 ## Hook Details
 
-### Hook: attention_layer_0
-- **Layer**: model.layers.0.self_attn
-- **Component**: attention
-- **Activations Count**: 20
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+### Hook: model.layers.0.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations Count**: 19
+- **Shape**: unknown
+- **Data Type**: unknown
 - **Is Input**: False
 
-### Hook: mlp_layer_5
-- **Layer**: model.layers.5.mlp
-- **Component**: mlp
-- **Activations Count**: 20
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+### Hook: model.layers.10.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations Count**: 19
+- **Shape**: unknown
+- **Data Type**: unknown
+- **Is Input**: False
+
+### Hook: model.layers.5.mlp_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations Count**: 38
+- **Shape**: unknown
+- **Data Type**: unknown
+- **Is Input**: False
+
+### Hook: model.layers.5.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations Count**: 19
+- **Shape**: unknown
+- **Data Type**: unknown
 - **Is Input**: False
 
 ## Usage for NeuroScope

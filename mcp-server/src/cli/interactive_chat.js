@@ -263,11 +263,11 @@ class InteractiveChatbot {
     </div>
 
     <script type="module">
-        import { CosmosGraphRenderer } from './renderer/cosmos_graph_renderer.js';
+        import { ForceGraph3DRenderer } from './renderer/force_graph_3d_renderer.js';
 
         const rawCircuitData = ${JSON.stringify(processedData)};
         
-        console.log('🔥 Initializing Cosmos Graph WebGL2 visualization');
+        console.log('🔥 Initializing 3D Force Graph visualization');
         console.log('Raw circuit data:', rawCircuitData);
         console.log('Expected nodes:', rawCircuitData.nodes?.length || 0);
         console.log('Expected links:', rawCircuitData.links?.length || 0);

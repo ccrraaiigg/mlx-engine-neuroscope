@@ -1,6 +1,6 @@
 # Circuit Analysis Data Format: mlp_processing
 
-Generated: 2025-08-07T23:15:11.584083
+Generated: 2025-08-18T02:46:53.368485
 Analysis Type: mlp_processing
 Description: Analyze MLP processing patterns
 
@@ -44,39 +44,46 @@ Description: Analyze MLP processing patterns
 
 ## Analysis Results
 
-**Generated Text**: "analysis: We need to respond with an explanation of recursion in programming with a simple example. ..."
+**Generated Text**: "Sure, recursion is a method where a function calls itself. For instance, a factorial function can be..."
 
-**Hooks Analyzed**: 4
+**Hooks Analyzed**: 5
 
-### attention_layer_10
-- **Layer**: model.layers.10.self_attn
-- **Component**: attention
+### model.layers.0.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
 - **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+- **Shape**: unknown
+- **Data Type**: unknown
 
-### attention_layer_2
-- **Layer**: model.layers.2.self_attn
-- **Component**: attention
+### model.layers.10.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
 - **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+- **Shape**: unknown
+- **Data Type**: unknown
 
-### mlp_layer_15
-- **Layer**: model.layers.15.mlp
-- **Component**: mlp
+### model.layers.15.mlp_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 60
+- **Shape**: unknown
+- **Data Type**: unknown
+
+### model.layers.5.mlp_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 60
+- **Shape**: unknown
+- **Data Type**: unknown
+
+### model.layers.5.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
 - **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+- **Shape**: unknown
+- **Data Type**: unknown
 
-### mlp_layer_5
-- **Layer**: model.layers.5.mlp
-- **Component**: mlp
-- **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
-
-**Total Activation Tensors**: 120
+**Total Activation Tensors**: 210
 
 ## Circuit Analysis Interpretation
 

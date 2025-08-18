@@ -3,10 +3,25 @@
  * Handles conversion of circuit data, attention patterns, and activation flows
  */
 
-import { GraphTypes, NodeTypes, LinkTypes } from '../types/graph_types.js';
+// Type definitions are defined inline since the project uses 3D Force Graph
+const GraphTypes = {
+  CIRCUIT: 'circuit',
+  ATTENTION: 'attention',
+  ACTIVATION_FLOW: 'activation_flow',
+  MODEL_ARCHITECTURE: 'model_architecture',
+  COMPARISON: 'comparison'
+};
+
+const LinkTypes = {
+  CIRCUIT: 'circuit',
+  ATTENTION: 'attention',
+  ACTIVATION: 'activation',
+  CAUSAL: 'causal',
+  SIMILARITY: 'similarity'
+};
 
 /**
- * Converts MLX Engine data to Cosmos Graph-compatible graph structures
+ * Converts MLX Engine data to 3D Force Graph-compatible graph structures
  */
 export class GraphConverter {
   /**

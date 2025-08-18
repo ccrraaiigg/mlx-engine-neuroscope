@@ -1,6 +1,6 @@
 # Circuit Analysis Data Format: mlp_processing
 
-Generated: 2025-08-15T18:38:05.439190
+Generated: 2025-08-18T02:20:14.916469
 Analysis Type: mlp_processing
 Description: Analyze MLP processing patterns
 
@@ -44,40 +44,46 @@ Description: Analyze MLP processing patterns
 
 ## Analysis Results
 
-**Generated Text**: "This is a meta question. The user wants an explanation. 
-We should respond with a simple explanation..."
+**Generated Text**: "Recursion is a programming technique where a function calls itself to solve a problem. For instance,..."
 
-**Hooks Analyzed**: 4
+**Hooks Analyzed**: 5
 
-### attention_layer_10
-- **Layer**: model.layers.10.self_attn
-- **Component**: attention
-- **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+### model.layers.0.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 29
+- **Shape**: unknown
+- **Data Type**: unknown
 
-### attention_layer_2
-- **Layer**: model.layers.2.self_attn
-- **Component**: attention
-- **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+### model.layers.10.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 29
+- **Shape**: unknown
+- **Data Type**: unknown
 
-### mlp_layer_15
-- **Layer**: model.layers.15.mlp
-- **Component**: mlp
-- **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+### model.layers.15.mlp_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 58
+- **Shape**: unknown
+- **Data Type**: unknown
 
-### mlp_layer_5
-- **Layer**: model.layers.5.mlp
-- **Component**: mlp
-- **Activations**: 30
-- **Shape**: [1, 32, 768]
-- **Data Type**: float32
+### model.layers.5.mlp_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 58
+- **Shape**: unknown
+- **Data Type**: unknown
 
-**Total Activation Tensors**: 120
+### model.layers.5.self_attn_attention
+- **Layer**: unknown
+- **Component**: unknown
+- **Activations**: 29
+- **Shape**: unknown
+- **Data Type**: unknown
+
+**Total Activation Tensors**: 203
 
 ## Circuit Analysis Interpretation
 
