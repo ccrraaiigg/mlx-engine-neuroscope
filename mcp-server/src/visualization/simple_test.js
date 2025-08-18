@@ -1,4 +1,4 @@
-import { CosmosGraphRenderer } from './renderer/cosmos_graph_renderer.js';
+import { ForceGraph3DRenderer } from './renderer/force_graph_3d_renderer.js';
 
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', async () => {
@@ -9,22 +9,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Create the renderer with enhanced configuration
         const container = document.getElementById('graph-container');
-        const renderer = new CosmosGraphRenderer(container, {
-            width: container.clientWidth,
-            height: container.clientHeight,
-            backgroundColor: [0.1, 0.1, 0.1, 1],
-            // Enhanced rendering settings
-            linkWidth: 2,
-            linkColor: [1, 1, 1, 0.6],  // Brighter links
-            pointColor: [0.2, 0.6, 1, 1],  // Brighter blue nodes
-            pointSize: 6,
-            // Enable interactions
-            enableNodeHover: true,
-            enableNodeClick: true,
-            // Physics settings
-            simulationGravity: 0.1,
-            simulationRepulsion: 0.8,
-            linkDistance: 100
+        const renderer = new ForceGraph3DRenderer(container, {
+            backgroundColor: '#0d1117',
+            nodeColor: '#58a6ff',
+            linkColor: '#30363d',
+            nodeOpacity: 0.8,
+            linkOpacity: 0.6,
+            nodeRelSize: 4,
+            linkWidth: 1.5,
+            showNodeLabels: true,
+            showLinkLabels: false,
+            controlType: 'trackball',
+            enableNodeDrag: true,
+            enableNavigationControls: true,
+            enablePointerInteraction: true
         });
         
         // Add event listeners
@@ -40,28 +38,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
         
-        // Create sample data
+        // Create sample data for 3D Force Graph
         const nodes = Array(50).fill(0).map((_, i) => {
             const angle = (i / 50) * Math.PI * 2;
             const radius = 300;
             return {
                 id: `node-${i}`,
+                label: `Node ${i}`,
                 value: 2 + Math.random() * 3,
-                position: {
-                    x: Math.cos(angle) * radius,
-                    y: Math.sin(angle) * radius
-                },
-                size: 8 + Math.random() * 4,
-                color: [
-                    0.2 + Math.random() * 0.8,
-                    0.2 + Math.random() * 0.6,
-                    0.8 + Math.random() * 0.2,
-                    0.9
-                ]
+                x: Math.cos(angle) * radius,
+                y: Math.sin(angle) * radius,
+                z: (Math.random() - 0.5) * 200,
+                color: `hsl(${Math.random() * 360}, 70%, 60%)`
             };
         });
         
-        // Create links
+        // Create links for 3D Force Graph
         const links = [];
         
         // Create a circular structure
@@ -70,16 +62,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             links.push({
                 source: nodes[i].id,
                 target: nodes[next].id,
-                id: `link-${i}-${next}`,
-                weight: 1.0,
+                label: `Link ${i}-${next}`,
                 value: 1.0,
-                width: 2,
-                color: [1.0, 0.8, 0.2, 0.8]  // Yellow links
+                color: '#ffa500'  // Orange links
             });
         }
         
         // Add some random connections
-        const numRandomLinks = Math.floor(nodes.length * 0.8);
+        const numRandomLinks = Math.floor(nodes.length * 0.3);
         for (let i = 0; i < numRandomLinks; i++) {
             const sourceIdx = Math.floor(Math.random() * nodes.length);
             let targetIdx;
@@ -91,11 +81,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             links.push({
                 source: nodes[sourceIdx].id,
                 target: nodes[targetIdx].id,
-                id: `rlink-${i}`,
-                weight: 0.3 + Math.random() * 0.7,
+                label: `Random ${i}`,
                 value: 0.3 + Math.random() * 0.7,
-                width: 1,
-                color: [1.0, 1.0, 1.0, 0.4]  // Semi-transparent white
+                color: '#30363d'  // Gray links
             });
         }
         

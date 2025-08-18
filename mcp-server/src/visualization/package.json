@@ -1,12 +1,11 @@
 {
-  "name": "cosmos-graph-visualization",
+  "name": "3d-force-graph-visualization",
   "version": "1.0.0",
-  "description": "Local dependencies for the graph visualization",
+  "description": "Local dependencies for the 3D force graph visualization",
   "private": true,
   "dependencies": {
-    "@cosmos.gl/graph": "^2.3.1",
-    "@interacta/css-labels": "^0.2.0",
-    "crossfilter2": "^1.5.4",
-    "d3-color": "^3.1.0"
+    "3d-force-graph": "^1.73.7",
+    "d3-color": "^3.1.0",
+    "three": "^0.160.0"
   }
 }

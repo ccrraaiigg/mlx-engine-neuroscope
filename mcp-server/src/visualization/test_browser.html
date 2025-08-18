@@ -213,7 +213,7 @@
                 updateStatus('Initializing...', 'info');
                 
                 // Import the renderer
-                const { CosmosGraphRenderer } = await import('./renderer/cosmos_graph_renderer.js');
+                const { ForceGraph3DRenderer } = await import('./renderer/force_graph_3d_renderer.js');
                 
                 // Create a container for the graph
                 const graphContainer = document.getElementById('graph-container');
@@ -225,14 +225,19 @@
                 graphContainer.innerHTML = '';
                 
                 // Initialize the graph renderer
-                const renderer = new CosmosGraphRenderer(graphContainer, {
-                    width: graphContainer.clientWidth,
-                    height: graphContainer.clientHeight,
-                    backgroundColor: '#222222',
-                    pointColor: '#FF6B6B',
-                    pointSize: 15,
+                const renderer = new ForceGraph3DRenderer(graphContainer, {
+                    backgroundColor: '#0d1117',
+                    nodeColor: '#FF6B6B',
                     linkColor: '#FFFFFF',
-                    linkWidth: 2
+                    nodeOpacity: 0.8,
+                    linkOpacity: 0.6,
+                    nodeRelSize: 4,
+                    linkWidth: 2,
+                    showNodeLabels: true,
+                    controlType: 'trackball',
+                    enableNodeDrag: true,
+                    enableNavigationControls: true,
+                    enablePointerInteraction: true
                 });
                 
                 // Store the renderer globally

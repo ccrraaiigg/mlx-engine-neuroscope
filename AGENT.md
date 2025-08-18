@@ -62,6 +62,11 @@ The API documentation is at /Users/craig/forks/graph/src/stories/. Use
 When you need fresh log content from Cursor, you need to ask the user
 to refresh the logfile (mcp-server/log).
 
+## When generating HTML
+
+Don't declare success until the user has given feedback on the
+result. There's an MCP tool for opening a browser.
+
 ## WASM Tools
 
 The only WASM tools you may use are 'wasm-tools' and 'wasm-opt'. You

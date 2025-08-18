@@ -1,6 +1,6 @@
-# Cosmos Graph Visualization Integration
+# 3D Force Graph Visualization Integration
 
-This directory contains the foundation for integrating Cosmos Graph, a high-performance graph visualization library, into the MLX Engine with NeuroScope Integration project.
+This directory contains the foundation for integrating 3D Force Graph, a high-performance 3D graph visualization library, into the MLX Engine with NeuroScope Integration project.
 
 ## ⚡ Quick Start
 
@@ -19,8 +19,8 @@ node server.js
 
 - **`types/graph_types.js`** - TypeScript-style interfaces and type definitions for graph data structures
 - **`utils/webgl_capabilities.js`** - WebGL capability detection and fallback mechanisms
-- **`renderer/cosmos_graph_renderer.js`** - High-performance WebGL-based graph renderer using Cosmos Graph
-- **`converter/graph_converter.js`** - Converts MLX Engine data to Cosmos Graph-compatible format
+- **`renderer/force_graph_3d_renderer.js`** - High-performance WebGL-based graph renderer using 3D Force Graph
+- **`converter/graph_converter.js`** - Converts MLX Engine data to 3D Force Graph-compatible format
 - **`generator/visualization_generator.js`** - Orchestrates data fetching and graph generation
 
 ### Demo and Test Files
@@ -37,18 +37,18 @@ node server.js
 
 1. **Node.js Runtime** - The project uses Node.js for JavaScript execution
 2. **Modern Browser** - WebGL support required for optimal performance
-3. **Cosmos Graph Library** - Will be installed via npm (configured in `package.json`)
+3. **3D Force Graph Library** - Will be installed via npm (configured in `package.json`)
 
 ### Installation
 
-The Cosmos Graph library is configured in this directory's `package.json`:
+The 3D Force Graph library is configured in this directory's `package.json`:
 
 ```json
 {
   "dependencies": {
-    "@cosmos.gl/graph": "^2.3.1",
+    "3d-force-graph": "^1.73.7",
     "d3-color": "^3.1.0",
-    "crossfilter2": "^1.5.4"
+    "three": "^0.160.0"
   }
 }
 ```
@@ -92,7 +92,7 @@ node simple_test.js  # Command-line demo of sample graph structure
 
 ### Interactive Demo
 
-The main demo (`index.html`) provides a full-screen Cosmos Graph visualization:
+The main demo (`index.html`) provides a full-screen 3D Force Graph visualization:
 
 - **Full-screen visualization** - Immersive graph rendering experience
 - **Sample neural circuit** - Pre-loaded 10-node neural network
