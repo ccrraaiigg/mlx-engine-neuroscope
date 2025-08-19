@@ -535,23 +535,26 @@ export async function circuitDiagramTool(args) {
                     
                     for (let i = 0; i < circuitData.nodes.length; i++) {
                         const node = circuitData.nodes[i];
-                        console.error("Processing node", i, ":", node.id, "type:", node.type);
+                        console.error("Processing node", i, ":", node.id, "component:", node.component, "existing color:", node.color);
                         
-                        // Force assign colors based on type
-                        if (node.type === 'mlp') {
-                            node.color = '#ff6666'; // Red for MLP
-                            console.error("ASSIGNED RED to MLP:", node.id);
-                        } else if (node.type === 'attention') {
-                            node.color = '#66aaff'; // Blue for attention  
-                            console.error("ASSIGNED BLUE to attention:", node.id);
-                        } else {
-                            node.color = '#999999'; // Gray fallback
-                            console.error("ASSIGNED GRAY to unknown:", node.id);
-                        }
+                        // Preserve existing color if available, otherwise assign based on component
+                         if (!node.color) {
+                             if (node.component === 'mlp' || node.type === 'mlp') {
+                                 node.color = '#ff6666'; // Red for MLP
+                                 console.error("ASSIGNED RED to MLP:", node.id);
+                             } else if (node.component === 'attention' || node.type === 'attention') {
+                                 node.color = '#66aaff'; // Blue for attention  
+                                 console.error("ASSIGNED BLUE to attention:", node.id);
+                             } else {
+                                 throw new Error(`Node '${node.id}' has no color property and unknown component/type. Expected 'mlp' or 'attention' component, or provide explicit color property. Node data: ${JSON.stringify(node)}`);
+                             }
+                         } else {
+                             console.error("PRESERVED existing color for:", node.id, "color:", node.color);
+                         }
                         
                         // Force assign required properties
-                        node.label = node.id;
-                        node.value = 0.8; // Required for node sizing
+                        if (!node.label) node.label = node.id;
+                        if (!node.value) node.value = 0.8; // Required for node sizing
                         console.error("Node", i, "final color:", node.color);
                     }
                     
@@ -645,10 +648,10 @@ export async function circuitDiagramTool(args) {
         <p><strong>Input:</strong> "What is 7 + 5?" | <strong>Output:</strong> "12"</p>
         <p><strong>Total Activations Captured:</strong> 48 tensors across layers 0 and 5</p>
     </div>
+    <div class="physics-controls">
+        <button id="physics-btn" class="physics-btn">Play Physics</button>
+    </div>
     <div id="graph-container">
-        <div class="physics-controls">
-            <button id="physics-btn" class="physics-btn">Play Physics</button>
-        </div>
     </div>
     
     <script type="module">
@@ -739,6 +742,11 @@ export async function circuitDiagramTool(args) {
                                 // Pause physics
                                 if (renderer.graph && typeof renderer.graph.pauseAnimation === 'function') {
                                     renderer.graph.pauseAnimation();
+                                    // Re-enable node dragging when physics is paused
+                                    if (typeof renderer.graph.enableNodeDrag === 'function') {
+                                        renderer.graph.enableNodeDrag(true);
+                                        console.log('Node dragging re-enabled after physics pause');
+                                    }
                                     physicsBtn.textContent = 'Play Physics';
                                     physicsPlaying = false;
                                     console.log('Physics paused via button');
