@@ -736,32 +736,65 @@ export async function circuitDiagramTool(args) {
                         physicsBtn.textContent = 'Pause Physics';
                         console.log('Physics initialized as running');
                         
-                        // Physics toggle functionality using 3D Force Graph API
+                        // Physics toggle functionality using d3Force methods
                         physicsBtn.addEventListener('click', () => {
                             if (physicsPlaying) {
-                                // Pause physics
-                                if (renderer.graph && typeof renderer.graph.pauseAnimation === 'function') {
-                                    renderer.graph.pauseAnimation();
-                                    // Re-enable node dragging when physics is paused
+                                // Disable physics forces
+                                if (renderer.graph && typeof renderer.graph.d3Force === 'function') {
+                                    renderer.graph.d3Force('charge', null)
+                                                  .d3Force('link', null)
+                                                  .d3Force('center', null);
+                                    
+                                    // Fix node positions to prevent drift when forces are disabled
+                                    const graphData = renderer.graph.graphData();
+                                    if (graphData && graphData.nodes) {
+                                        graphData.nodes.forEach(node => {
+                                            node.fx = node.x;
+                                            node.fy = node.y;
+                                            node.fz = node.z;
+                                        });
+                                    }
+                                    
+                                    // Ensure node dragging remains enabled
                                     if (typeof renderer.graph.enableNodeDrag === 'function') {
                                         renderer.graph.enableNodeDrag(true);
-                                        console.log('Node dragging re-enabled after physics pause');
+                                        console.log('Node dragging enabled with forces disabled');
                                     }
+                                    
                                     physicsBtn.textContent = 'Play Physics';
                                     physicsPlaying = false;
-                                    console.log('Physics paused via button');
+                                    console.log('Physics forces disabled, nodes fixed in position');
                                 } else {
-                                    console.error('pauseAnimation method not available on graph instance');
+                                    console.error('d3Force method not available on graph instance');
                                 }
                             } else {
-                                // Resume physics
-                                if (renderer.graph && typeof renderer.graph.resumeAnimation === 'function') {
-                                    renderer.graph.resumeAnimation();
+                                // Re-enable physics forces with proper parameters
+                                if (renderer.graph && typeof renderer.graph.d3Force === 'function' && window.d3) {
+                                    // Unfix node positions to allow force simulation
+                                    const graphData = renderer.graph.graphData();
+                                    if (graphData && graphData.nodes) {
+                                        graphData.nodes.forEach(node => {
+                                            delete node.fx;
+                                            delete node.fy;
+                                            delete node.fz;
+                                        });
+                                    }
+                                    
+                                    // Re-enable forces with standard parameters
+                                    renderer.graph.d3Force('charge', window.d3.forceManyBody().strength(-120))
+                                                  .d3Force('link', window.d3.forceLink().id(d => d.id).distance(100))
+                                                  .d3Force('center', window.d3.forceCenter(0, 0));
+                                    
+                                    // Ensure node dragging is still enabled
+                                    if (typeof renderer.graph.enableNodeDrag === 'function') {
+                                        renderer.graph.enableNodeDrag(true);
+                                    }
+                                    
                                     physicsBtn.textContent = 'Pause Physics';
                                     physicsPlaying = true;
-                                    console.log('Physics resumed via button');
+                                    console.log('Physics forces re-enabled with proper parameters');
                                 } else {
-                                    console.error('resumeAnimation method not available on graph instance');
+                                    console.error('d3Force method or d3 not available on graph instance');
                                 }
                             }
                         });

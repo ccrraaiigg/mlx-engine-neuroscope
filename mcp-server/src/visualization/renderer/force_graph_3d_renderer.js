@@ -280,6 +280,20 @@ export class ForceGraph3DRenderer {
           this._clearNodeMovementTracking(node.id);
         });
       
+      // Expose d3 as a window global if available from the graph instance
+      if (this.graph && this.graph.d3) {
+        window.d3 = this.graph.d3;
+        console.log('d3 exposed as window global from 3D Force Graph');
+      } else {
+        console.warn('d3 not found on graph instance, checking window.d3');
+        // Check if d3 is already available on window (loaded by 3d-force-graph)
+        if (window.d3) {
+          console.log('d3 already available as window global');
+        } else {
+          console.warn('d3 not available as window global');
+        }
+      }
+      
       this.isInitialized = true;
       console.log('3D Force Graph renderer initialized successfully');
     } catch (error) {
