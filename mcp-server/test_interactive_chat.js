@@ -41,13 +41,9 @@ async function testChatbot() {
       console.log('⚠️ Health check failed (expected if services not running):', error.message);
     }
     
-    // Test math problem generation
-    console.log('\n🔢 Testing math problem generation...');
-    for (let i = 0; i < 3; i++) {
-      const problem = chatbot.generateRandomMathProblem();
-      console.log(`   ${i + 1}. ${problem}`);
-    }
-    console.log('✅ Math problem generation working');
+    // Note: Math problem generation removed - agents should provide their own examples
+    console.log('\n🔢 Math problem generation removed - agents provide examples');
+    console.log('✅ System ready for agent-provided examples');
     
     // Test system prompt with demo documentation
     console.log('\n📚 Testing system prompt with demo documentation...');

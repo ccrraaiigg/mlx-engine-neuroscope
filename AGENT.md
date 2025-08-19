@@ -2,6 +2,10 @@
 
 # AGENT INSTRUCTIONS
 
+## On Testing ##
+
+Something untested is never successful. You cannot declare success without testing it first.
+
 ## Workflow: Never Fake Anything. Otherwise, Proceed Without Asking.
 
 Never fake anything. If you find yourself in a situation where there
@@ -9,7 +13,7 @@ is information missing, DO NOT guess, "mock", or simulate. Instead,
 STOP and ask the user for clarification. Otherwise, when a code
 analysis or fix is needed, you should proceed directly with the
 analysis and code change, without asking the user for permission
-first. Cursor will always offer the user a chance to accept or reject
+first. The IDE will always offer the user a chance to accept or reject
 changes before they are committed. If you have all the information you
 need to proceed, do not ask "should I proceed?"... just do the work.
 
@@ -26,7 +30,9 @@ IMPLEMENTATION_SUMMARY.md is up to date.
 
 ## Using the shell
 
-The shell is 'tcsh', not 'bash'. Always wait for commands to finish.
+The shell is 'tcsh', not 'bash'. Always wait for commands to
+finish. You are not allowed to run any code from the shell. The only
+way you are allowed to run code is via the MCP server tools.
 
 ## Using TypeScript
 
@@ -59,7 +65,7 @@ The API documentation is at /Users/craig/forks/graph/src/stories/. Use
 
 ## Using the mcp-server MCP Server
 
-When you need fresh log content from Cursor, you need to ask the user
+When you need fresh log content from the IDE, you need to ask the user
 to refresh the logfile (mcp-server/log).
 
 ## When generating HTML

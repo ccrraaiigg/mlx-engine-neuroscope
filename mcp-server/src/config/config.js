@@ -12,7 +12,7 @@ import { defaultConfig } from './defaults.js';
  */
 async function loadApiKeys() {
   try {
-    const keysContent = await readFile('./keys', 'utf8');
+    const keysContent = await readFile('/Users/craig/forks/Catalyst/keys', 'utf8');
     const keys = {};
     
     keysContent.split('\n').forEach(line => {

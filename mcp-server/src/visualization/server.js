@@ -52,7 +52,9 @@ function checkExistingInstance() {
 
 function writePidFile() {
     fs.writeFileSync(pidFile, process.pid.toString());
-    console.log(`PID file written: ${pidFile} (PID: ${process.pid})`);
+    // Make the PID file read-only
+    fs.chmodSync(pidFile, 0o444);
+    console.log(`PID file written and made read-only: ${pidFile} (PID: ${process.pid})`);
 }
 
 function removePidFile() {

@@ -16,6 +16,7 @@ import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
+import { writeFileReadOnly } from '../utils/file_utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -225,9 +226,9 @@ class InteractiveChatbot {
             };
           }
 
-          // Write data file
+          // Write data file and make it read-only
           const dataPath = '/Users/craig/me/behavior/forks/mlx-engine-neuroscope/mcp-server/src/visualization/real_circuit_data.json';
-          await fs.promises.writeFile(dataPath, JSON.stringify(processedData, null, 2));
+          await writeFileReadOnly(dataPath, JSON.stringify(processedData, null, 2));
 
           // Create HTML file
           const htmlContent = `<!DOCTYPE html>
@@ -318,7 +319,7 @@ class InteractiveChatbot {
 </html>`;
 
           const htmlPath = '/Users/craig/me/behavior/forks/mlx-engine-neuroscope/mcp-server/src/visualization/real_circuit.html';
-          await fs.promises.writeFile(htmlPath, htmlContent);
+          await writeFileReadOnly(htmlPath, htmlContent);
 
           return {
             success: true,
@@ -633,7 +634,7 @@ class InteractiveChatbot {
 
 🧠 Analysis Examples:
   "Show me neural circuits for math problem solving"
-  "Capture activations for the problem 'What is 15 × 7?'"
+  "Capture activations for any mathematical problem"
   "Load the GPT-OSS-20B model and run analysis"
   "Visualize how the network processes multiplication"
   "Create a circuit diagram from fresh activation data"
@@ -872,9 +873,9 @@ Current session context:
     const toolPatterns = [
       // Circuit discovery and analysis
       { pattern: /load.*model|model.*load/i, tool: 'load_model', params: { model_id: 'gpt-oss-20b' }},
-      { pattern: /capture.*activation|activation.*capture/i, tool: 'capture_activations', params: { prompt: this.generateRandomMathProblem(), max_tokens: 50, temperature: 0.1 }},
-      { pattern: /math.*circuit|mathematical.*reasoning|math.*analysis/i, tool: 'analyze_math', params: { prompt: this.generateRandomMathProblem() }},
-      { pattern: /attention.*pattern|analyze.*attention/i, tool: 'analyze_attention', params: { prompt: 'The cat sat on the mat', layers: [0, 5, 10] }},
+      { pattern: /capture.*activation|activation.*capture/i, tool: 'capture_activations', params: { prompt: 'USER_PROVIDED_PROMPT', max_tokens: 50, temperature: 0.1 }},
+      { pattern: /math.*circuit|mathematical.*reasoning|math.*analysis/i, tool: 'analyze_math', params: { prompt: 'USER_PROVIDED_PROMPT' }},
+      { pattern: /attention.*pattern|analyze.*attention/i, tool: 'analyze_attention', params: { prompt: 'USER_PROVIDED_PROMPT', layers: [0, 5, 10] }},
       
       // Visualization tools  
       { pattern: /visualize.*circuit|circuit.*diagram|create.*visualization/i, tool: 'circuit_diagram', params: { circuit_data: {}, circuit_name: 'Neural Circuit Analysis' }},
@@ -1044,33 +1045,7 @@ Current session context:
     }
   }
 
-  generateRandomMathProblem() {
-    const operations = [
-      () => {
-        const a = Math.floor(Math.random() * 50) + 10;
-        const b = Math.floor(Math.random() * 20) + 5;
-        return `What is ${a} × ${b}?`;
-      },
-      () => {
-        const a = Math.floor(Math.random() * 100) + 50;
-        const b = Math.floor(Math.random() * 100) + 20;
-        return `Calculate ${a} + ${b}`;
-      },
-      () => {
-        const a = Math.floor(Math.random() * 200) + 100;
-        const b = Math.floor(Math.random() * 50) + 10;
-        return `What is ${a} - ${b}?`;
-      },
-      () => {
-        const a = Math.floor(Math.random() * 100) + 20;
-        const b = Math.floor(Math.random() * 10) + 2;
-        return `Divide ${a} by ${b}`;
-      }
-    ];
-    
-    const randomOp = operations[Math.floor(Math.random() * operations.length)];
-    return randomOp();
-  }
+  // generateRandomMathProblem function removed - agents should provide their own examples
 
   async runDemo() {
     console.log(`
@@ -1106,13 +1081,13 @@ This demo will:
       await this.waitForEnter('\nPress Enter to capture activations...');
       
       // Step 3: Capture activations
-      const mathProblem = this.generateRandomMathProblem();
-      console.log(`\n🔬 Step 3: Capturing activations for: "${mathProblem}"`);
+      console.log('\n🔬 Step 3: Ready to capture activations for user-provided prompt...');
+      console.log('Note: Agents should provide their own mathematical problems for analysis.');
       
       const captureTool = this.mcpTools['capture_activations'];
       if (captureTool) {
         const captureResult = await captureTool.handler({
-          prompt: mathProblem,
+          prompt: 'AGENT_PROVIDED_PROMPT',
           max_tokens: 50,
           temperature: 0.1
         });
@@ -1130,7 +1105,7 @@ This demo will:
           if (vizTool) {
             const vizResult = await vizTool.handler({
               circuit_data: captureResult.activations,
-              circuit_name: `GPT-OSS-20B Math Circuit: ${mathProblem}`
+              circuit_name: 'GPT-OSS-20B Circuit Analysis'
             });
             
             console.log('✅ Visualization created:', JSON.stringify(vizResult, null, 2));
