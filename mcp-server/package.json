@@ -1,6 +1,6 @@
 {
   "name": "mechanistic-interpretability-mcp-server",
-  "version": "129",
+  "version": "130",
   "description": "MCP server for mechanistic interpretability operations with MLX Engine integration",
   "main": "server.js",
   "type": "module",

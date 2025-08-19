@@ -1,5 +1,11 @@
 # Neural Circuit Visualization Demo Guide
 
+This guide documents how to create real-time, interactive
+visualizations of neural circuits from GPT-OSS-20B using the
+mechanistic interpretability MCP server.
+
+You are forbidden to run 'node' or 'python3' or 'python'. The only way
+you can run code is via the MCP server.
 
 DO NOT EDIT real_circuit_data.json or real_circuit.html.
 DO NOT EDIT real_circuit_data.json or real_circuit.html.
@@ -13,11 +19,9 @@ data must come from a running model, via the MCP server tools. If
 there's a problem with a visualization, you must fix the MCP server
 code. Every time you change the MCP server code, it must be reloaded
 manually by the user. You cannot test a change to the MCP server code
-without the user reloading the MCP server first.
-
-This guide documents how to create real-time, interactive
-visualizations of neural circuits from GPT-OSS-20B using the
-mechanistic interpretability MCP server.
+without the user reloading the MCP server first. When the MCP server
+is reloaded, the model is killed and all generated data is deleted;
+you have to run the demo again from the beginning.
 
 ## Critical Development Workflow
 
@@ -27,7 +31,7 @@ mechanistic interpretability MCP server.
 
 1. **Increment Version Number**: Update the version that the `versionTool` function uses
 
-2. **Ask User to Reload**: Always request user to reload the MCP server in Cursor
+2. **Ask User to Reload**: Always request that the user reload the MCP server in the IDE
 
 3. **Verify Reload**: First tool call after reload MUST be `version` to confirm changes
 

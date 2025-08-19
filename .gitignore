@@ -22,3 +22,5 @@ models/
 checkpoints/
 weights/
 pretrained/
+mcp-server/src/visualization/real_circuit_data.json
+mcp-server/src/visualization/real_circuit.html
