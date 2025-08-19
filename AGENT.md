@@ -1,65 +1,5 @@
 # AGENT.md
 
-# AGENT INSTRUCTIONS
-
-# ⛔ STOP! READ THIS FIRST ⛔
-
-## 🚨🚨🚨 CRITICAL POLICY VIOLATION WARNING 🚨🚨🚨
-
-### ❌ ABSOLUTELY FORBIDDEN - ZERO TOLERANCE POLICY ❌
-
-**IF YOU MODIFY ANY MCP SERVER CODE, YOU MUST IMMEDIATELY STOP AND FOLLOW THE RESTART PROTOCOL**
-
-**VIOLATION**: Modifying MCP server code and then calling ANY MCP tools without user restart is a **SERIOUS POLICY VIOLATION**
-
-**THIS MEANS**: After editing ANY file in `/mcp-server/` directory:
-- ❌ **DO NOT** call `run_mcp` with ANY tool
-- ❌ **DO NOT** test your changes
-- ❌ **DO NOT** assume changes work
-- ❌ **DO NOT** continue with any MCP operations
-
-### 🛑 MANDATORY STOP-AND-RESTART PROTOCOL 🛑
-
-**EVERY TIME** you modify ANY MCP server code file, you **MUST**:
-
-1. **🛑 IMMEDIATE STOP** - Do not call any MCP tools
-2. **📝 INCREMENT VERSION** - Update version number in version tool
-3. **👤 ASK USER TO RESTART** - "Please restart the MCP server in your IDE"
-4. **⏳ WAIT FOR CONFIRMATION** - Do not proceed until user confirms
-5. **✅ VERIFY RESTART** - First call must be `version` tool to verify
-6. **🔄 START FRESH** - Restart entire workflow from beginning
-
-### 🚨 WHY THIS POLICY EXISTS 🚨
-
-- **MCP server runs in separate process** - Code changes don't take effect until restart
-- **Testing old code wastes resources** - You'll debug problems that don't exist
-- **Creates false debugging scenarios** - Fixing non-existent issues
-- **Violates AI assistant boundaries** - You're not a system administrator
-
-## 🚨 READ FIRST: AI Assistant Boundaries 🚨
-
-**MANDATORY**: Before proceeding with ANY task, read `AI_ASSISTANT_BOUNDARIES.md`
-
-This document prevents common AI assistant mistakes including:
-- Process manipulation attempts
-- Direct code execution bypassing MCP
-- System administration overreach
-- Testing without proper restart protocols
-
-**You are a CODE ASSISTANT, not a SYSTEM ADMINISTRATOR**
-
-## Automation & Prevention System
-
-🤖 **FOR AI ASSISTANTS**: See `mcp-server/MCP_RESTART_AUTOMATION.md` for:
-- Automated reminder triggers
-- Mandatory verification protocol
-- Prevention of testing without restart
-- User instruction templates
-
-**ALWAYS reference the automation guide before MCP testing!**
-
-See `mcp-server/MCP_RESTART_CHECKLIST.md` for detailed protocol.
-
 ## On Testing ##
 
 Something untested is never successful. You cannot declare success without testing it first.
@@ -91,34 +31,6 @@ IMPLEMENTATION_SUMMARY.md is up to date.
 The shell is 'tcsh', not 'bash'. Always wait for commands to
 finish. You are not allowed to run any code from the shell. The only
 way you are allowed to run code is via the MCP server tools.
-
-## 🚨 CRITICAL: AI Assistant Constraints 🚨
-
-**NEVER DO THESE ACTIONS** - Common AI Assistant Mistakes:
-
-❌ **Process Manipulation**: NEVER attempt to:
-- Kill processes with `kill`, `pkill`, or `killall`
-- Check running processes with `ps aux | grep`
-- Start/stop/restart services directly
-- Read PID files to manipulate processes
-- Use `systemctl`, `service`, or similar commands
-
-❌ **Direct Code Execution**: NEVER attempt to:
-- Run Python scripts directly from shell
-- Execute any code outside MCP tools
-- Test implementations without MCP server restart
-
-❌ **File System Operations**: NEVER attempt to:
-- Manipulate files outside the provided file tools
-- Use shell commands for file operations
-
-✅ **ONLY ALLOWED INTERACTIONS**:
-- Use MCP server tools for ALL code interaction
-- Use provided file editing tools for code changes
-- Follow MCP restart protocol for testing
-- Ask user to manually restart services
-
-**Remember**: You are a code assistant, NOT a system administrator. Your role is limited to code analysis and modification through the provided tools.
 
 ## Using TypeScript
 

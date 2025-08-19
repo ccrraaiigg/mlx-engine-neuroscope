@@ -26,3 +26,4 @@ mcp-server/src/visualization/real_circuit_data.json
 mcp-server/src/visualization/real_circuit.html
 mcp-server/src/visualization/visualization_server.pid
 mlx_engine_service.pid
+mcp-server/src/tools/DO_NOT_USE/
