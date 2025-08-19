@@ -106,6 +106,37 @@ export async function discoverCircuitsTool(args) {
             }
         }
 
+        // Format data for circuit_diagram tool compatibility
+        const circuitDiscoveryData = {
+            circuits: circuits.slice(0, args.max_circuits || 10),
+            total_activations: Object.values(activations).reduce((sum, arr) => sum + (arr?.length || 0), 0),
+            analysis_method: "causal_tracing",
+            prompt: prompt,
+            generated_text: result.choices[0].message.content
+        };
+
+        // Convert activations to the format expected by circuit_diagram
+        const activationCaptureData = {
+            activations: {},
+            metadata: {
+                total_tokens: result.usage?.total_tokens || 0,
+                prompt_tokens: result.usage?.prompt_tokens || 0,
+                completion_tokens: result.usage?.completion_tokens || 0
+            }
+        };
+
+        // Map activations to layer names for circuit_diagram compatibility
+        for (const [hookId, activationList] of Object.entries(activations)) {
+            if (activationList && activationList.length > 0) {
+                const layerName = hookId.includes('attention') ? 
+                    hookId.replace('_attention', '').replace('_', '.') : 
+                    hookId.replace('_mlp', '').replace('_', '.');
+                
+                // Use tensor shape format that circuit_diagram expects
+                activationCaptureData.activations[`${layerName}_attention`] = [activationList.length, 768];
+            }
+        }
+
         return {
             success: true,
             phenomenon: args.phenomenon || "custom",
@@ -115,7 +146,10 @@ export async function discoverCircuitsTool(args) {
             circuits_discovered: circuits.length,
             circuits: circuits.slice(0, args.max_circuits || 10),
             total_activations_captured: Object.values(activations).reduce((sum, arr) => sum + (arr?.length || 0), 0),
-            analysis_method: "real_activation_capture_with_mlx_engine"
+            analysis_method: "real_activation_capture_with_mlx_engine",
+            // Add the combined format for circuit_diagram compatibility
+            circuit_discovery: circuitDiscoveryData,
+            activation_capture: activationCaptureData
         };
 
     } catch (error) {

@@ -1,5 +1,13 @@
 # MCP Server Restart Automation & Reminder System
 
+# 🚨🚨🚨 EMERGENCY PROTOCOL 🚨🚨🚨
+
+## ⛔ READ CRITICAL_WARNING.md FIRST ⛔
+
+**BEFORE ANY MCP OPERATIONS - CHECK:** Have you modified MCP server code?
+
+**IF YES:** Follow CRITICAL_WARNING.md protocol immediately!
+
 ## CRITICAL REMINDER FOR AI ASSISTANTS
 
 ⚠️ **NEVER TEST MCP SERVER CODE CHANGES WITHOUT USER RESTART CONFIRMATION** ⚠️

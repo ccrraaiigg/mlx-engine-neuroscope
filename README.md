@@ -1,5 +1,17 @@
 # NeuroScope Integration for MLX Engine
 
+## 🚨 CRITICAL: AI Assistant Guidelines 🚨
+
+**FOR AI ASSISTANTS WORKING ON THIS PROJECT:**
+
+1. **READ FIRST:** `CRITICAL_WARNING.md` - Emergency stop protocol
+2. **MANDATORY:** `AGENT.md` - Complete AI assistant guidelines
+3. **BOUNDARIES:** `AI_ASSISTANT_BOUNDARIES.md` - Role limitations
+
+**⛔ ZERO TOLERANCE POLICY:** Modifying MCP server code and immediately calling MCP tools is **STRICTLY FORBIDDEN**
+
+---
+
 This document describes the extensions to MLX Engine that enable mechanistic interpretability analysis through integration with NeuroScope, a Smalltalk-based interpretability framework.
 
 ## Overview

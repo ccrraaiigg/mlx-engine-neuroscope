@@ -204,11 +204,14 @@ export class ForceGraph3DRenderer {
           }
         });
 
-      // Set up link appearance  
+      // Set up link appearance with directional arrows
       this.graph
         .linkLabel(link => link.label || '')
         .linkColor(link => link.color || this.options.linkColor)
-        .linkWidth(link => link.width || this.options.linkWidth);
+        .linkWidth(link => link.width || this.options.linkWidth)
+        .linkDirectionalArrowLength(6) // Show directional arrows
+        .linkDirectionalArrowColor(link => link.color || this.options.linkColor)
+        .linkDirectionalArrowRelPos(0.8); // Position arrows 80% along the link
 
       // Set up event handlers
       this.graph

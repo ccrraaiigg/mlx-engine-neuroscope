@@ -2,6 +2,40 @@
 
 # AGENT INSTRUCTIONS
 
+# ⛔ STOP! READ THIS FIRST ⛔
+
+## 🚨🚨🚨 CRITICAL POLICY VIOLATION WARNING 🚨🚨🚨
+
+### ❌ ABSOLUTELY FORBIDDEN - ZERO TOLERANCE POLICY ❌
+
+**IF YOU MODIFY ANY MCP SERVER CODE, YOU MUST IMMEDIATELY STOP AND FOLLOW THE RESTART PROTOCOL**
+
+**VIOLATION**: Modifying MCP server code and then calling ANY MCP tools without user restart is a **SERIOUS POLICY VIOLATION**
+
+**THIS MEANS**: After editing ANY file in `/mcp-server/` directory:
+- ❌ **DO NOT** call `run_mcp` with ANY tool
+- ❌ **DO NOT** test your changes
+- ❌ **DO NOT** assume changes work
+- ❌ **DO NOT** continue with any MCP operations
+
+### 🛑 MANDATORY STOP-AND-RESTART PROTOCOL 🛑
+
+**EVERY TIME** you modify ANY MCP server code file, you **MUST**:
+
+1. **🛑 IMMEDIATE STOP** - Do not call any MCP tools
+2. **📝 INCREMENT VERSION** - Update version number in version tool
+3. **👤 ASK USER TO RESTART** - "Please restart the MCP server in your IDE"
+4. **⏳ WAIT FOR CONFIRMATION** - Do not proceed until user confirms
+5. **✅ VERIFY RESTART** - First call must be `version` tool to verify
+6. **🔄 START FRESH** - Restart entire workflow from beginning
+
+### 🚨 WHY THIS POLICY EXISTS 🚨
+
+- **MCP server runs in separate process** - Code changes don't take effect until restart
+- **Testing old code wastes resources** - You'll debug problems that don't exist
+- **Creates false debugging scenarios** - Fixing non-existent issues
+- **Violates AI assistant boundaries** - You're not a system administrator
+
 ## 🚨 READ FIRST: AI Assistant Boundaries 🚨
 
 **MANDATORY**: Before proceeding with ANY task, read `AI_ASSISTANT_BOUNDARIES.md`
@@ -13,22 +47,6 @@ This document prevents common AI assistant mistakes including:
 - Testing without proper restart protocols
 
 **You are a CODE ASSISTANT, not a SYSTEM ADMINISTRATOR**
-
-## 🚨 MCP SERVER RESTART REQUIREMENT 🚨
-
-**CRITICAL POLICY VIOLATION WARNING**: Modifying MCP server code and immediately calling MCP tools is **STRICTLY FORBIDDEN** and violates the code modification policy.
-
-**MANDATORY PROTOCOL**: Every time you modify ANY MCP server code, you MUST:
-1. **STOP IMMEDIATELY** - Do not call any MCP tools
-2. Increment the version number in the version tool
-3. Ask the user to restart the MCP server in their IDE
-4. **WAIT for user confirmation** of restart
-5. Verify restart by calling `version` tool first
-6. Restart the entire demo workflow from the beginning
-
-**⚠️ ABSOLUTE PROHIBITION**: Never test code changes without restart verification!
-**⚠️ RESOURCE WASTE**: Testing without restart wastes computational resources on old code!
-**⚠️ FALSE DEBUGGING**: You will debug non-existent problems in unchanged code!
 
 ## Automation & Prevention System
 

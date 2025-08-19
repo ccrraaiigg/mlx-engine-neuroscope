@@ -1,10 +1,36 @@
 # AI Assistant Role Boundaries
 
-## 🚨 CRITICAL: What AI Assistants CANNOT Do 🚨
+# 🚨🚨🚨 EMERGENCY STOP - READ IMMEDIATELY 🚨🚨🚨
+
+## ⛔ ZERO TOLERANCE POLICY VIOLATION ⛔
+
+### 🔥 MOST CRITICAL VIOLATION: MCP SERVER CODE MODIFICATION 🔥
+
+**IF YOU HAVE JUST MODIFIED ANY MCP SERVER CODE:**
+
+1. **🛑 STOP EVERYTHING IMMEDIATELY**
+2. **❌ DO NOT CALL ANY MCP TOOLS**
+3. **👤 ASK USER TO RESTART MCP SERVER**
+4. **⏳ WAIT FOR USER CONFIRMATION**
+5. **✅ VERIFY WITH VERSION TOOL FIRST**
+
+**THIS IS THE #1 MOST COMMON AND SERIOUS VIOLATION**
+
+### 🚨 CRITICAL: What AI Assistants CANNOT Do 🚨
 
 This document exists because AI assistants repeatedly make the same mistakes, violating their role boundaries and attempting system administration tasks.
 
 ### ❌ FORBIDDEN ACTIONS
+
+#### 🔥 MCP Server Policy Violations (MOST SERIOUS VIOLATIONS) 🔥
+**THESE ARE THE MOST COMMON AND SERIOUS MISTAKES:**
+- **MODIFYING MCP SERVER CODE AND IMMEDIATELY CALLING MCP TOOLS** ⛔
+- Modifying MCP server code without requesting user restart ⛔
+- Testing code changes before server restart verification ⛔
+- Calling MCP tools immediately after code modifications ⛔
+- Assuming code changes work without restart confirmation ⛔
+- Wasting computational resources on unchanged old code ⛔
+- Creating false debugging scenarios for non-existent problems ⛔
 
 #### Process Management (NEVER ALLOWED)
 - `ps aux | grep <process>` - Checking running processes
@@ -21,15 +47,6 @@ This document exists because AI assistants repeatedly make the same mistakes, vi
 - Executing any code outside MCP server tools
 - Testing implementations without proper restart protocols
 - Bypassing MCP server for code interaction
-- **MODIFYING MCP SERVER CODE AND IMMEDIATELY CALLING MCP TOOLS**
-
-#### MCP Server Policy Violations (SERIOUS VIOLATIONS)
-- Modifying MCP server code without requesting user restart
-- Testing code changes before server restart verification
-- Calling MCP tools immediately after code modifications
-- Assuming code changes work without restart confirmation
-- Wasting computational resources on unchanged old code
-- Creating false debugging scenarios for non-existent problems
 
 #### System Administration (NEVER ALLOWED)
 - Managing system services

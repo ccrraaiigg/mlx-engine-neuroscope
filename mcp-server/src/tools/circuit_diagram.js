@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { writeFile, makeFileReadOnly } from '../utils/file_utils.js';
+import { writeFile, makeFileReadOnly, writeFileReadOnly } from '../utils/file_utils.js';
 import path from 'path';
 
 export const CircuitDiagramArgsSchema = z.object({
@@ -32,9 +32,9 @@ export async function circuitDiagramTool(args) {
         // Write directly to the visualization directory where the server is running
         const vizDir = '/Users/craig/me/behavior/forks/mlx-engine-neuroscope/mcp-server/src/visualization';
         
-        // Write the real circuit data to a file
+        // Write the real circuit data to a file and make it read-only
         const circuitDataPath = path.join(vizDir, 'real_circuit_data.json');
-        await fs.writeFile(circuitDataPath, JSON.stringify(circuitData, null, 2));
+        await writeFileReadOnly(circuitDataPath, JSON.stringify(circuitData, null, 2));
         
         // Convert activation data to nodes/links format
         processedData = circuitData;
@@ -131,16 +131,15 @@ export async function circuitDiagramTool(args) {
                 
                 currentLayer.forEach(currentNode => {
                     nextLayer.forEach(nextNode => {
-                        if (Math.random() > 0.7) { // Add some randomness to avoid too many connections
-                            links.push({
-                                id: `link_${linkId++}`,
-                                source: currentNode.id,
-                                target: nextNode.id,
-                                weight: 0.6,
-                                color: '#00ff66',
-                                type: 'cross_layer'
-                            });
-                        }
+                        // Always create connections between adjacent layers for better visualization
+                        links.push({
+                            id: `link_${linkId++}`,
+                            source: currentNode.id,
+                            target: nextNode.id,
+                            weight: 0.6,
+                            color: '#00ff66',
+                            type: 'cross_layer'
+                        });
                     });
                 });
             }
@@ -686,11 +685,11 @@ export async function circuitDiagramTool(args) {
                 const renderer = new ForceGraph3DRenderer(container, {
                     backgroundColor: '#1a1a1a',
                     nodeColor: '#58a6ff',
-                    linkColor: '#30363d',
+                    linkColor: '#ffffff', // Default to white, but individual link colors will override
                     nodeOpacity: 0.8,
-                    linkOpacity: 0.6,
+                    linkOpacity: 0.8, // Increase opacity to make links more visible
                     nodeRelSize: 4,
-                    linkWidth: 2,
+                    linkWidth: 3, // Increase width to make links more visible
                     showNodeLabels: true,
                     showLinkLabels: false,
                     controlType: 'trackball',
@@ -725,6 +724,7 @@ export async function circuitDiagramTool(args) {
                 let physicsPlaying = true;
                 
                 // Wait for DOM to be fully loaded
+                // Setup physics controls function moved inside initializeForceGraph
                 const setupPhysicsControls = () => {
                     const physicsBtn = document.getElementById('physics-btn');
                     
@@ -737,20 +737,24 @@ export async function circuitDiagramTool(args) {
                         physicsBtn.addEventListener('click', () => {
                             if (physicsPlaying) {
                                 // Pause physics
-                                if (renderer.graph && renderer.graph.pauseAnimation) {
+                                if (renderer.graph && typeof renderer.graph.pauseAnimation === 'function') {
                                     renderer.graph.pauseAnimation();
+                                    physicsBtn.textContent = 'Play Physics';
+                                    physicsPlaying = false;
+                                    console.log('Physics paused via button');
+                                } else {
+                                    console.error('pauseAnimation method not available on graph instance');
                                 }
-                                physicsBtn.textContent = 'Play Physics';
-                                physicsPlaying = false;
-                                console.log('Physics paused via button');
                             } else {
                                 // Resume physics
-                                if (renderer.graph && renderer.graph.resumeAnimation) {
+                                if (renderer.graph && typeof renderer.graph.resumeAnimation === 'function') {
                                     renderer.graph.resumeAnimation();
+                                    physicsBtn.textContent = 'Pause Physics';
+                                    physicsPlaying = true;
+                                    console.log('Physics resumed via button');
+                                } else {
+                                    console.error('resumeAnimation method not available on graph instance');
                                 }
-                                physicsBtn.textContent = 'Pause Physics';
-                                physicsPlaying = true;
-                                console.log('Physics resumed via button');
                             }
                         });
                     } else {
@@ -758,8 +762,13 @@ export async function circuitDiagramTool(args) {
                     }
                 };
                 
-                // Call setup immediately (DOM should be ready by now)
-                setupPhysicsControls();
+                // Ensure DOM is fully loaded before setting up physics controls
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', setupPhysicsControls);
+                } else {
+                    // DOM is already loaded, set up controls with a small delay
+                    setTimeout(setupPhysicsControls, 100);
+                }
                 
                 console.log('3D Force Graph visualization ready');
                 
@@ -792,7 +801,7 @@ export async function circuitDiagramTool(args) {
 </html>`;
         
         const htmlPath = path.join(vizDir, 'real_circuit.html');
-        await fs.writeFile(htmlPath, htmlContent);
+        await writeFileReadOnly(htmlPath, htmlContent);
         
         return {
             success: true,

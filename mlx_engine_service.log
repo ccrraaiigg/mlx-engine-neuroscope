@@ -1,42 +1,24 @@
-2025-08-19 09:13:14,144 [INFO] ==================================================
-2025-08-19 09:13:14,144 [INFO] MLX Engine Service module loaded
-2025-08-19 09:13:14,144 [INFO] PID: 43660
-2025-08-19 09:13:14,144 [INFO] Working directory: /Users/craig/me/behavior/forks/mlx-engine-neuroscope
-2025-08-19 09:13:14,144 [INFO] ==================================================
-2025-08-19 09:13:14,144 [WARNING] Model not found at ../models/nightmedia/gpt-oss-20b-q4-hi-mlx
-2025-08-19 09:13:14,144 [INFO] Starting MLX Engine Service...
-2025-08-19 09:13:14,145 [INFO] Host: 127.0.0.1
-2025-08-19 09:13:14,145 [INFO] Port: 50111
-2025-08-19 09:13:14,145 [INFO] PID file written: mlx_engine_service.pid
-2025-08-19 09:13:14,145 [INFO] Registering API routes...
-2025-08-19 09:13:14,147 [INFO] Starting MLX Engine API server on 127.0.0.1:50111
-2025-08-19 09:13:14,152 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2025-08-19 11:53:04,290 [INFO] ==================================================
+2025-08-19 11:53:04,290 [INFO] MLX Engine Service module loaded
+2025-08-19 11:53:04,290 [INFO] PID: 84220
+2025-08-19 11:53:04,290 [INFO] Working directory: /Users/craig/me/behavior/forks/mlx-engine-neuroscope
+2025-08-19 11:53:04,290 [INFO] ==================================================
+2025-08-19 11:53:04,290 [WARNING] Model not found at ../models/nightmedia/gpt-oss-20b-q4-hi-mlx
+2025-08-19 11:53:04,290 [INFO] Starting MLX Engine Service...
+2025-08-19 11:53:04,290 [INFO] Host: 127.0.0.1
+2025-08-19 11:53:04,290 [INFO] Port: 50111
+2025-08-19 11:53:04,291 [INFO] PID file written: mlx_engine_service.pid
+2025-08-19 11:53:04,293 [INFO] Registering API routes...
+2025-08-19 11:53:04,296 [INFO] Starting MLX Engine API server on 127.0.0.1:50111
+2025-08-19 11:53:04,302 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:50111
-2025-08-19 09:13:14,152 [INFO] [33mPress CTRL+C to quit[0m
-2025-08-19 09:13:15,685 [INFO] Health check endpoint called
-2025-08-19 09:13:15,685 [INFO] 127.0.0.1 - - [19/Aug/2025 09:13:15] "GET /health HTTP/1.1" 200 -
-2025-08-19 09:13:16,152 [INFO] ✅ MLX Engine Service started successfully
-2025-08-19 09:13:16,153 [INFO] 🌐 API available at http://127.0.0.1:50111
-2025-08-19 09:13:16,153 [INFO] 🔧 Ready to serve MCP server requests
-2025-08-19 09:13:16,153 [INFO] MLX Engine Service is running...
-2025-08-19 09:13:16,153 [INFO] Press Ctrl+C to stop
-2025-08-19 09:13:20,702 [INFO] Health check endpoint called
-2025-08-19 09:13:20,702 [INFO] 127.0.0.1 - - [19/Aug/2025 09:13:20] "GET /health HTTP/1.1" 200 -
-2025-08-19 09:14:13,609 [INFO] 127.0.0.1 - - [19/Aug/2025 09:14:13] "[33mPOST /v1/chat/completions/with_activations HTTP/1.1[0m" 404 -
-2025-08-19 09:14:18,303 [INFO] Health check endpoint called
-2025-08-19 09:14:18,305 [INFO] 127.0.0.1 - - [19/Aug/2025 09:14:18] "GET /health HTTP/1.1" 200 -
-2025-08-19 09:14:29,192 [INFO] 127.0.0.1 - - [19/Aug/2025 09:14:29] "POST /v1/models/load HTTP/1.1" 200 -
-2025-08-19 09:14:39,826 [INFO] 127.0.0.1 - - [19/Aug/2025 09:14:39] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
-2025-08-19 09:14:39,832 [INFO] 127.0.0.1 - - [19/Aug/2025 09:14:39] "POST /analyze/residual HTTP/1.1" 200 -
-2025-08-19 09:16:11,041 [INFO] Health check endpoint called
-2025-08-19 09:16:11,042 [INFO] 127.0.0.1 - - [19/Aug/2025 09:16:11] "GET /health HTTP/1.1" 200 -
-2025-08-19 09:16:31,048 [INFO] 127.0.0.1 - - [19/Aug/2025 09:16:31] "POST /v1/models/load HTTP/1.1" 200 -
-2025-08-19 09:16:36,050 [INFO] Health check endpoint called
-2025-08-19 09:16:36,051 [INFO] 127.0.0.1 - - [19/Aug/2025 09:16:36] "GET /health HTTP/1.1" 200 -
-2025-08-19 09:16:36,052 [INFO] 127.0.0.1 - - [19/Aug/2025 09:16:36] "GET /v1/models HTTP/1.1" 200 -
-2025-08-19 09:16:46,699 [INFO] 127.0.0.1 - - [19/Aug/2025 09:16:46] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
-2025-08-19 09:16:55,797 [INFO] 127.0.0.1 - - [19/Aug/2025 09:16:55] "POST /v1/chat/completions/with_activations HTTP/1.1" 200 -
-2025-08-19 09:47:20,397 [INFO] Received signal 15
-2025-08-19 09:47:20,402 [INFO] Stopping MLX Engine Service...
-2025-08-19 09:47:20,402 [INFO] PID file removed
-2025-08-19 09:47:20,402 [INFO] Service stopped
+2025-08-19 11:53:04,302 [INFO] [33mPress CTRL+C to quit[0m
+2025-08-19 11:53:06,119 [INFO] Health check endpoint called
+2025-08-19 11:53:06,120 [INFO] 127.0.0.1 - - [19/Aug/2025 11:53:06] "GET /health HTTP/1.1" 200 -
+2025-08-19 11:53:06,300 [INFO] ✅ MLX Engine Service started successfully
+2025-08-19 11:53:06,300 [INFO] 🌐 API available at http://127.0.0.1:50111
+2025-08-19 11:53:06,300 [INFO] 🔧 Ready to serve MCP server requests
+2025-08-19 11:53:06,300 [INFO] MLX Engine Service is running...
+2025-08-19 11:53:06,300 [INFO] Press Ctrl+C to stop
+2025-08-19 11:53:11,134 [INFO] Health check endpoint called
+2025-08-19 11:53:11,134 [INFO] 127.0.0.1 - - [19/Aug/2025 11:53:11] "GET /health HTTP/1.1" 200 -

@@ -142,19 +142,12 @@ yourself.
 - Uses causal tracing with activation patching
 - Returns circuit data with layer information, components, and confidence scores
 
-### 5. Capture Activations
-
-- Captures detailed activation data during text generation
-- Provides attention patterns and activation values
-- Essential for understanding circuit behavior
-
-### 6. Circuit Diagram Generation
+### 5. Circuit Diagram Generation
 
 - Creates interactive 3D visualization using the discovered circuit data
 - Generates both JSON data file and HTML visualization
-- Ensures all nodes have required `value` property for 3D Force Graph compatibility
 
-### 7. Open Visualization
+### 6. Open Visualization
 - Open the generated HTML file in browser to view the interactive circuit diagram
 - The visualization shows nodes (neural components) and edges (connections)
 - Supports 3D navigation and interaction
@@ -208,11 +201,9 @@ When a user asks to see the neural circuit visualization demo, the agent should:
 1. **Verify system status** by checking MCP server version and service health
 2. **Load model** if not already loaded using the real model loading tool
 3. **Discover circuits** automatically for specific phenomena (arithmetic, factual recall, etc.)
-4. **Localize features** across transformer layers using activation comparison
-5. **Capture fresh activation data** from GPT-OSS-20B for specific prompts
-6. **Create interactive visualization** from the captured data
-7. **Open browser** to display the WebGL2 visualization
-8. **Explain the results** and answer user questions about neural circuits discovered
+4. **Create interactive visualization** from the captured data
+5. **Open browser** to display the WebGL2 visualization
+6. **Explain the results** and answer user questions about neural circuits discovered
 
 ### Step 1: Verify System Status (Agent Action)
 
@@ -239,33 +230,11 @@ Even if a model is already loaded, the agent should reload it to ensure clean st
 
 The agent can now discover real neural circuits for specific phenomena.
 
-### Step 4: Localize Features (Agent Action)
-
-The agent can localize specific features across transformer layers.
-
-**Real Results**: Compares activations across multiple layers to identify where specific features are processed.
-
-### Step 5: Capture Fresh Activation Data (Agent Action)
-
-**IMPORTANT: Use ONE consistent math problem per visualization!**
-
-The agent should choose a specific math problem and use it consistently for both circuit discovery and activation capture within the same visualization demo.
-
-**Best Practice Guidelines:**
-- **Per Demo**: Use one math problem for all tool calls (circuit discovery + activation capture + visualization)
-- **Between Demos**: Use different math problems for separate visualization sessions
-- **Consistency**: Ensure circuit discovery and activation capture analyze the same mathematical operation
-
-This captures real neural activations from:
-- red nodes - Multi-Layer Perceptron
-- blue nodes - Attention mechanism
-- blue nodes - Higher-layer attention
-
-### Step 6: Create Interactive Visualization (Agent Action)
+### Step 4: Create Interactive Visualization (Agent Action)
 
 The agent automatically uses the captured data to create the visualization.
 
-### Step 7: Open Browser Visualization (Agent Action)
+### Step 5: Open Browser Visualization (Agent Action)
 
 The agent opens the visualization in the user's browser.
 
