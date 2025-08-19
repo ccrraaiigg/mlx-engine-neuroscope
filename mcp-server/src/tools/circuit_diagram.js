@@ -770,38 +770,173 @@ export async function circuitDiagramTool(args) {
                             } else {
                                 // Re-enable physics forces with proper parameters
                                 if (renderer.graph && typeof renderer.graph.d3Force === 'function') {
-                                    // Get d3 from the graph instance or window
-                                    const d3 = renderer.graph.d3 || window.d3;
+                                    enablePhysicsForces();
+                                } else {
+                                    console.error('d3Force method not available on graph instance');
+                                }
+                            }
+                            
+                            function enablePhysicsForces() {
+                                // Bulletproof physics re-enabling using position-preserving methods from the guide
+                                const graphData = renderer.graph.graphData();
+                                const nodes = graphData?.nodes || [];
+                                const links = graphData?.links || [];
+                                
+                                // Capture current positions before re-enabling forces
+                                const positionSnapshot = {};
+                                nodes.forEach(node => {
+                                    positionSnapshot[node.id] = {
+                                        x: node.x, y: node.y, z: node.z,
+                                        vx: node.vx || 0, vy: node.vy || 0, vz: node.vz || 0
+                                    };
+                                });
+                                
+                                const restorePositions = () => {
+                                    nodes.forEach(node => {
+                                        if (positionSnapshot[node.id]) {
+                                            const pos = positionSnapshot[node.id];
+                                            node.x = pos.x; node.y = pos.y; node.z = pos.z;
+                                            node.vx = pos.vx; node.vy = pos.vy; node.vz = pos.vz;
+                                        }
+                                    });
+                                };
+                                
+                                try {
+                                    // Method 1: Standard approach with position preservation
+                                    nodes.forEach(node => { 
+                                        node.fx = node.x; 
+                                        node.fy = node.y; 
+                                        node.fz = node.z; 
+                                    });
                                     
-                                    if (d3 && d3.forceManyBody && d3.forceLink && d3.forceCenter) {
-                                        // Unfix node positions to allow force simulation
-                                        const graphData = renderer.graph.graphData();
-                                        if (graphData && graphData.nodes) {
-                                            graphData.nodes.forEach(node => {
-                                                delete node.fx;
-                                                delete node.fy;
-                                                delete node.fz;
-                                            });
-                                        }
-                                        
-                                        // Re-enable forces with standard parameters
-                                        renderer.graph.d3Force('charge', d3.forceManyBody().strength(-120))
-                                                      .d3Force('link', d3.forceLink().id(d => d.id).distance(100))
-                                                      .d3Force('center', d3.forceCenter(0, 0));
-                                        
-                                        // Ensure node dragging is still enabled
-                                        if (typeof renderer.graph.enableNodeDrag === 'function') {
-                                            renderer.graph.enableNodeDrag(true);
-                                        }
+                                    // Ensure d3 is available globally
+                                    if (typeof window.d3 === 'undefined' && typeof d3 !== 'undefined') {
+                                        window.d3 = d3;
+                                    }
+                                    
+                                    // Re-enable forces with proper D3 force simulation
+                                    renderer.graph.d3Force('charge', window.d3?.forceManyBody?.().strength(-120) || d3.forceManyBody().strength(-120))
+                                                  .d3Force('link', window.d3?.forceLink?.(links).id(d => d.id).distance(100) || d3.forceLink(links).id(d => d.id).distance(100))
+                                                  .d3Force('center', window.d3?.forceCenter?.(0, 0) || d3.forceCenter(0, 0))
+                                                  .resumeAnimation();
+                                    
+                                    // Gradually release positions after forces are stable
+                                    setTimeout(() => {
+                                        nodes.forEach(node => { 
+                                            node.fx = null; 
+                                            node.fy = null; 
+                                            node.fz = null; 
+                                        });
+                                    }, 2000);
+                                    
+                                    physicsBtn.textContent = 'Pause Physics';
+                                    physicsPlaying = true;
+                                    console.log('Physics forces re-enabled using Method 1 (standard)');
+                                    
+                                } catch (e1) {
+                                    restorePositions();
+                                    console.warn('Method 1 failed, trying Method 2 (refresh):', e1);
+                                    
+                                    try {
+                                        // Method 2: Use refresh() to reset everything
+                                        renderer.graph.d3Force('charge', d3.forceManyBody())
+                                                      .d3Force('link', d3.forceLink())
+                                                      .d3Force('center', d3.forceCenter())
+                                                      .refresh(); // This completely restarts the simulation
                                         
                                         physicsBtn.textContent = 'Pause Physics';
                                         physicsPlaying = true;
-                                        console.log('Physics forces re-enabled with proper parameters');
-                                    } else {
-                                        console.error('d3 force methods not available. d3 object:', d3);
+                                        console.log('Physics forces re-enabled using Method 2 (refresh)');
+                                        
+                                    } catch (e2) {
+                                        restorePositions();
+                                        console.warn('Method 2 failed, trying Method 3 (direct simulation):', e2);
+                                        
+                                        try {
+                                            // Method 3: Access D3 simulation directly
+                                            const simulation = renderer.graph.d3Force();
+                                            simulation
+                                                .force('charge', d3.forceManyBody().strength(-30))
+                                                .force('link', d3.forceLink(links).id(d => d.id))
+                                                .force('center', d3.forceCenter(0, 0))
+                                                .alpha(1) // Reset simulation energy
+                                                .restart(); // Restart the simulation
+                                            
+                                            physicsBtn.textContent = 'Pause Physics';
+                                            physicsPlaying = true;
+                                            console.log('Physics forces re-enabled using Method 3 (direct simulation)');
+                                            
+                                        } catch (e3) {
+                                            restorePositions();
+                                            console.warn('Method 3 failed, trying Method 4 (gradual enabling):', e3);
+                                            
+                                            try {
+                                                // Method 4: Gradual force re-enabling
+                                                // Start with very weak forces
+                                                renderer.graph.d3Force('charge', d3.forceManyBody().strength(-5))
+                                                              .d3Force('link', d3.forceLink(links).id(d => d.id).distance(100).strength(0.1))
+                                                              .d3Force('center', d3.forceCenter(0, 0).strength(0.1))
+                                                              .resumeAnimation();
+                                                
+                                                // Gradually increase force strength
+                                                let strength = -5;
+                                                let linkStrength = 0.1;
+                                                
+                                                const increaseForces = setInterval(() => {
+                                                    strength = Math.min(strength * 1.2, -30); // Target: -30
+                                                    linkStrength = Math.min(linkStrength * 1.1, 0.5); // Target: 0.5
+                                                    
+                                                    renderer.graph.d3Force('charge', d3.forceManyBody().strength(strength))
+                                                                  .d3Force('link', d3.forceLink(links).id(d => d.id).distance(100).strength(linkStrength));
+                                                    
+                                                    if (strength >= -30 && linkStrength >= 0.5) {
+                                                        clearInterval(increaseForces);
+                                                        
+                                                        // Finally release fixed positions
+                                                        setTimeout(() => {
+                                                            nodes.forEach(node => {
+                                                                node.fx = null;
+                                                                node.fy = null;
+                                                                node.fz = null;
+                                                            });
+                                                        }, 1000);
+                                                    }
+                                                }, 500);
+                                                
+                                                physicsBtn.textContent = 'Pause Physics';
+                                                physicsPlaying = true;
+                                                console.log('Physics forces re-enabled using Method 4 (gradual)');
+                                                
+                                            } catch (e4) {
+                                                restorePositions();
+                                                console.error('All physics re-enabling methods failed:', e4);
+                                                
+                                                // Last resort: just unfix nodes and restart animation
+                                                try {
+                                                    nodes.forEach(node => {
+                                                        delete node.fx;
+                                                        delete node.fy;
+                                                        delete node.fz;
+                                                    });
+                                                    
+                                                    if (typeof renderer.graph.resumeAnimation === 'function') {
+                                                        renderer.graph.resumeAnimation();
+                                                    }
+                                                    
+                                                    physicsBtn.textContent = 'Pause Physics';
+                                                    physicsPlaying = true;
+                                                    console.log('Physics re-enabled using last resort method');
+                                                } catch (finalError) {
+                                                    console.error('Complete failure to re-enable physics:', finalError);
+                                                }
+                                            }
+                                        }
                                     }
-                                } else {
-                                    console.error('d3Force method not available on graph instance');
+                                }
+                                
+                                // Ensure node dragging is always enabled
+                                if (typeof renderer.graph.enableNodeDrag === 'function') {
+                                    renderer.graph.enableNodeDrag(true);
                                 }
                             }
                         });

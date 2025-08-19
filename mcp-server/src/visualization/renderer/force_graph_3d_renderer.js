@@ -330,6 +330,21 @@ export class ForceGraph3DRenderer {
       
       console.log('Graph data loaded successfully');
       
+      // Expose d3 as a window global after graph data is loaded
+      // D3 is only available after the graph has been initialized with data
+      if (this.graph && this.graph.d3) {
+        window.d3 = this.graph.d3;
+        console.log('d3 exposed as window global from 3D Force Graph after data load');
+      } else {
+        console.warn('d3 not found on graph instance after data load, checking window.d3');
+        // Check if d3 is already available on window (loaded by 3d-force-graph)
+        if (window.d3) {
+          console.log('d3 already available as window global');
+        } else {
+          console.warn('d3 not available as window global after data load');
+        }
+      }
+      
       // Store the current graph data for reference
       this.currentGraphData = processedGraphData;
       
