@@ -364,6 +364,51 @@ class MLXEngineAPI:
                     logger.error(f"Failed to clear activation hooks: {e}")
                     return jsonify({'error': str(e)}), 500
         
+        @self.app.route('/analyze/residual', methods=['POST'])
+        def analyze_residual():
+            """Analyze residual stream flow data.
+            
+            Expects POST data with:
+            - residual_data: The residual stream data from activation capture
+            - analysis_type: Type of analysis (e.g., 'residual_flow')
+            """
+            data = request.get_json()
+            
+            if not data:
+                return jsonify({'error': 'Request body is required'}), 400
+            
+            residual_data = data.get('residual_data')
+            analysis_type = data.get('analysis_type', 'residual_flow')
+            
+            if not residual_data:
+                return jsonify({'error': 'residual_data is required'}), 400
+            
+            try:
+                import time
+                start_time = time.time()
+                
+                # Analyze the residual stream data
+                analysis_result = self._analyze_residual_stream(residual_data, analysis_type)
+                
+                execution_time_ms = int((time.time() - start_time) * 1000)
+                
+                return jsonify({
+                    'success': True,
+                    'analysis_type': analysis_type,
+                    'flow_data': analysis_result.get('flow_data', {}),
+                    'layer_contributions': analysis_result.get('layer_contributions', {}),
+                    'information_flow': analysis_result.get('information_flow', {}),
+                    'execution_time_ms': execution_time_ms
+                })
+                
+            except Exception as e:
+                logger.error(f"Failed to analyze residual stream: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e),
+                    'analysis_type': analysis_type
+                }), 500
+        
         @self.app.route('/v1/chat/completions/with_activations', methods=['POST'])
         def chat_completions_with_activations():
             """Extended endpoint that captures activations during generation."""
@@ -598,6 +643,81 @@ class MLXEngineAPI:
                 'total_tokens': len(tokens) + len(full_text.split())
             }
         })
+    
+    def _analyze_residual_stream(self, residual_data, analysis_type='residual_flow'):
+        """Analyze residual stream data to extract flow patterns and layer contributions.
+        
+        Args:
+            residual_data: Dictionary containing residual stream activations
+            analysis_type: Type of analysis to perform
+            
+        Returns:
+            Dictionary with analysis results including flow_data, layer_contributions, and information_flow
+        """
+        try:
+            import numpy as np
+            
+            # Initialize analysis results
+            flow_data = {}
+            layer_contributions = {}
+            information_flow = {}
+            
+            # Process residual stream data
+            if isinstance(residual_data, dict):
+                # Extract layer-wise activations
+                for layer_name, activations in residual_data.items():
+                    if 'residual' in layer_name.lower() or 'stream' in layer_name.lower():
+                        # Convert to numpy array if needed
+                        if isinstance(activations, list):
+                            activations = np.array(activations)
+                        
+                        # Calculate flow metrics
+                        if hasattr(activations, 'shape') and len(activations.shape) >= 2:
+                            # Calculate variance as a measure of information flow
+                            variance = float(np.var(activations))
+                            mean_activation = float(np.mean(activations))
+                            max_activation = float(np.max(activations))
+                            min_activation = float(np.min(activations))
+                            
+                            layer_contributions[layer_name] = {
+                                'variance': variance,
+                                'mean': mean_activation,
+                                'max': max_activation,
+                                'min': min_activation,
+                                'shape': list(activations.shape)
+                            }
+                            
+                            # Track information flow between layers
+                            flow_data[layer_name] = {
+                                'flow_magnitude': variance,
+                                'activation_pattern': 'high_variance' if variance > 0.1 else 'low_variance'
+                            }
+            
+            # Calculate overall information flow metrics
+            if layer_contributions:
+                total_variance = sum(contrib.get('variance', 0) for contrib in layer_contributions.values())
+                information_flow = {
+                    'total_flow': total_variance,
+                    'layer_count': len(layer_contributions),
+                    'average_flow': total_variance / len(layer_contributions) if layer_contributions else 0,
+                    'flow_distribution': {name: contrib.get('variance', 0) / total_variance if total_variance > 0 else 0 
+                                        for name, contrib in layer_contributions.items()}
+                }
+            
+            return {
+                'flow_data': flow_data,
+                'layer_contributions': layer_contributions,
+                'information_flow': information_flow
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in residual stream analysis: {e}")
+            # Return minimal structure on error
+            return {
+                'flow_data': {},
+                'layer_contributions': {},
+                'information_flow': {'error': str(e)}
+            }
     
     def _stream_completion_with_activations(self, model, tokens, activation_hooks,
                                           max_tokens, temperature, top_p, stop):

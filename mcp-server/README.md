@@ -2,6 +2,18 @@
 
 An interactive chatbot and MCP server for mechanistic interpretability analysis with MLX Engine integration and beautiful visualizations.
 
+## 🚨 CRITICAL: MCP Server Restart Requirement
+
+**MANDATORY FOR ALL DEVELOPMENT**: When modifying MCP server code, the server MUST be restarted for changes to take effect.
+
+### Quick Restart Protocol:
+1. Make code changes + increment version number
+2. Ask user to restart MCP server in IDE
+3. Verify restart with `version` tool call
+4. Restart demo workflow from beginning
+
+📋 **See [MCP_RESTART_CHECKLIST.md](./MCP_RESTART_CHECKLIST.md) for detailed protocol**
+
 ## 🚀 Quick Start
 
 ### Prerequisites

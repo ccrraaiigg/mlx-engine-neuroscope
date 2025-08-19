@@ -2,6 +2,46 @@
 
 # AGENT INSTRUCTIONS
 
+## 🚨 READ FIRST: AI Assistant Boundaries 🚨
+
+**MANDATORY**: Before proceeding with ANY task, read `AI_ASSISTANT_BOUNDARIES.md`
+
+This document prevents common AI assistant mistakes including:
+- Process manipulation attempts
+- Direct code execution bypassing MCP
+- System administration overreach
+- Testing without proper restart protocols
+
+**You are a CODE ASSISTANT, not a SYSTEM ADMINISTRATOR**
+
+## 🚨 MCP SERVER RESTART REQUIREMENT 🚨
+
+**CRITICAL POLICY VIOLATION WARNING**: Modifying MCP server code and immediately calling MCP tools is **STRICTLY FORBIDDEN** and violates the code modification policy.
+
+**MANDATORY PROTOCOL**: Every time you modify ANY MCP server code, you MUST:
+1. **STOP IMMEDIATELY** - Do not call any MCP tools
+2. Increment the version number in the version tool
+3. Ask the user to restart the MCP server in their IDE
+4. **WAIT for user confirmation** of restart
+5. Verify restart by calling `version` tool first
+6. Restart the entire demo workflow from the beginning
+
+**⚠️ ABSOLUTE PROHIBITION**: Never test code changes without restart verification!
+**⚠️ RESOURCE WASTE**: Testing without restart wastes computational resources on old code!
+**⚠️ FALSE DEBUGGING**: You will debug non-existent problems in unchanged code!
+
+## Automation & Prevention System
+
+🤖 **FOR AI ASSISTANTS**: See `mcp-server/MCP_RESTART_AUTOMATION.md` for:
+- Automated reminder triggers
+- Mandatory verification protocol
+- Prevention of testing without restart
+- User instruction templates
+
+**ALWAYS reference the automation guide before MCP testing!**
+
+See `mcp-server/MCP_RESTART_CHECKLIST.md` for detailed protocol.
+
 ## On Testing ##
 
 Something untested is never successful. You cannot declare success without testing it first.
@@ -33,6 +73,34 @@ IMPLEMENTATION_SUMMARY.md is up to date.
 The shell is 'tcsh', not 'bash'. Always wait for commands to
 finish. You are not allowed to run any code from the shell. The only
 way you are allowed to run code is via the MCP server tools.
+
+## 🚨 CRITICAL: AI Assistant Constraints 🚨
+
+**NEVER DO THESE ACTIONS** - Common AI Assistant Mistakes:
+
+❌ **Process Manipulation**: NEVER attempt to:
+- Kill processes with `kill`, `pkill`, or `killall`
+- Check running processes with `ps aux | grep`
+- Start/stop/restart services directly
+- Read PID files to manipulate processes
+- Use `systemctl`, `service`, or similar commands
+
+❌ **Direct Code Execution**: NEVER attempt to:
+- Run Python scripts directly from shell
+- Execute any code outside MCP tools
+- Test implementations without MCP server restart
+
+❌ **File System Operations**: NEVER attempt to:
+- Manipulate files outside the provided file tools
+- Use shell commands for file operations
+
+✅ **ONLY ALLOWED INTERACTIONS**:
+- Use MCP server tools for ALL code interaction
+- Use provided file editing tools for code changes
+- Follow MCP restart protocol for testing
+- Ask user to manually restart services
+
+**Remember**: You are a code assistant, NOT a system administrator. Your role is limited to code analysis and modification through the provided tools.
 
 ## Using TypeScript
 

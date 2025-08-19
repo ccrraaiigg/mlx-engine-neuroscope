@@ -46,6 +46,71 @@ Experts: 32 local, 4 active per token
 4. **Attention** - Sliding window + full attention hybrid
 5. **TransformerBlock** - Complete layer with MoE integration
 
+## Recent Additions
+
+### 🔧 MLX Engine API Enhancement - /analyze/residual Endpoint
+
+**Date**: Current session
+**Status**: ✅ Implemented (requires MLX Engine restart for activation)
+
+#### Implementation Details
+- **File Modified**: `mlx_engine/api_server.py`
+- **New Endpoint**: `POST /analyze/residual`
+- **Purpose**: Analyzes residual stream data for mechanistic interpretability
+
+#### Technical Specifications
+```python
+@app.route('/analyze/residual', methods=['POST'])
+def analyze_residual():
+    # Expects JSON body with:
+    # - residual_data: captured activation data
+    # - analysis_type: optional analysis type (default: 'residual_flow')
+    
+    # Returns:
+    # - flow_data: processed flow patterns
+    # - layer_contributions: per-layer analysis
+    # - information_flow: overall flow metrics
+    # - execution_time_ms: processing time
+```
+
+#### Integration Points
+- **MCP Server**: `track_residual` tool calls this endpoint
+- **Client**: `mlx_engine_client.js` `trackResidualStream` function
+- **Expected by**: MCP mechanistic interpretability tools
+
+#### Analysis Features
+- Layer-wise activation variance and statistics
+- Information flow tracking across residual stream
+- Flow pattern identification
+- Performance metrics and timing
+
+### 📚 Enhanced AI Assistant Documentation
+
+**Date**: Current session
+**Status**: ✅ Complete
+
+#### New Documentation Files
+- **`AI_ASSISTANT_BOUNDARIES.md`**: Comprehensive role boundaries and forbidden actions
+
+#### Enhanced Existing Files
+- **`AGENT.md`**: Added critical AI assistant constraints section
+- **`MCP_RESTART_AUTOMATION.md`**: Added process manipulation prevention
+- **`MCP_RESTART_CHECKLIST.md`**: Enhanced with specific forbidden actions
+
+#### Key Improvements
+- Explicit prohibition of process manipulation (`ps`, `kill`, `pkill`)
+- Clear role definition: Code Assistant vs System Administrator
+- Specific examples of common AI assistant mistakes
+- Prevention checklists and verification protocols
+- Prominent placement of boundaries at top of AGENT.md
+
+#### Purpose
+Prevents future AI assistants from:
+- Attempting direct process management
+- Bypassing MCP server protocols
+- Testing code without proper restart verification
+- Overstepping role boundaries
+
 ## What Was Implemented
 
 ### 1. Core Activation Hook Infrastructure (`mlx_engine/activation_hooks.py`)

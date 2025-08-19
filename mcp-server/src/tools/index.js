@@ -78,7 +78,7 @@ const openBrowserToolDefinition = {
     inputSchema: zodToJsonSchema(OpenBrowserArgsSchema),
 };
 
-// Export all tool definitions
+// Export all tool definitions (excluding open_browser - kept for internal use only)
 export const TOOL_DEFINITIONS = [
     pingToolDefinition,
     versionToolDefinition,
@@ -96,7 +96,7 @@ export const TOOL_DEFINITIONS = [
     circuitDiagramToolDefinition,
     attentionPatternsToolDefinition,
     activationFlowToolDefinition,
-    openBrowserToolDefinition,
+    // openBrowserToolDefinition, // Commented out - tool kept for internal use only
     healthCheckToolDefinition,
     startServerToolDefinition,
     generateReportToolDefinition,

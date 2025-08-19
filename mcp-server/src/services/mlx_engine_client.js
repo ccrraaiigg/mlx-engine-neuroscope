@@ -272,8 +272,11 @@ export class MLXEngineClient {
       ...options,
     });
 
+    // Extract residual stream data from activations
+    const residualData = generation.activations || {};
+    
     const analysisBody = {
-      residual_data: generation.residual_stream,
+      residual_data: residualData,
       analysis_type: 'residual_flow',
     };
 

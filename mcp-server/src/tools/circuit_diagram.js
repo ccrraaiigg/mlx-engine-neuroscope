@@ -51,6 +51,9 @@ export async function circuitDiagramTool(args) {
             Object.keys(circuitData).some(key => key.startsWith('model.layers.') && Array.isArray(circuitData[key]))
         );
         
+        // Check if this is circuit discovery format
+        const hasCircuitDiscovery = circuitData && circuitData.circuits && Array.isArray(circuitData.circuits);
+        
         console.error("DEBUG: hasActivationLayers =", hasActivationLayers);
         console.error("DEBUG: circuitData.nodes exists =", !!circuitData.nodes);
         console.error("DEBUG: circuitData keys =", Object.keys(circuitData));
@@ -60,7 +63,90 @@ export async function circuitDiagramTool(args) {
         
         // Arrays are already initialized at function start
         
-        if (hasActivationLayers) {
+        if (hasCircuitDiscovery) {
+            // Handle direct circuit discovery format
+            console.error("PROCESSING CIRCUIT DISCOVERY FORMAT");
+            
+            circuitData.circuits.forEach(circuit => {
+                const layerMatch = circuit.layer_name ? circuit.layer_name.match(/(\d+)/) : null;
+                const layerNum = layerMatch ? parseInt(layerMatch[1]) : 0;
+                
+                const newNode = {
+                    id: `node_${nodeId++}`,
+                    label: `${circuit.layer_name} (${circuit.component})`,
+                    type: circuit.component,
+                    value: circuit.confidence || 0.8,
+                    color: circuit.component === 'mlp' ? '#ff6666' : '#66aaff',
+                    nodeColor: circuit.component === 'mlp' ? '#ff6666' : '#66aaff',
+                    layer: layerNum,
+                    position: { 
+                        x: (layerNum * 150) + (Math.random() * 50 - 25),
+                        y: (circuit.component === 'mlp' ? 100 : 200) + (Math.random() * 50 - 25)
+                    },
+                    metadata: {
+                        activation_count: circuit.activation_count,
+                        confidence: circuit.confidence,
+                        component: circuit.component,
+                        layer_name: circuit.layer_name,
+                        circuit_id: circuit.circuit_id,
+                        phenomenon: circuit.phenomenon
+                    }
+                };
+                nodes.push(newNode);
+            });
+            
+            // Create links between circuits in the same layer and across layers
+            const layerGroups = {};
+            nodes.forEach(node => {
+                if (!layerGroups[node.layer]) layerGroups[node.layer] = [];
+                layerGroups[node.layer].push(node);
+            });
+            
+            const layers = Object.keys(layerGroups).map(Number).sort((a, b) => a - b);
+            
+            // Within-layer connections: attention → MLP
+            layers.forEach(layer => {
+                const layerNodes = layerGroups[layer];
+                const attentionNodes = layerNodes.filter(n => n.type === 'attention');
+                const mlpNodes = layerNodes.filter(n => n.type === 'mlp');
+                
+                attentionNodes.forEach(attNode => {
+                    mlpNodes.forEach(mlpNode => {
+                        links.push({
+                            id: `link_${linkId++}`,
+                            source: attNode.id,
+                            target: mlpNode.id,
+                            weight: 0.8,
+                            color: '#ffff00',
+                            type: 'sequential'
+                        });
+                    });
+                });
+            });
+            
+            // Cross-layer connections
+            for (let i = 0; i < layers.length - 1; i++) {
+                const currentLayer = layerGroups[layers[i]];
+                const nextLayer = layerGroups[layers[i + 1]];
+                
+                currentLayer.forEach(currentNode => {
+                    nextLayer.forEach(nextNode => {
+                        if (Math.random() > 0.7) { // Add some randomness to avoid too many connections
+                            links.push({
+                                id: `link_${linkId++}`,
+                                source: currentNode.id,
+                                target: nextNode.id,
+                                weight: 0.6,
+                                color: '#00ff66',
+                                type: 'cross_layer'
+                            });
+                        }
+                    });
+                });
+            }
+            
+            console.error("CIRCUIT DISCOVERY CONVERSION COMPLETED. Nodes:", nodes.length, "Links:", links.length);
+        } else if (hasActivationLayers) {
             console.error("ENTERING hasActivationLayers BLOCK - this should NOT happen when hasActivationLayers = false!");
             
             // Create nodes from activation data
@@ -76,8 +162,8 @@ export async function circuitDiagramTool(args) {
                         label: `${layerKey} (${layerData.component})`,
                         type: layerData.component,
                         value: 0.8, // Add value for sizing
-                        color: layerData.component === 'mlp' ? [1.0, 0.4, 0.4, 1.0] : [0.4, 0.6, 1.0, 1.0], // Red for MLP, Blue for attention
-                        nodeColor: layerData.component === 'mlp' ? [1.0, 0.4, 0.4, 1.0] : [0.4, 0.6, 1.0, 1.0], // Backup color property
+                        color: layerData.component === 'mlp' ? '#ff6666' : '#66aaff', // Red for MLP, Blue for attention
+                        nodeColor: layerData.component === 'mlp' ? '#ff6666' : '#66aaff', // Backup color property
                         layer: layerData.layer,
                         position: { 
                             x: (layerData.layer * 150) + (Math.random() * 50 - 25),
@@ -200,8 +286,8 @@ export async function circuitDiagramTool(args) {
                             label: `${activation.layer_name} (${activation.component})`,
                             type: activation.component,
                             value: 0.8,
-                            color: activation.component === 'mlp' ? [1.0, 0.4, 0.4, 1.0] : [0.4, 0.6, 1.0, 1.0],
-                            nodeColor: activation.component === 'mlp' ? [1.0, 0.4, 0.4, 1.0] : [0.4, 0.6, 1.0, 1.0],
+                            color: activation.component === 'mlp' ? '#ff6666' : '#66aaff',
+                            nodeColor: activation.component === 'mlp' ? '#ff6666' : '#66aaff',
                             layer: baseLayer,
                             position: { 
                                 x: (baseLayer * 150) + (Math.random() * 50 - 25),
@@ -227,8 +313,8 @@ export async function circuitDiagramTool(args) {
                                     label: `${activation.layer_name} ${subcomp}`,
                                     type: 'attention_sub',
                                     value: 0.6,
-                                    color: [0.2, 0.4, 0.8, 1.0], // Darker blue for sub-components
-                                    nodeColor: [0.2, 0.4, 0.8, 1.0],
+                                    color: '#3366cc', // Darker blue for sub-components
+                                    nodeColor: '#3366cc',
                                     layer: baseLayer,
                                     position: { 
                                         x: (baseLayer * 150) + (idx - 1) * 40,
@@ -250,8 +336,8 @@ export async function circuitDiagramTool(args) {
                                     label: `${activation.layer_name} ${subcomp}`,
                                     type: 'mlp_sub',
                                     value: 0.6,
-                                    color: [0.8, 0.2, 0.2, 1.0], // Darker red for sub-components
-                                    nodeColor: [0.8, 0.2, 0.2, 1.0],
+                                    color: '#cc3333', // Darker red for sub-components
+                                    nodeColor: '#cc3333',
                                     layer: baseLayer,
                                     position: { 
                                         x: (baseLayer * 150) + (idx - 1) * 40,
@@ -282,7 +368,7 @@ export async function circuitDiagramTool(args) {
                             label: `${activation.layer_name} (${activation.component})`,
                             type: activation.component,
                             value: 0.8, // Add value for sizing
-                            color: activation.component === 'mlp' ? [1.0, 0.4, 0.4, 1.0] : [0.4, 0.6, 1.0, 1.0], // Red for MLP, Blue for attention
+                            color: activation.component === 'mlp' ? '#ff6666' : '#66aaff', // Red for MLP, Blue for attention
                             layer: parseInt(activation.layer_name ? activation.layer_name.match(/\d+/)?.[0] || '0' : '0'),
                             position: { 
                                 x: (parseInt(activation.layer_name ? activation.layer_name.match(/\d+/)?.[0] || '0' : '0') * 100) + (Math.random() * 50 - 25),
@@ -454,18 +540,19 @@ export async function circuitDiagramTool(args) {
                         
                         // Force assign colors based on type
                         if (node.type === 'mlp') {
-                            node.color = [1.0, 0.4, 0.4, 1.0]; // Red for MLP
+                            node.color = '#ff6666'; // Red for MLP
                             console.error("ASSIGNED RED to MLP:", node.id);
                         } else if (node.type === 'attention') {
-                            node.color = [0.4, 0.6, 1.0, 1.0]; // Blue for attention  
+                            node.color = '#66aaff'; // Blue for attention  
                             console.error("ASSIGNED BLUE to attention:", node.id);
                         } else {
-                            node.color = [0.6, 0.6, 0.6, 1.0]; // Gray fallback
+                            node.color = '#999999'; // Gray fallback
                             console.error("ASSIGNED GRAY to unknown:", node.id);
                         }
                         
-                        // Force assign label
+                        // Force assign required properties
                         node.label = node.id;
+                        node.value = 0.8; // Required for node sizing
                         console.error("Node", i, "final color:", node.color);
                     }
                     

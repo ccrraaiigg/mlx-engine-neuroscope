@@ -31,7 +31,7 @@ function getToolCategory(toolName) {
         "circuit_diagram": "Visualization",
         "attention_patterns": "Visualization",
         "activation_flow": "Visualization",
-        "open_browser": "Visualization",
+        // "open_browser": "Visualization", // Removed - internal use only
         "health_check": "Model Management",
         "start_server": "Model Management",
         "generate_report": "Export & Reports",
@@ -81,15 +81,15 @@ export async function describeToolsTool(args, tools) {
         categories: {
             "Core Analysis": ["discover_circuits", "localize_features", "analyze_math", "analyze_attention", "analyze_factual"],
             "Data Capture": ["capture_activations", "create_hooks", "track_residual"],
-            "Visualization": ["circuit_diagram", "attention_patterns", "activation_flow", "open_browser"],
+            "Visualization": ["circuit_diagram", "attention_patterns", "activation_flow"],
             "Model Management": ["load_model", "health_check", "start_server"],
             "Export & Reports": ["export_neuroscope", "generate_report"],
             "System": ["ping", "version", "set_preferences", "get_preferences", "describe_tools"]
         },
         usage_examples: {
-            "Neural Circuit Analysis": "1. load_model → 2. capture_activations → 3. circuit_diagram → 4. open_browser",
-            "Attention Study": "1. load_model → 2. analyze_attention → 3. attention_patterns → 4. open_browser",
-            "Mathematical Reasoning": "1. load_model → 2. analyze_math → 3. circuit_diagram → 4. open_browser"
+            "Neural Circuit Analysis": "1. load_model → 2. capture_activations → 3. circuit_diagram",
+            "Attention Study": "1. load_model → 2. analyze_attention → 3. attention_patterns",
+            "Mathematical Reasoning": "1. load_model → 2. analyze_math → 3. circuit_diagram"
         }
     };
 }
