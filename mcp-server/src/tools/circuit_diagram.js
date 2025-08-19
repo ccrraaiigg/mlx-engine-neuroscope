@@ -769,32 +769,39 @@ export async function circuitDiagramTool(args) {
                                 }
                             } else {
                                 // Re-enable physics forces with proper parameters
-                                if (renderer.graph && typeof renderer.graph.d3Force === 'function' && window.d3) {
-                                    // Unfix node positions to allow force simulation
-                                    const graphData = renderer.graph.graphData();
-                                    if (graphData && graphData.nodes) {
-                                        graphData.nodes.forEach(node => {
-                                            delete node.fx;
-                                            delete node.fy;
-                                            delete node.fz;
-                                        });
+                                if (renderer.graph && typeof renderer.graph.d3Force === 'function') {
+                                    // Get d3 from the graph instance or window
+                                    const d3 = renderer.graph.d3 || window.d3;
+                                    
+                                    if (d3 && d3.forceManyBody && d3.forceLink && d3.forceCenter) {
+                                        // Unfix node positions to allow force simulation
+                                        const graphData = renderer.graph.graphData();
+                                        if (graphData && graphData.nodes) {
+                                            graphData.nodes.forEach(node => {
+                                                delete node.fx;
+                                                delete node.fy;
+                                                delete node.fz;
+                                            });
+                                        }
+                                        
+                                        // Re-enable forces with standard parameters
+                                        renderer.graph.d3Force('charge', d3.forceManyBody().strength(-120))
+                                                      .d3Force('link', d3.forceLink().id(d => d.id).distance(100))
+                                                      .d3Force('center', d3.forceCenter(0, 0));
+                                        
+                                        // Ensure node dragging is still enabled
+                                        if (typeof renderer.graph.enableNodeDrag === 'function') {
+                                            renderer.graph.enableNodeDrag(true);
+                                        }
+                                        
+                                        physicsBtn.textContent = 'Pause Physics';
+                                        physicsPlaying = true;
+                                        console.log('Physics forces re-enabled with proper parameters');
+                                    } else {
+                                        console.error('d3 force methods not available. d3 object:', d3);
                                     }
-                                    
-                                    // Re-enable forces with standard parameters
-                                    renderer.graph.d3Force('charge', window.d3.forceManyBody().strength(-120))
-                                                  .d3Force('link', window.d3.forceLink().id(d => d.id).distance(100))
-                                                  .d3Force('center', window.d3.forceCenter(0, 0));
-                                    
-                                    // Ensure node dragging is still enabled
-                                    if (typeof renderer.graph.enableNodeDrag === 'function') {
-                                        renderer.graph.enableNodeDrag(true);
-                                    }
-                                    
-                                    physicsBtn.textContent = 'Pause Physics';
-                                    physicsPlaying = true;
-                                    console.log('Physics forces re-enabled with proper parameters');
                                 } else {
-                                    console.error('d3Force method or d3 not available on graph instance');
+                                    console.error('d3Force method not available on graph instance');
                                 }
                             }
                         });
