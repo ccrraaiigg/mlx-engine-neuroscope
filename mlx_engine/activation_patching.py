@@ -67,12 +67,13 @@ class CausalTracingResult:
 class ActivationPatcher:
     """Implements activation patching for causal intervention analysis."""
     
-    def __init__(self, model: nn.Module, hook_manager: Optional[ActivationHookManager] = None):
+    def __init__(self, model: nn.Module, hook_manager: Optional[ActivationHookManager] = None, model_kit=None):
         logger.info("Initializing ActivationPatcher...")
         logger.debug(f"Model type: {type(model).__name__}")
         
         try:
             self.model = model
+            self.model_kit = model_kit
             self.hook_manager = hook_manager or ActivationHookManager(model)
             logger.debug(f"Hook manager initialized: {type(self.hook_manager).__name__}")
             
@@ -203,11 +204,11 @@ class ActivationPatcher:
         """Set activations to zero (complete ablation)."""
         if spec.target_positions is not None:
             # Ablate specific positions
-            result = activation.copy()
+            result = mx.array(activation)
             for pos in spec.target_positions:
                 if pos < activation.shape[0]:
                     # Replace JAX-style .at[] with MLX array manipulation
-                    result_copy = result.copy()
+                    result_copy = mx.array(result)
                     result_copy = mx.concatenate([
                         result_copy[:pos],
                         mx.zeros((1,) + result_copy.shape[1:], dtype=result_copy.dtype),
@@ -223,11 +224,11 @@ class ActivationPatcher:
         """Replace activations with mean activation."""
         mean_activation = mx.mean(activation, axis=0, keepdims=True)
         if spec.target_positions is not None:
-            result = activation.copy()
+            result = mx.array(activation)
             for pos in spec.target_positions:
                 if pos < activation.shape[0]:
                     # Replace JAX-style .at[] with MLX array manipulation
-                    result_copy = result.copy()
+                    result_copy = mx.array(result)
                     result_copy = mx.concatenate([
                         result_copy[:pos],
                         mean_activation[0:1],
@@ -250,11 +251,11 @@ class ActivationPatcher:
         
         replacement = spec.replacement_activations
         if spec.target_positions is not None:
-            result = activation.copy()
+            result = mx.array(activation)
             for pos in spec.target_positions:
                 if pos < activation.shape[0] and pos < replacement.shape[0]:
                     # Replace JAX-style .at[] with MLX array manipulation
-                    result_copy = result.copy()
+                    result_copy = mx.array(result)
                     result_copy = mx.concatenate([
                         result_copy[:pos],
                         replacement[pos:pos+1],

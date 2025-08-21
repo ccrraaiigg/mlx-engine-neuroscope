@@ -132,7 +132,7 @@ class ActivationHook:
                         hook_id=self.spec.hook_id,
                         layer_name=self.spec.layer_name,
                         component=self.spec.component,
-                        activation=input_array.copy(),
+                        activation=mx.array(input_array),
                         shape=input_array.shape,
                         dtype=str(input_array.dtype),
                         is_input=True
@@ -152,7 +152,7 @@ class ActivationHook:
                         hook_id=self.spec.hook_id,
                         layer_name=self.spec.layer_name,
                         component=self.spec.component,
-                        activation=output_data.copy(),
+                        activation=mx.array(output_data),
                         shape=output_data.shape,
                         dtype=str(output_data.dtype),
                         is_input=False

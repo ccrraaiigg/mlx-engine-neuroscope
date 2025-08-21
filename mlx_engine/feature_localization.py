@@ -667,7 +667,7 @@ class FeatureLocalizer:
                 noise = mx.random.normal((block_size,)) * 0.3
                 # Replace JAX-style .at[] with MLX array manipulation
                 updated_slice = activations[sample_idx, i:end_idx] + base_pattern + noise
-                activations_copy = activations.copy()
+                activations_copy = mx.array(activations)
                 activations_copy = mx.concatenate([
                     activations_copy[:sample_idx],
                     mx.concatenate([
