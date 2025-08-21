@@ -20,6 +20,15 @@ const LinkTypes = {
   SIMILARITY: 'similarity'
 };
 
+const NodeTypes = {
+  NEURON: 'neuron',
+  ATTENTION_HEAD: 'attention_head',
+  LAYER: 'layer',
+  CIRCUIT: 'circuit',
+  FEATURE: 'feature',
+  TOKEN: 'token'
+};
+
 /**
  * Converts MLX Engine data to 3D Force Graph-compatible graph structures
  */

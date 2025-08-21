@@ -93,7 +93,7 @@ export class MLXEngineClient {
     this.logger.info(`Loading model: ${modelId}`);
     
     const requestBody = {
-      model_path: `/Users/craig/me/behavior/forks/mlx-engine-neuroscope/models/nightmedia/${modelId}`,
+      model_path: `/Users/craig/.lmstudio/models/nightmedia/gpt-oss-20b-q5-hi-mlx`,
       model_id: modelId,
       ...options,
     };
@@ -212,20 +212,16 @@ export class MLXEngineClient {
    * @param {Array} layers - Layers to analyze
    * @returns {Promise<object>} Attention analysis
    */
-  async analyzeAttention(prompt, layers = []) {
-    this.logger.info(`Analyzing attention patterns for layers: ${layers.join(', ')}`);
+  async analyzeAttention(prompt, layers = [], scope = 'layer_level') {
+    this.logger.info(`Analyzing attention patterns for layers: ${layers.join(', ')} with scope: ${scope}`);
     
-    const generation = await this.generateWithActivations(prompt, {
-      capture_attention: true,
-      layers: layers,
-    });
-
     const analysisBody = {
-      attention_data: generation.attention,
-      layers: layers,
+      prompt: prompt,
+      layers: layers.length > 0 ? layers : undefined,
+      scope: scope,
     };
 
-    return await this.makeRequest('/analyze/attention', {
+    return await this.makeRequest('/v1/analyze/attention', {
       method: 'POST',
       body: analysisBody,
     });

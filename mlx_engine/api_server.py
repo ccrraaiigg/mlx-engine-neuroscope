@@ -1,21 +1,80 @@
+#!/usr/bin/env python3
 """
-REST API Server for MLX Engine with NeuroScope Integration
+MLX Engine API Server
 
-This module provides a REST API server that extends the standard LM Studio
-functionality to support activation capture for mechanistic interpretability
-analysis with NeuroScope.
+A Flask-based API server for the MLX Engine with modular endpoint organization.
 """
 
 from typing import Dict, List, Optional, Any, Iterator
 import json
 import asyncio
+import os
 from pathlib import Path
 import logging
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 
-# Configure logging first
-logging.basicConfig(level=logging.INFO)
+# Configure logging
+log_file_path = Path(__file__).parent / 'api_server.log'
+if log_file_path.exists():
+    log_file_path.unlink()  # Delete old log file
+
+logging.basicConfig(
+    level=logging.DEBUG,  # More verbose logging
+    format='%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s',
+    handlers=[
+        logging.FileHandler(str(log_file_path))
+    ],
+    force=True  # Override any existing configuration
+)
 logger = logging.getLogger(__name__)
+logger.info(f"API Server logging initialized. Log file: {log_file_path}")
 
+# Custom exceptions
+class MLXEngineAPIError(Exception):
+    """Base exception for MLX Engine API errors."""
+    def __init__(self, message: str, status_code: int = 500, details: dict = None):
+        super().__init__(message)
+        self.message = message
+        self.status_code = status_code
+        self.details = details or {}
+
+class ModelNotFoundError(MLXEngineAPIError):
+    """Raised when a requested model is not found."""
+    def __init__(self, model_id: str, available_models: list = None):
+        super().__init__(f"Model '{model_id}' not found", 404, {
+            'model_id': model_id, 'available_models': available_models or []
+        })
+
+class ModelNotSupportedError(MLXEngineAPIError):
+    """Raised when a model doesn't support a required feature."""
+    def __init__(self, model_id: str, required_feature: str):
+        super().__init__(f"Model '{model_id}' does not support {required_feature}", 400, {
+            'model_id': model_id, 'required_feature': required_feature
+        })
+
+class InvalidRequestError(MLXEngineAPIError):
+    """Raised when request parameters are invalid."""
+    def __init__(self, message: str, field: str = None, value=None):
+        super().__init__(message, 400, {'field': field, 'value': value})
+
+class ComponentNotAvailableError(MLXEngineAPIError):
+    """Raised when a required component is not available."""
+    def __init__(self, component_name: str, reason: str = None):
+        message = f"Component '{component_name}' is not available"
+        if reason:
+            message += f": {reason}"
+        super().__init__(message, 503, {'component': component_name, 'reason': reason})
+
+class CircuitDiscoveryError(MLXEngineAPIError):
+    """Raised when circuit discovery operations fail."""
+    def __init__(self, message: str, stage: str = None, original_error: Exception = None):
+        super().__init__(message, 500, {
+            'stage': stage, 'original_error': str(original_error) if original_error else None
+        })
+
+# Flask imports
 try:
     from flask import Flask, request, jsonify, Response, stream_template
     from flask_cors import CORS
@@ -23,6 +82,7 @@ try:
 except ImportError:
     FLASK_AVAILABLE = False
 
+# MLX Engine imports
 from mlx_engine import (
     load_model, 
     create_generator, 
@@ -31,481 +91,133 @@ from mlx_engine import (
 )
 from mlx_engine.model_kit.model_kit import ModelKit
 from mlx_engine.vision_model_kit.vision_model_kit import VisionModelKit
-# Import activation hooks with debug logging
+
+# Activation hooks
 try:
     logger.info("Attempting to import from activation_hooks...")
     from mlx_engine.activation_hooks import serialize_activations, ActivationHookSpec
     logger.info(f"Successfully imported ActivationHookSpec: {ActivationHookSpec}")
-    logger.info(f"ActivationHookSpec module: {ActivationHookSpec.__module__}")
-    logger.info(f"ActivationHookSpec attributes: {dir(ActivationHookSpec)}")
 except ImportError as e:
     logger.error(f"Failed to import from activation_hooks: {e}")
     raise
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Activation patching
+try:
+    from mlx_engine.activation_patching import (
+        ActivationPatcher, CausalTracer, GradientBasedAttribution,
+        InterventionType, InterventionSpec, CausalTracingResult,
+        ComponentType, create_sophisticated_circuit_discovery_pipeline
+    )
+    logger.info("Successfully imported activation patching components")
+except ImportError as e:
+    logger.error(f"Failed to import activation patching: {e}")
+    ActivationPatcher = None
+
+# Feature localization
+try:
+    from mlx_engine.feature_localization import (
+        FeatureLocalizer, FeatureSpec, LocalizedFeature, FeatureLocalizationResult,
+        FeatureType, LocalizationMethod, SparseAutoencoder, DictionaryLearner, 
+        ProbingClassifier, COMMON_FEATURES, create_feature_localization_pipeline
+    )
+    logger.info("Successfully imported feature localization components")
+except ImportError as e:
+    logger.warning(f"Feature localization not available: {e}")
+
+# Enhanced causal tracing
+try:
+    from mlx_engine.enhanced_causal_tracing import (
+        EnhancedCausalTracer, EnhancedCausalResult, NoiseConfig, AttributionConfig,
+        StatisticalConfig, NoiseType, AttributionMethod, CausalMediationType,
+        create_enhanced_causal_discovery_pipeline
+    )
+    ENHANCED_CAUSAL_TRACING_AVAILABLE = True
+    logger.info("Successfully imported enhanced causal tracing components")
+except ImportError as e:
+    logger.warning(f"Enhanced causal tracing not available: {e}")
+    ENHANCED_CAUSAL_TRACING_AVAILABLE = False
+
+# Attention analysis
+try:
+    from mlx_engine.attention_analysis import (
+        AttentionAnalyzer, AttentionAnalysisResult, AttentionPatternType,
+        AttentionScope, AttentionHead, AttentionPattern, CrossLayerDependency,
+        create_attention_analysis_pipeline
+    )
+    ATTENTION_ANALYSIS_AVAILABLE = True
+    logger.info("Successfully imported attention analysis components")
+except ImportError as e:
+    logger.warning(f"Attention analysis not available: {e}")
+    ATTENTION_ANALYSIS_AVAILABLE = False
+
+# Import modular router
+from mlx_engine.endpoints.router import register_all_routes
+
 
 class MLXEngineAPI:
-    """REST API server for MLX Engine with activation capture support."""
+    """Main API server class for MLX Engine."""
     
     def __init__(self):
+        """Initialize the MLX Engine API server."""
         if not FLASK_AVAILABLE:
-            raise ImportError("Flask is required for the API server. Install with: pip install flask flask-cors")
-        
+            raise ImportError("Flask is required but not available")
+            
         self.app = Flask(__name__)
-        CORS(self.app)  # Enable CORS for browser access
+        CORS(self.app)
         
-        self.models: Dict[str, ModelKit | VisionModelKit] = {}
-        self.current_model: Optional[str] = None
+        # Initialize state
+        self.models = {}
+        self.current_model = None
+        self.model_kit = None  # Will be initialized when a model is loaded
+        self.vision_model_kit = None  # Will be initialized when a vision model is loaded
+        self.activation_hooks = {}
+        self.running_tasks = {}
+        self.task_results = {}
+        self.task_lock = threading.Lock()
+        self.executor = ThreadPoolExecutor(max_workers=4)
         
+        # Setup routes and logging
+        self._setup_request_logging()
         self._setup_routes()
+        
+        logger.info("MLX Engine API initialized successfully")
     
-    def _setup_routes(self):
-        """Set up API routes."""
-        # Debug: Log all registered routes
-        logger.info("Registering API routes...")
-        
-        @self.app.route('/health', methods=['GET'])
-        def health():
-            """Health check endpoint with version and timestamp."""
-            import datetime
-            logger.info(f"Health check endpoint called")
-            return jsonify({
-                'status': 'healthy', 
-                'service': 'mlx-engine-neuroscope',
-                'component': 'MLX Engine REST API',
-                'version': '1.2.0',
-                'timestamp': datetime.datetime.now().isoformat(),
-                'current_model': self.current_model,
-                'ready': self.current_model is not None
-            })
-            
-        # Debug route to list all registered routes
-        @self.app.route('/debug/routes', methods=['GET'])
-        def debug_routes():
-            """Debug endpoint to list all registered routes."""
-            routes = []
-            for rule in self.app.url_map.iter_rules():
-                methods = ','.join(rule.methods)
-                routes.append({
-                    'endpoint': rule.endpoint,
-                    'methods': methods,
-                    'rule': str(rule)
-                })
-            return jsonify({'routes': routes})
-        
-        @self.app.route('/v1/models', methods=['GET'])
-        def list_models():
-            """List loaded models."""
-            return jsonify({
-                'models': [
-                    {
-                        'id': model_id,
-                        'object': 'model',
-                        'created': 0,  # Placeholder
-                        'owned_by': 'mlx-engine'
-                    }
-                    for model_id in self.models.keys()
-                ]
-            })
-        
-        @self.app.route('/v1/models/available', methods=['GET'])
-        def available_models_endpoint():
-            """Get information about available models."""
-            try:
-                import os
-                import glob
-                from pathlib import Path
-                
-                # Specific model location
-                model_search_paths = [
-                    "/Users/craig/.lmstudio/models/nightmedia"
-                ]
-                
-                # Only looking for gpt-oss-20b
-                model_patterns = [
-                    "**/gpt-oss-20b*"
-                ]
-                
-                available_models = []
-                found_paths = set()
-                
-                # Search for models in common locations
-                for search_path in model_search_paths:
-                    if os.path.exists(search_path):
-                        for pattern in model_patterns:
-                            for model_path in glob.glob(os.path.join(search_path, pattern), recursive=True):
-                                if os.path.isdir(model_path) and model_path not in found_paths:
-                                    # Check if it looks like a valid model directory
-                                    model_files = os.listdir(model_path)
-                                    has_model_files = any(
-                                        f.endswith('.bin') or f.endswith('.safetensors') or 
-                                        f == 'config.json' or f == 'tokenizer.json'
-                                        for f in model_files
-                                    )
-                                    
-                                    if has_model_files:
-                                        model_name = Path(model_path).name
-                                        available_models.append({
-                                            'model_id': model_name,
-                                            'model_path': model_path,
-                                            'size_mb': self._get_directory_size(model_path),
-                                            'files': model_files[:10]  # First 10 files for reference
-                                        })
-                                        found_paths.add(model_path)
-                
-                # Also include currently loaded models
-                loaded_models = []
-                for model_id, model in self.models.items():
-                    loaded_models.append({
-                        'model_id': model_id,
-                        'status': 'loaded',
-                        'supports_activations': hasattr(model, 'activation_hook_manager'),
-                        'is_current': model_id == self.current_model
-                    })
-                
-                return jsonify({
-                    'available_models': available_models,
-                    'loaded_models': loaded_models,
-                    'current_model': self.current_model,
-                    'search_paths': model_search_paths,
-                    'total_available': len(available_models),
-                    'total_loaded': len(loaded_models)
-                })
-                
-            except Exception as e:
-                import traceback
-                error_details = {
-                    'error': str(e),
-                    'error_type': type(e).__name__,
-                    'traceback': traceback.format_exc()
-                }
-                logger.error(f"Failed to get available models: {e}")
-                logger.error(f"Full traceback: {traceback.format_exc()}")
-                return jsonify(error_details), 500
-        
-        @self.app.route('/v1/models/load', methods=['POST'])
-        def load_model_endpoint():
-            """Load a model from path."""
-            data = request.get_json()
-            
-            if not data or 'model_path' not in data:
-                return jsonify({'error': 'model_path is required'}), 400
-            
-            model_path = data['model_path']
-            model_id = data.get('model_id', Path(model_path).name)
-            
-            try:
-                # Load model with optional parameters
-                model = load_model(
-                    model_path,
-                    vocab_only=data.get('vocab_only', False),
-                    max_kv_size=data.get('max_kv_size', 4096),
-                    trust_remote_code=data.get('trust_remote_code', False),
-                    kv_bits=data.get('kv_bits'),
-                    kv_group_size=data.get('kv_group_size'),
-                    quantized_kv_start=data.get('quantized_kv_start')
-                )
-                
-                self.models[model_id] = model
-                self.current_model = model_id
-                
-                return jsonify({
-                    'model_id': model_id,
-                    'status': 'loaded',
-                    'supports_activations': hasattr(model, 'activation_hook_manager')
-                })
-                
-            except Exception as e:
-                import traceback
-                error_details = {
-                    'error': str(e),
-                    'error_type': type(e).__name__,
-                    'model_path': model_path,
-                    'model_id': model_id,
-                    'traceback': traceback.format_exc(),
-                    'provided_parameters': {
-                        'vocab_only': data.get('vocab_only', False),
-                        'max_kv_size': data.get('max_kv_size', 4096),
-                        'trust_remote_code': data.get('trust_remote_code', False),
-                        'kv_bits': data.get('kv_bits'),
-                        'kv_group_size': data.get('kv_group_size'),
-                        'quantized_kv_start': data.get('quantized_kv_start')
-                    }
-                }
-                logger.error(f"Failed to load model {model_id} from {model_path}: {e}")
-                logger.error(f"Full traceback: {traceback.format_exc()}")
-                return jsonify(error_details), 500
-        
-        @self.app.route('/v1/chat/completions', methods=['POST'])
-        def chat_completions():
-            """Standard chat completions endpoint."""
-            data = request.get_json()
-            
-            if not data:
-                return jsonify({'error': 'Request body is required'}), 400
-            
-            model_id = data.get('model', self.current_model)
-            if not model_id or model_id not in self.models:
-                return jsonify({'error': 'Model not found'}), 404
-            
-            model = self.models[model_id]
-            messages = data.get('messages', [])
-            
-            if not messages:
-                return jsonify({'error': 'Messages are required'}), 400
-            
-            # Convert messages to prompt
-            prompt = self._messages_to_prompt(messages)
-            tokens = tokenize(model, prompt)
-            
-            # Generation parameters
-            max_tokens = data.get('max_tokens', 100)
-            temperature = data.get('temperature', 0.7)
-            top_p = data.get('top_p', 0.9)
-            stop = data.get('stop', [])
-            stream = data.get('stream', False)
-            
-            try:
-                if stream:
-                    return Response(
-                        self._stream_completion(model, tokens, max_tokens, temperature, top_p, stop),
-                        mimetype='text/plain'
-                    )
-                else:
-                    return self._complete_generation(model, tokens, max_tokens, temperature, top_p, stop)
-                    
-            except Exception as e:
-                import traceback
-                error_details = {
-                    'error': str(e),
-                    'error_type': type(e).__name__,
-                    'model_id': model_id,
-                    'current_model': self.current_model,
-                    'available_models': list(self.models.keys()),
-                    'prompt_length': len(prompt) if 'prompt' in locals() else 0,
-                    'traceback': traceback.format_exc(),
-                    'request_parameters': {
-                        'max_tokens': data.get('max_tokens', 100),
-                        'temperature': data.get('temperature', 0.7),
-                        'top_p': data.get('top_p', 0.9),
-                        'stop': data.get('stop')
-                    }
-                }
-                logger.error(f"Generation failed for model {model_id}: {e}")
-                logger.error(f"Full traceback: {traceback.format_exc()}")
-                return jsonify(error_details), 500
-        
-        @self.app.route('/v1/activations/hooks', methods=['POST', 'DELETE'])
-        def manage_activation_hooks():
-            """Manage activation hooks for the model.
-            
-            POST: Register new activation hooks
-            DELETE: Clear all activation hooks
-            """
-            # Get model from request or use default
-            data = request.get_json() or {}
-            model_id = data.get('model', self.current_model)
-            
-            # Debug logging
-            logger.info(f"Activation hooks request - model_id: {model_id}")
-            logger.info(f"Available models: {list(self.models.keys())}")
-            logger.info(f"Current model: {self.current_model}")
-            
-            if not model_id or model_id not in self.models:
-                return jsonify({'error': f'Model not found. Available models: {list(self.models.keys())}, requested: {model_id}'}), 404
-                
-            model = self.models[model_id]
-            
-            # Check if model supports activation capture
-            if not hasattr(model, 'activation_hook_manager'):
-                return jsonify({'error': 'Model does not support activation capture'}), 400
-            
-            if request.method == 'POST':
-                # Register new activation hooks
-                hooks = data.get('hooks', [])
-                if not hooks:
-                    return jsonify({'error': 'No hooks provided'}), 400
-                
-                try:
-                    registered_hooks = []
-                    for hook_spec in hooks:
-                        # Convert dict to ActivationHookSpec if needed
-                        if isinstance(hook_spec, dict):
-                            hook_spec = ActivationHookSpec(
-                                layer_name=hook_spec['layer_name'],
-                                component=hook_spec.get('component'),
-                                hook_id=hook_spec.get('hook_id'),
-                                capture_input=hook_spec.get('capture_input', False),
-                                capture_output=hook_spec.get('capture_output', True)
-                            )
-                        
-                        # Register the hook
-                        hook_id = model.activation_hook_manager.register_hook(hook_spec)
-                        if hook_id:
-                            registered_hooks.append(hook_id)
-                    
-                    return jsonify({
-                        'status': 'hooks_registered',
-                        'registered_hooks': registered_hooks
-                    })
-                    
-                except Exception as e:
-                    logger.error(f"Failed to register activation hooks: {e}")
-                    return jsonify({'error': str(e)}), 500
-                    
-            elif request.method == 'DELETE':
-                # Clear all activation hooks
-                try:
-                    model.activation_hook_manager.clear_all_hooks()
-                    return jsonify({'status': 'hooks_cleared'})
-                except Exception as e:
-                    logger.error(f"Failed to clear activation hooks: {e}")
-                    return jsonify({'error': str(e)}), 500
-        
-        @self.app.route('/analyze/residual', methods=['POST'])
-        def analyze_residual():
-            """Analyze residual stream flow data.
-            
-            Expects POST data with:
-            - residual_data: The residual stream data from activation capture
-            - analysis_type: Type of analysis (e.g., 'residual_flow')
-            """
-            data = request.get_json()
-            
-            if not data:
-                return jsonify({'error': 'Request body is required'}), 400
-            
-            residual_data = data.get('residual_data')
-            analysis_type = data.get('analysis_type', 'residual_flow')
-            
-            if not residual_data:
-                return jsonify({'error': 'residual_data is required'}), 400
-            
-            try:
-                import time
-                start_time = time.time()
-                
-                # Analyze the residual stream data
-                analysis_result = self._analyze_residual_stream(residual_data, analysis_type)
-                
-                execution_time_ms = int((time.time() - start_time) * 1000)
-                
-                return jsonify({
-                    'success': True,
-                    'analysis_type': analysis_type,
-                    'flow_data': analysis_result.get('flow_data', {}),
-                    'layer_contributions': analysis_result.get('layer_contributions', {}),
-                    'information_flow': analysis_result.get('information_flow', {}),
-                    'execution_time_ms': execution_time_ms
-                })
-                
-            except Exception as e:
-                logger.error(f"Failed to analyze residual stream: {e}")
-                return jsonify({
-                    'success': False,
-                    'error': str(e),
-                    'analysis_type': analysis_type
-                }), 500
-        
-        @self.app.route('/v1/chat/completions/with_activations', methods=['POST'])
-        def chat_completions_with_activations():
-            """Extended endpoint that captures activations during generation."""
-            data = request.get_json()
-            
-            if not data:
-                return jsonify({'error': 'Request body is required'}), 400
-            
-            model_id = data.get('model', self.current_model)
-            if not model_id or model_id not in self.models:
-                return jsonify({'error': 'Model not found'}), 404
-            
-            model = self.models[model_id]
-            
-            # Check if model supports activation capture
-            if not hasattr(model, 'activation_hook_manager'):
-                return jsonify({'error': 'Model does not support activation capture'}), 400
-            
-            messages = data.get('messages', [])
-            activation_hooks = data.get('activation_hooks', [])
-            
-            if not messages:
-                return jsonify({'error': 'Messages are required'}), 400
-            
-            if not activation_hooks:
-                return jsonify({'error': 'activation_hooks are required for this endpoint'}), 400
-            
-            # Convert messages to prompt
-            prompt = self._messages_to_prompt(messages)
-            tokens = tokenize(model, prompt)
-            
-            # Generation parameters
-            max_tokens = data.get('max_tokens', 100)
-            temperature = data.get('temperature', 0.7)
-            top_p = data.get('top_p', 0.9)
-            stop = data.get('stop', [])
-            stream = data.get('stream', False)
-            
-            try:
-                # Clear GPU cache before generation to free memory
-                import mlx.core as mx
-                mx.clear_cache()
-                
-                if stream:
-                    return Response(
-                        self._stream_completion_with_activations(
-                            model, tokens, activation_hooks, max_tokens, temperature, top_p, stop
-                        ),
-                        mimetype='application/x-ndjson'
-                    )
-                else:
-                    # Use real activation capture now that memory issue is resolved
-                    result = self._complete_generation_with_activations(
-                        model, tokens, activation_hooks, max_tokens, temperature, top_p, stop
-                    )
-                    
-                    # Clear cache after generation
-                    mx.clear_cache()
-                    return result
-                    
-            except Exception as e:
-                import traceback
-                # Clear cache on error too
-                try:
-                    import mlx.core as mx
-                    mx.clear_cache()
-                except:
-                    pass
-                
-                error_details = {
-                    'error': str(e),
-                    'error_type': type(e).__name__,
-                    'model_id': model_id,
-                    'current_model': self.current_model,
-                    'available_models': list(self.models.keys()),
-                    'prompt_length': len(prompt) if 'prompt' in locals() else 0,
-                    'activation_hooks_count': len(activation_hooks) if activation_hooks else 0,
-                    'traceback': traceback.format_exc(),
-                    'request_parameters': {
-                        'max_tokens': data.get('max_tokens', 100),
-                        'temperature': data.get('temperature', 0.7),
-                        'top_p': data.get('top_p', 0.9),
-                        'stop': data.get('stop'),
-                        'activation_hooks': activation_hooks
-                    }
-                }
-                logger.error(f"Generation with activations failed for model {model_id}: {e}")
-                logger.error(f"Full traceback: {traceback.format_exc()}")
-                return jsonify(error_details), 500
-        
-        # Removed duplicate route registrations for /v1/activations/hooks
-        # The functionality is now handled by the manage_activation_hooks endpoint
+    def _generate_task_id(self):
+        """Generate a unique task ID."""
+        import uuid
+        return str(uuid.uuid4())
     
-    def _get_directory_size(self, directory_path: str) -> float:
-        """Get the size of a directory in MB."""
+    def _run_background_task(self, task_func, task_id, *args, **kwargs):
+        """Run a task in the background."""
         try:
-            import os
+            with self.task_lock:
+                self.running_tasks[task_id] = {
+                    'started_at': time.time(),
+                    'description': kwargs.get('description', 'Background task')
+                }
+            
+            result = task_func(*args, **kwargs)
+            
+            with self.task_lock:
+                self.running_tasks.pop(task_id, None)
+                self.task_results[task_id] = {
+                    'status': 'completed',
+                    'result': result,
+                    'completed_at': time.time()
+                }
+        except Exception as e:
+            logger.error(f"Background task {task_id} failed: {e}")
+            with self.task_lock:
+                self.running_tasks.pop(task_id, None)
+                self.task_results[task_id] = {
+                    'status': 'failed',
+                    'error': str(e),
+                    'completed_at': time.time()
+                }
+    
+    def _get_directory_size(self, directory_path):
+        """Calculate the size of a directory in MB."""
+        try:
             total_size = 0
             for dirpath, dirnames, filenames in os.walk(directory_path):
                 for filename in filenames:
@@ -513,258 +225,70 @@ class MLXEngineAPI:
                     if os.path.exists(filepath):
                         total_size += os.path.getsize(filepath)
             return round(total_size / (1024 * 1024), 2)  # Convert to MB
-        except Exception:
-            return 0.0
-    
-    def _messages_to_prompt(self, messages: List[Dict[str, str]]) -> str:
-        """Convert chat messages to a single prompt string."""
-        # Simple implementation - in practice, you'd want to handle different
-        # chat templates based on the model
-        prompt_parts = []
-        for message in messages:
-            role = message.get('role', 'user')
-            content = message.get('content', '')
-            if role == 'system':
-                prompt_parts.append(f"System: {content}")
-            elif role == 'user':
-                prompt_parts.append(f"User: {content}")
-            elif role == 'assistant':
-                prompt_parts.append(f"Assistant: {content}")
-        
-        return "\n".join(prompt_parts) + "\nAssistant:"
-    
-    def _complete_generation(self, model, tokens, max_tokens, temperature, top_p, stop):
-        """Complete generation without streaming."""
-        full_text = ""
-        
-        for result in create_generator(
-            model, tokens,
-            max_tokens=max_tokens,
-            temp=temperature,
-            top_p=top_p,
-            stop_strings=stop
-        ):
-            full_text += result.text
-            
-            if result.stop_condition:
-                break
-        
-        return jsonify({
-            'choices': [{
-                'message': {
-                    'role': 'assistant',
-                    'content': full_text
-                },
-                'finish_reason': 'stop'
-            }],
-            'usage': {
-                'prompt_tokens': len(tokens),
-                'completion_tokens': len(full_text.split()),  # Rough estimate
-                'total_tokens': len(tokens) + len(full_text.split())
-            }
-        })
-    
-    def _stream_completion(self, model, tokens, max_tokens, temperature, top_p, stop):
-        """Stream generation results."""
-        for result in create_generator(
-            model, tokens,
-            max_tokens=max_tokens,
-            temp=temperature,
-            top_p=top_p,
-            stop_strings=stop
-        ):
-            chunk = {
-                'choices': [{
-                    'delta': {
-                        'content': result.text
-                    },
-                    'finish_reason': None
-                }]
-            }
-            
-            yield f"data: {json.dumps(chunk)}\n\n"
-            
-            if result.stop_condition:
-                final_chunk = {
-                    'choices': [{
-                        'delta': {},
-                        'finish_reason': 'stop'
-                    }]
-                }
-                yield f"data: {json.dumps(final_chunk)}\n\n"
-                break
-        
-        yield "data: [DONE]\n\n"
-    
-    def _complete_generation_with_activations(self, model, tokens, activation_hooks, 
-                                            max_tokens, temperature, top_p, stop):
-        """Complete generation with activation capture."""
-        full_text = ""
-        all_activations = {}
-        
-        # Use the actual activation capture system
-        try:
-            for result, activations in create_generator_with_activations(
-                model, tokens,
-                activation_hooks=activation_hooks,
-                max_tokens=max_tokens,
-                temp=temperature,
-                top_p=top_p,
-                stop_strings=stop
-            ):
-                full_text += result.text
-                
-                if activations:
-                    # Merge activations
-                    for hook_id, hook_activations in activations.items():
-                        if hook_id not in all_activations:
-                            all_activations[hook_id] = []
-                        all_activations[hook_id].extend(hook_activations)
-                
-                if result.stop_condition:
-                    break
-        
         except Exception as e:
-            logger.error(f"Error during generation with activations: {e}")
-            raise e
+            logger.warning(f"Could not calculate directory size for {directory_path}: {e}")
+            return 0
+    
+    def _setup_request_logging(self):
+        """Setup request logging middleware."""
+        @self.app.before_request
+        def log_request_info():
+            logger.info(f"Request: {request.method} {request.url}")
+            if request.method in ['POST', 'PUT', 'PATCH'] and request.is_json:
+                try:
+                    logger.debug(f"Request data: {request.get_json()}")
+                except Exception as e:
+                    logger.debug(f"Could not parse JSON data: {e}")
         
-        return jsonify({
-            'choices': [{
-                'message': {
-                    'role': 'assistant',
-                    'content': full_text
-                },
-                'finish_reason': 'stop'
-            }],
-            'activations': all_activations,
-            'usage': {
-                'prompt_tokens': len(tokens),
-                'completion_tokens': len(full_text.split()),
-                'total_tokens': len(tokens) + len(full_text.split())
-            }
-        })
-    
-    def _analyze_residual_stream(self, residual_data, analysis_type='residual_flow'):
-        """Analyze residual stream data to extract flow patterns and layer contributions.
+        @self.app.after_request
+        def log_response_info(response):
+            logger.info(f"Response: {response.status_code}")
+            return response
         
-        Args:
-            residual_data: Dictionary containing residual stream activations
-            analysis_type: Type of analysis to perform
-            
-        Returns:
-            Dictionary with analysis results including flow_data, layer_contributions, and information_flow
-        """
-        try:
-            import numpy as np
-            
-            # Initialize analysis results
-            flow_data = {}
-            layer_contributions = {}
-            information_flow = {}
-            
-            # Process residual stream data
-            if isinstance(residual_data, dict):
-                # Extract layer-wise activations
-                for layer_name, activations in residual_data.items():
-                    if 'residual' in layer_name.lower() or 'stream' in layer_name.lower():
-                        # Convert to numpy array if needed
-                        if isinstance(activations, list):
-                            activations = np.array(activations)
-                        
-                        # Calculate flow metrics
-                        if hasattr(activations, 'shape') and len(activations.shape) >= 2:
-                            # Calculate variance as a measure of information flow
-                            variance = float(np.var(activations))
-                            mean_activation = float(np.mean(activations))
-                            max_activation = float(np.max(activations))
-                            min_activation = float(np.min(activations))
-                            
-                            layer_contributions[layer_name] = {
-                                'variance': variance,
-                                'mean': mean_activation,
-                                'max': max_activation,
-                                'min': min_activation,
-                                'shape': list(activations.shape)
-                            }
-                            
-                            # Track information flow between layers
-                            flow_data[layer_name] = {
-                                'flow_magnitude': variance,
-                                'activation_pattern': 'high_variance' if variance > 0.1 else 'low_variance'
-                            }
-            
-            # Calculate overall information flow metrics
-            if layer_contributions:
-                total_variance = sum(contrib.get('variance', 0) for contrib in layer_contributions.values())
-                information_flow = {
-                    'total_flow': total_variance,
-                    'layer_count': len(layer_contributions),
-                    'average_flow': total_variance / len(layer_contributions) if layer_contributions else 0,
-                    'flow_distribution': {name: contrib.get('variance', 0) / total_variance if total_variance > 0 else 0 
-                                        for name, contrib in layer_contributions.items()}
-                }
-            
-            return {
-                'flow_data': flow_data,
-                'layer_contributions': layer_contributions,
-                'information_flow': information_flow
-            }
-            
-        except Exception as e:
-            logger.error(f"Error in residual stream analysis: {e}")
-            # Return minimal structure on error
-            return {
-                'flow_data': {},
-                'layer_contributions': {},
-                'information_flow': {'error': str(e)}
-            }
+        @self.app.errorhandler(MLXEngineAPIError)
+        def handle_api_error(error):
+            logger.error(f"API Error: {error.message}")
+            return jsonify({
+                'error': error.message,
+                'status_code': error.status_code,
+                'details': error.details
+            }), error.status_code
+        
+        @self.app.errorhandler(Exception)
+        def handle_unexpected_error(error):
+            logger.error(f"Unexpected error: {str(error)}", exc_info=True)
+            return jsonify({
+                'error': 'Internal server error',
+                'message': str(error),
+                'details': {'unexpected_error': True}
+            }), 500
     
-    def _stream_completion_with_activations(self, model, tokens, activation_hooks,
-                                          max_tokens, temperature, top_p, stop):
-        """Stream generation results with activations."""
-        for result, activations in create_generator_with_activations(
-            model, tokens,
-            activation_hooks=activation_hooks,
-            max_tokens=max_tokens,
-            temp=temperature,
-            top_p=top_p,
-            stop_strings=stop
-        ):
-            chunk = {
-                'choices': [{
-                    'delta': {
-                        'content': result.text
-                    },
-                    'finish_reason': None
-                }],
-                'activations': activations
-            }
-            
-            yield f"{json.dumps(chunk)}\n"
-            
-            if result.stop_condition:
-                final_chunk = {
-                    'choices': [{
-                        'delta': {},
-                        'finish_reason': 'stop'
-                    }],
-                    'activations': None
-                }
-                yield f"{json.dumps(final_chunk)}\n"
-                break
+    def _setup_routes(self):
+        """Set up API routes using modular structure."""
+        logger.info("Registering API routes using modular structure...")
+        register_all_routes(self.app, self)
     
-    def run(self, host='127.0.0.1', port=8080, debug=False):
+    def run(self, host='0.0.0.0', port=8000, debug=False):
         """Run the API server."""
         logger.info(f"Starting MLX Engine API server on {host}:{port}")
-        self.app.run(host=host, port=port, debug=debug)
+        self.app.run(host=host, port=port, debug=debug, threaded=True)
 
 
 def create_app():
-    """Factory function to create the Flask app."""
+    """Factory function to create Flask app."""
     api = MLXEngineAPI()
     return api.app
 
 
 if __name__ == '__main__':
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='MLX Engine API Server')
+    parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
+    parser.add_argument('--port', type=int, default=8000, help='Port to bind to')
+    parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+    
+    args = parser.parse_args()
+    
     api = MLXEngineAPI()
-    api.run(debug=True)
+    api.run(host=args.host, port=args.port, debug=args.debug)

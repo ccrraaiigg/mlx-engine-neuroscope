@@ -3,7 +3,8 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 
 const AnalyzeAttentionArgsSchema = z.object({
     prompt: z.string().min(1),
-    layers: z.array(z.number().int().min(0).max(50)).min(1).max(10),
+    layers: z.array(z.number().int().min(0).max(50)).min(1).max(10).optional(),
+    scope: z.enum(['head_level', 'layer_level', 'cross_layer', 'global']).default('layer_level'),
 });
 
 async function analyzeAttentionTool(args) {
@@ -42,7 +43,7 @@ export { analyzeAttentionTool, AnalyzeAttentionArgsSchema };
 
 export const analyzeAttention = {
     name: "analyze_attention",
-    description: "Analyzes attention patterns in specified layers.",
+    description: "Analyzes attention patterns in specified layers with comprehensive circuit discovery.",
     inputSchema: zodToJsonSchema(AnalyzeAttentionArgsSchema),
     argsSchema: AnalyzeAttentionArgsSchema,
     handler: analyzeAttentionTool

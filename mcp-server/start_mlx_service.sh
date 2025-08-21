@@ -75,6 +75,12 @@ start_service() {
     print_status "Starting MLX Engine service..."
     check_dependencies
     
+    # Clean up old log file
+    if [ -f "$LOG_FILE" ]; then
+        rm -f "$LOG_FILE"
+        print_status "Cleaned up old log file"
+    fi
+    
     # Set PYTHONPATH and start the service
     cd "$SCRIPT_DIR"
     export PYTHONPATH="$SCRIPT_DIR/..:$PYTHONPATH"

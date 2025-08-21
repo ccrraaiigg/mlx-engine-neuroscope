@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import fetch from 'node-fetch';
 
 // Schema for load_model tool arguments
 export const LoadModelArgsSchema = z.object({
-    model_id: z.enum(["gpt-oss-20b"]),
+    model_id: z.enum(["gpt-oss-20b", "gpt-oss-20b-q5-hi-mlx"]),
     quantization: z.enum(["none", "4bit", "8bit"]).default("none"),
     max_context_length: z.number().int().min(512).max(131072).default(2048),
     device: z.enum(["auto", "cpu", "mps", "cuda"]).default("auto"),
@@ -19,12 +20,13 @@ export async function loadModelTool(args) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model_path: `/Users/craig/.lmstudio/models/nightmedia/${args.model_id}-q5-hi-mlx`,
+                model_path: `/Users/craig/.lmstudio/models/nightmedia/gpt-oss-20b-q5-hi-mlx`,
                 model_id: args.model_id,
                 quantization: args.quantization,
                 max_context_length: args.max_context_length,
                 device: args.device
-            })
+            }),
+            timeout: 15 * 60 * 1000 // 15 minutes timeout
         });
 
         if (!response.ok) {
@@ -43,7 +45,7 @@ export async function loadModelTool(args) {
                 endpoint: '/v1/models/load',
                 request_parameters: {
                     model_id: args.model_id,
-                    model_path: `/Users/craig/.lmstudio/models/nightmedia/${args.model_id}-q5-hi-mlx`,
+                    model_path: `/Users/craig/.lmstudio/models/nightmedia/${args.model_id}/`,
                     quantization: args.quantization,
                     max_context_length: args.max_context_length,
                     device: args.device

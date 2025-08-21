@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import fetch from 'node-fetch';
 
 // Schema for capture_activations tool arguments
 export const CaptureActivationsArgsSchema = z.object({
@@ -28,7 +29,8 @@ export async function captureActivationsTool(args) {
                     { layer_name: 'model.layers.5.self_attn', component: 'attention' },
                     { layer_name: 'model.layers.10.self_attn', component: 'attention' }
                 ]
-            })
+            }),
+            timeout: 15 * 60 * 1000 // 15 minutes timeout
         });
 
         if (!response.ok) {

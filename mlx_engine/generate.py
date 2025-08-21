@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Iterator, List, Literal, NamedTuple, Optional, Union
+from typing import Callable, Iterator, List, Literal, NamedTuple, Optional, Union, Tuple
 import json
 from pathlib import Path
 import sys
@@ -23,30 +23,10 @@ from mlx_engine.utils.speculative_decoding import (
     determine_draft_model_for_generation,
     configure_num_draft_tokens_in_generate_args,
 )
-# Make outlines import optional
-try:
-    from outlines.processors.structured import JSONLogitsProcessor
-    from mlx_engine.utils.outlines_transformer_tokenizer import OutlinesTransformerTokenizer
-    OUTLINES_AVAILABLE = True
-except ImportError:
-    OUTLINES_AVAILABLE = False
-    
-    # Define dummy classes when outlines is not available
-    class JSONLogitsProcessor:
-        def __init__(self, *args, **kwargs):
-            raise ImportError(
-                "The 'outlines' package is required for JSON schema validation. "
-                "Please install it with: pip install outlines"
-            )
-            
-    class OutlinesTransformerTokenizer:
-        def __init__(self, *args, **kwargs):
-            raise ImportError(
-                "The 'outlines' package is required for OutlinesTransformerTokenizer. "
-                "Please install it with: pip install outlines"
-            )
+from outlines.serve.vllm import JSONLogitsProcessor
+from mlx_engine.utils.outlines_transformer_tokenizer import OutlinesTransformerTokenizer
 from mlx_engine.cache_wrapper import StopPromptProcessing
-from mlx_engine.activation_hooks import ActivationHookSpec, ComponentType, serialize_activations
+from mlx_engine.activation_hooks import ActivationHookManager
 
 MAX_TOP_LOGPROBS = 10
 
@@ -84,7 +64,7 @@ def load_model(
     and initializes either a standard language model or a vision-language model accordingly.
 
     Args:
-        model_path (Union[str, Path]): Path to the model directory containing model files and config.json.
+        model_path (str | Path): Path to the model directory containing model files and config.json.
         vocab_only (bool): Only load vocabulary/tokenizer, not the full model.
         max_kv_size (int): Maximum size of the key-value cache used during model inference.
         trust_remote_code (bool): Whether to allow loading of remote code during model initialization.
@@ -93,7 +73,7 @@ def load_model(
         quantized_kv_start (Optional[int]): Step to begin KV cache quantization when enabled.
 
     Returns:
-        Union[ModelKit, VisionModelKit]: An initialized model instance:
+        ModelKit | VisionModelKit: An initialized model instance:
             - ModelKit: for text-only models and vision models with vision add-on support
             - VisionModelKit: for vision models that are not yet supported by ModelKit
 
@@ -162,30 +142,50 @@ def create_generator(
     num_draft_tokens: Optional[int] = None,
 ) -> Iterator[GenerationResult]:
     """
-    Create a generator that yields generated text and metadata.
-    
+    Create a generator that streams text generation results from the model.
+
+    This function sets up and manages the text generation process, handling various generation
+    parameters, processing callbacks, and managing generation constraints. It supports both
+    standard language models and vision-language models.
+
     Args:
-        model_kit: The model kit to use for generation
-        prompt_tokens: List of token IDs to use as the prompt
-        prompt_progress_callback: Optional callback for generation progress
-        images_b64: Optional list of base64-encoded images for vision models
-        stop_strings: Optional list of strings that will stop generation when encountered
-        top_logprobs: Number of top token probabilities to return
-        repetition_penalty: Penalty for repeated tokens
-        repetition_context_size: Number of previous tokens to consider for repetition penalty
-        temp: Temperature for sampling
-        top_p: Top-p sampling parameter
-        top_k: Top-k sampling parameter
-        min_p: Minimum probability threshold for sampling
-        min_tokens_to_keep: Minimum number of tokens to keep during sampling
-        seed: Random seed for reproducibility
-        json_schema: Optional JSON schema for structured output
-        max_tokens: Maximum number of tokens to generate
-        speculative_decoding_toggle: Whether to use speculative decoding
-        num_draft_tokens: Number of tokens to draft when using speculative decoding
-        
+        model_kit (ModelKit | VisionModelKit): The initialized model to use for generation
+        prompt_tokens (List[int]): List of token IDs representing the input prompt
+        prompt_progress_callback (Optional[Callable[[float], bool]]): Callback function that receives
+            generation progress as a float between 0 and 1. Callback should return True to continue
+            prompt processing, or False to stop generation
+        images_b64 (Optional[List[str]]): List of base64-encoded images for vision-language models
+        stop_strings (Optional[List[str]]): List of strings that will trigger generation to stop
+            when encountered
+        top_logprobs (Optional[int]): Number of top token probabilities to return per token
+            Must be <= MAX_TOP_LOGPROBS
+        repetition_penalty (Optional[float]): Penalty factor for repeated tokens. Higher values
+            discourage repetition
+        repetition_context_size (Optional[int]): Number of previous tokens to consider for
+            repetition penalty. Defaults to 20
+        temp (Optional[float]): Temperature for sampling. Higher values increase randomness
+        top_p (Optional[float]): Top-p (nucleus) sampling parameter
+        top_k (Optional[int]): Top-k sampling parameter
+        min_p (Optional[float]): Minimum probability threshold for token sampling
+        min_tokens_to_keep (Optional[int]): Minimum number of tokens to keep during sampling
+        seed (Optional[int]): Random seed for reproducible generation
+        json_schema (Optional[str]): JSON schema for structured output generation
+        max_tokens (Optional[int]): Maximum number of tokens to generate. Defaults to 10000000
+        speculative_decoding_toggle (Optional[bool]): If not set, use speculative decoding
+            if a draft model is loaded. If set to true, draft model must be loaded or else error.
+            If set to false, speculative decoding is disabled even if a draft model is loaded.
+        num_draft_tokens (Optional[int]): Number of tokens to draft when using speculative decoding
+
     Yields:
-        GenerationResult objects containing generated text and metadata
+        GenerationResult: A named tuple containing:
+            - text (str): Generated text segment
+            - tokens (List[TokenLogprob]): List of generated tokens with their probabilities
+            - top_logprobs (List[List[TokenLogprob]]): Token probability information if requested
+            - stop_condition (Optional[GenerationStopCondition]): Information about why
+              generation stopped, if applicable
+
+    Raises:
+        ValueError: If top_logprobs exceeds MAX_TOP_LOGPROBS or if any parameters are invalid
     """
     set_seed(seed)
 
@@ -444,93 +444,85 @@ def create_generator(
 def create_generator_with_activations(
     model_kit: Union[ModelKit, VisionModelKit],
     prompt_tokens: List[int],
-    activation_hooks: Optional[List[Dict[str, Any]]] = None,
-    **kwargs
-) -> Iterator[tuple[GenerationResult, Optional[Dict[str, Any]]]]:
+    *,
+    activation_hooks: Optional[List] = None,
+    prompt_progress_callback: Optional[Callable[[float], bool]] = None,
+    images_b64: Optional[List[str]] = None,
+    stop_strings: Optional[List[str]] = None,
+    top_logprobs: Optional[int] = None,
+    repetition_penalty: Optional[float] = None,
+    repetition_context_size: Optional[int] = 20,
+    temp: Optional[float] = None,
+    top_p: Optional[float] = None,
+    top_k: Optional[int] = None,
+    min_p: Optional[float] = None,
+    min_tokens_to_keep: Optional[int] = None,
+    seed: Optional[int] = None,
+    json_schema: Optional[str] = None,
+    max_tokens: Optional[int] = 10000000,
+    speculative_decoding_toggle: Optional[bool] = None,
+    num_draft_tokens: Optional[int] = None,
+) -> Iterator[Tuple[GenerationResult, Optional[dict]]]:
     """
     Create a generator that streams text generation results along with captured activations.
     
-    This function extends create_generator to support activation capture for interpretability
-    analysis. It registers the specified hooks before generation and returns both generation
-    results and captured activations.
+    This function extends create_generator to also capture model activations during generation
+    using the provided activation hooks.
     
     Args:
-        model_kit (Union[ModelKit, VisionModelKit]): The initialized model to use for generation
-        prompt_tokens (List[int]): List of token IDs representing the input prompt
-        activation_hooks (Optional[List[Dict[str, Any]]]): List of hook specifications.
-            Each dict should contain:
-            - layer_name (str): Name of the layer to hook
-            - component (str): Component type ('residual', 'attention', 'mlp', etc.)
-            - hook_id (str, optional): Unique identifier for the hook
-            - capture_input (bool, optional): Whether to capture input activations
-            - capture_output (bool, optional): Whether to capture output activations
-        **kwargs: All other arguments passed to create_generator
-    
+        model_kit: The initialized model to use for generation
+        prompt_tokens: List of token IDs representing the input prompt
+        activation_hooks: List of activation hook specifications for capturing activations
+        **kwargs: All other arguments are passed through to create_generator
+        
     Yields:
-        tuple[GenerationResult, Optional[Dict[str, Any]]]: A tuple containing:
-            - GenerationResult: Standard generation result
-            - Dict with captured activations (None if no hooks registered)
+        tuple[GenerationResult, Optional[dict]]: A tuple containing:
+            - GenerationResult: The standard generation result
+            - Optional[dict]: Captured activations if hooks are provided, None otherwise
     """
-    print("\n[DEBUG] ====== CREATE GENERATOR WITH ACTIVATIONS ======")
-    print(f"[DEBUG] Model type: {type(model_kit).__name__}")
-    print(f"[DEBUG] Number of tokens: {len(prompt_tokens)}")
-    print(f"[DEBUG] Activation hooks to register: {len(activation_hooks) if activation_hooks else 0}")
-
-    # Register activation hooks if provided
-    hook_ids = []
-    if activation_hooks and hasattr(model_kit, 'model'):
-        from mlx_engine.activation_hooks import ActivationHookManager, ActivationHookSpec, ComponentType
-        
-        # Create hook manager if it doesn't exist
-        if not hasattr(model_kit, 'activation_hook_manager'):
-            model_kit.activation_hook_manager = ActivationHookManager(model_kit.model)
-        
-        # Register the hooks
+    # Set up activation hook manager if hooks are provided
+    hook_manager = None
+    if activation_hooks:
+        hook_manager = ActivationHookManager(model_kit.model)
         for hook_spec in activation_hooks:
-            try:
-                spec = ActivationHookSpec(
-                    layer_name=hook_spec.get('layer_name'),
-                    component=ComponentType(hook_spec.get('component', 'attention')),
-                    hook_id=hook_spec.get('hook_id'),
-                    capture_input=hook_spec.get('capture_input', False),
-                    capture_output=hook_spec.get('capture_output', True)
-                )
-                hook_id = model_kit.activation_hook_manager.register_hook(spec)
-                hook_ids.append(hook_id)
-                print(f"[DEBUG] Registered hook: {hook_id} for {spec.layer_name}")
-            except Exception as e:
-                print(f"[ERROR] Failed to register hook: {e}")
-
+            hook_manager.add_hook(hook_spec)
+        hook_manager.enable_hooks()
+    
     try:
-        print("[DEBUG] Starting generation with activation capture...")
-        
-        # For MLX models, we need to capture activations during each forward pass
-        # instead of relying on hook patching
-        for i, result in enumerate(create_generator(model_kit, prompt_tokens, **kwargs)):
+        # Use the standard generator for text generation
+        for result in create_generator(
+            model_kit,
+            prompt_tokens,
+            prompt_progress_callback=prompt_progress_callback,
+            images_b64=images_b64,
+            stop_strings=stop_strings,
+            top_logprobs=top_logprobs,
+            repetition_penalty=repetition_penalty,
+            repetition_context_size=repetition_context_size,
+            temp=temp,
+            top_p=top_p,
+            top_k=top_k,
+            min_p=min_p,
+            min_tokens_to_keep=min_tokens_to_keep,
+            seed=seed,
+            json_schema=json_schema,
+            max_tokens=max_tokens,
+            speculative_decoding_toggle=speculative_decoding_toggle,
+            num_draft_tokens=num_draft_tokens,
+        ):
+            # Capture activations if hook manager is active
             activations = None
-            
-            # PROOF OF CONCEPT: Return test data to confirm this code is reached
-            if activation_hooks:
-                activations = {}
-                
-                # Add test data that will appear in the response to prove this works
-                for j, hook_spec in enumerate(activation_hooks):
-                    layer_name = hook_spec.get('layer_name', f'layer_{j}')
-                    activations[f"{layer_name}_attention"] = [
-                        [1.0, 2.0, 3.0, 4.0],  # TEST DATA - proves activation capture is working
-                        [5.0, 6.0, 7.0, 8.0]
-                    ]
-                
-                # Also return the original empty keys to maintain compatibility
-                activations["model.layers.0.self_attn_attention"] = [[0.1, 0.2, 0.3]]
-                activations["model.layers.5.self_attn_attention"] = [[0.4, 0.5, 0.6]] 
-                activations["model.layers.10.self_attn_attention"] = [[0.7, 0.8, 0.9]]
+            if hook_manager:
+                activations = hook_manager.get_captured_activations()
+                hook_manager.clear_captured_activations()
             
             yield result, activations
-    
-    except Exception as e:
-        print(f"[ERROR] Error during generation: {e}")
-        raise
+            
+    finally:
+        # Clean up hooks
+        if hook_manager:
+            hook_manager.disable_hooks()
+            hook_manager.remove_all_hooks()
 
 
 def tokenize(model_kit: Union[ModelKit, VisionModelKit], prompt: str) -> List[int]:
@@ -538,7 +530,7 @@ def tokenize(model_kit: Union[ModelKit, VisionModelKit], prompt: str) -> List[in
     Convert a text prompt into a list of token IDs using the model's tokenizer.
 
     Args:
-        model_kit (Union[ModelKit, VisionModelKit]): The model kit instance containing the tokenizer
+        model_kit (ModelKit | VisionModelKit): The model kit instance containing the tokenizer
             to use for tokenization
         prompt (str): The raw text prompt to be tokenized
 

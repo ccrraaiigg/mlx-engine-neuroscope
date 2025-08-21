@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import fetch from 'node-fetch';
 
 // Schema for available_models tool arguments
 export const AvailableModelsArgsSchema = z.object({
@@ -15,7 +16,8 @@ export async function availableModelsTool(args) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            timeout: 15 * 60 * 1000 // 15 minutes timeout
         });
 
         if (!response.ok) {
@@ -43,14 +45,17 @@ export async function availableModelsTool(args) {
 
         const result = await response.json();
         
+        // Handle response data structure (MLX Engine wraps data in 'data' object)
+        const data = result.data || result;
+        
         return {
             success: true,
-            available_models: args.include_available ? result.available_models || [] : [],
-            loaded_models: args.include_loaded ? result.loaded_models || [] : [],
-            current_model: result.current_model || null,
-            search_paths: result.search_paths || [],
-            total_available: result.total_available || 0,
-            total_loaded: result.total_loaded || 0,
+            available_models: args.include_available ? data.available_models || [] : [],
+            loaded_models: args.include_loaded ? data.loaded_models || [] : [],
+            current_model: data.current_model || null,
+            search_paths: data.search_paths || [],
+            total_available: data.total_available || 0,
+            total_loaded: data.total_loaded || 0,
             timestamp: new Date().toISOString()
         };
     } catch (error) {

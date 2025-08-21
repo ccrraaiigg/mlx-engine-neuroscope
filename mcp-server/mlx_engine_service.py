@@ -58,6 +58,12 @@ class MLXEngineService:
                 with open(self.pid_file, 'r') as f:
                     old_pid = int(f.read().strip())
                 
+                # Ignore our own PID (race condition with shell script)
+                current_pid = os.getpid()
+                if old_pid == current_pid:
+                    logger.info(f"Ignoring own PID {current_pid} in PID file")
+                    return False
+                
                 # Check if the process is still running
                 try:
                     os.kill(old_pid, 0)  # Signal 0 just checks if process exists

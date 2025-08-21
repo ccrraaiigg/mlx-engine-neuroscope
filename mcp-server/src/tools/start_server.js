@@ -1,5 +1,21 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import fs from 'fs';
+import fetch from 'node-fetch';
+
+// File-based logging function
+function logToFile(message, data = null) {
+    const timestamp = new Date().toISOString();
+    const logEntry = data 
+        ? `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}\n`
+        : `[${timestamp}] ${message}\n`;
+    
+    try {
+        fs.appendFileSync('start-server.log', logEntry);
+    } catch (error) {
+        // Silently fail to avoid interfering with JSON responses
+    }
+}
 
 // Schema definition
 export const StartServerArgsSchema = z.object({
@@ -24,7 +40,9 @@ export async function startServerTool(args) {
             // Check if already running (unless force is true)
             if (!args.force) {
                 try {
-                    const response = await fetch('http://localhost:50111/health');
+                    const response = await fetch('http://localhost:50111/health', {
+                        timeout: 15 * 60 * 1000 // 15 minutes timeout
+                    });
                     if (response.ok) {
                         return {
                             success: false,
@@ -39,19 +57,20 @@ export async function startServerTool(args) {
             
             // Start MLX Engine service  
             const projectRoot = '/Users/craig/me/behavior/forks/mlx-engine-neuroscope';
-            const scriptPath = path.join(projectRoot, 'mcp-server', 'mlx_engine_service.py');
-            console.error("Current working directory:", process.cwd());
-            console.error("Attempting to start MLX Engine with script:", scriptPath);
+            const mcpServerDir = path.join(projectRoot, 'mcp-server');
+            const scriptPath = path.join(mcpServerDir, 'mlx_engine_service.py');
+            logToFile("Current working directory", process.cwd());
+            logToFile("Attempting to start MLX Engine with script", scriptPath);
             const child = spawn('python3', [scriptPath], {
                 detached: true,
                 stdio: ['ignore', 'pipe', 'pipe'],
-                cwd: projectRoot
+                cwd: mcpServerDir
             });
             
             child.unref();
             
             // Wait a moment for startup
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            await new Promise(resolve => setTimeout(resolve, 8000));
             
             // Verify it started
             try {
@@ -93,8 +112,8 @@ export async function startServerTool(args) {
             // Start visualization server
             const projectRoot = '/Users/craig/me/behavior/forks/mlx-engine-neuroscope';
             const scriptPath = path.join(projectRoot, 'mcp-server', 'src', 'visualization', 'server.js');
-            console.error("Current working directory:", process.cwd());
-            console.error("Attempting to start visualization server with script:", scriptPath);
+            logToFile("Current working directory", process.cwd());
+            logToFile("Attempting to start visualization server with script", scriptPath);
             const child = spawn('/opt/homebrew/bin/node', [scriptPath], {
                 detached: true,
                 stdio: ['ignore', 'pipe', 'pipe'],

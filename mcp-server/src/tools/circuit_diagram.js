@@ -1,6 +1,21 @@
 import { z } from "zod";
 import { writeFile, makeFileReadOnly, writeFileReadOnly } from '../utils/file_utils.js';
 import path from 'path';
+import fs from 'fs';
+
+// File-based logging function
+function logToFile(message, data = null) {
+    const timestamp = new Date().toISOString();
+    const logEntry = data 
+        ? `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}\n`
+        : `[${timestamp}] ${message}\n`;
+    
+    try {
+        fs.appendFileSync('circuit-diagram.log', logEntry);
+    } catch (error) {
+        // Silently fail to avoid interfering with JSON responses
+    }
+}
 
 export const CircuitDiagramArgsSchema = z.object({
     circuit_data: z.any(),
@@ -54,18 +69,18 @@ export async function circuitDiagramTool(args) {
         // Check if this is circuit discovery format
         const hasCircuitDiscovery = circuitData && circuitData.circuits && Array.isArray(circuitData.circuits);
         
-        console.error("DEBUG: hasActivationLayers =", hasActivationLayers);
-        console.error("DEBUG: circuitData.nodes exists =", !!circuitData.nodes);
-        console.error("DEBUG: circuitData keys =", Object.keys(circuitData));
-        console.error("DEBUG: condition check: circuitData.nodes && !hasActivationLayers =", (circuitData.nodes && !hasActivationLayers));
+        logToFile("DEBUG: hasActivationLayers", hasActivationLayers);
+        logToFile("DEBUG: circuitData.nodes exists", !!circuitData.nodes);
+        logToFile("DEBUG: circuitData keys", Object.keys(circuitData));
+        logToFile("DEBUG: condition check: circuitData.nodes && !hasActivationLayers", (circuitData.nodes && !hasActivationLayers));
         
-        console.error("CONTINUING AFTER DEBUG CHECKS...");
+        logToFile("CONTINUING AFTER DEBUG CHECKS...");
         
         // Arrays are already initialized at function start
         
         if (hasCircuitDiscovery) {
             // Handle direct circuit discovery format
-            console.error("PROCESSING CIRCUIT DISCOVERY FORMAT");
+            logToFile("PROCESSING CIRCUIT DISCOVERY FORMAT");
             
             circuitData.circuits.forEach(circuit => {
                 const layerMatch = circuit.layer_name ? circuit.layer_name.match(/(\d+)/) : null;
@@ -144,9 +159,9 @@ export async function circuitDiagramTool(args) {
                 });
             }
             
-            console.error("CIRCUIT DISCOVERY CONVERSION COMPLETED. Nodes:", nodes.length, "Links:", links.length);
+            logToFile("CIRCUIT DISCOVERY CONVERSION COMPLETED", {nodes: nodes.length, links: links.length});
         } else if (hasActivationLayers) {
-            console.error("ENTERING hasActivationLayers BLOCK - this should NOT happen when hasActivationLayers = false!");
+            logToFile("ENTERING hasActivationLayers BLOCK - this should NOT happen when hasActivationLayers = false!");
             
             // Create nodes from activation data
             // nodeId already declared at function start
@@ -517,55 +532,55 @@ export async function circuitDiagramTool(args) {
                 }
             }
             
-            console.error("FINISHED hasActivationLayers BLOCK");
+            logToFile("FINISHED hasActivationLayers BLOCK");
         } // End of hasActivationLayers block
         
-        console.error("SKIPPED hasActivationLayers BLOCK, no real activation data to process...");
+        logToFile("SKIPPED hasActivationLayers BLOCK, no real activation data to process...");
         
         // Debug info available in browser console instead of MCP protocol
         
-        console.error("ABOUT TO CHECK COLOR ASSIGNMENT CONDITION");
-        console.error("Condition values: circuitData.nodes =", !!circuitData.nodes, "hasActivationLayers =", hasActivationLayers);
+        logToFile("ABOUT TO CHECK COLOR ASSIGNMENT CONDITION");
+        logToFile("Condition values", {circuitDataNodes: !!circuitData.nodes, hasActivationLayers: hasActivationLayers});
         
         // FORCE color assignment for simple input data with error handling  
         if (circuitData.nodes && !hasActivationLayers) {
                 try {
-                    console.error("ENTERING color assignment block...");
-                    console.error("circuitData.nodes length:", circuitData.nodes.length);
+                    logToFile("ENTERING color assignment block...");
+                    logToFile("circuitData.nodes length", circuitData.nodes.length);
                     
                     for (let i = 0; i < circuitData.nodes.length; i++) {
                         const node = circuitData.nodes[i];
-                        console.error("Processing node", i, ":", node.id, "component:", node.component, "existing color:", node.color);
+                        logToFile("Processing node", {index: i, id: node.id, component: node.component, existingColor: node.color});
                         
                         // Preserve existing color if available, otherwise assign based on component
                          if (!node.color) {
                              if (node.component === 'mlp' || node.type === 'mlp') {
                                  node.color = '#ff6666'; // Red for MLP
-                                 console.error("ASSIGNED RED to MLP:", node.id);
+                                 logToFile("ASSIGNED RED to MLP", node.id);
                              } else if (node.component === 'attention' || node.type === 'attention') {
                                  node.color = '#66aaff'; // Blue for attention  
-                                 console.error("ASSIGNED BLUE to attention:", node.id);
+                                 logToFile("ASSIGNED BLUE to attention", node.id);
                              } else {
                                  throw new Error(`Node '${node.id}' has no color property and unknown component/type. Expected 'mlp' or 'attention' component, or provide explicit color property. Node data: ${JSON.stringify(node)}`);
                              }
                          } else {
-                             console.error("PRESERVED existing color for:", node.id, "color:", node.color);
+                             logToFile("PRESERVED existing color for", {id: node.id, color: node.color});
                          }
                         
                         // Force assign required properties
                         if (!node.label) node.label = node.id;
                         if (!node.value) node.value = 0.8; // Required for node sizing
-                        console.error("Node", i, "final color:", node.color);
+                        logToFile("Node final color", {index: i, color: node.color});
                     }
                     
                     // Use the modified data
                     nodes = circuitData.nodes;
                     links = circuitData.links || [];
-                    console.error("COLOR ASSIGNMENT COMPLETED. nodes length:", nodes.length);
+                    logToFile("COLOR ASSIGNMENT COMPLETED", {nodesLength: nodes.length});
                     
                 } catch (error) {
-                    console.error("ERROR in color assignment:", error.message);
-                    console.error("Error stack:", error.stack);
+                    logToFile("ERROR in color assignment", error.message);
+                    logToFile("Error stack", error.stack);
                 }
             }
             
@@ -582,6 +597,11 @@ export async function circuitDiagramTool(args) {
         
         const nodeCount = processedData.nodes ? processedData.nodes.length : 0;
         const linkCount = processedData.links ? processedData.links.length : 0;
+        
+        // Extract prompt and generated text from circuit data
+        const inputPrompt = circuitData.prompt || "Unknown prompt";
+        const outputText = circuitData.generated_text || "Unknown output";
+        const totalActivations = circuitData.total_activations || "Unknown";
         
         // Create a real visualization using Cosmos Graph
         const htmlContent = `<!DOCTYPE html>
@@ -645,8 +665,8 @@ export async function circuitDiagramTool(args) {
         <h3>📊 Real Activation Data Summary</h3>
         <p><strong>Model:</strong> GPT-OSS-20B (20 layers, 768 hidden dimensions)</p>
         <p><strong>Nodes:</strong> ${nodeCount} | <strong>Links:</strong> ${linkCount}</p>
-        <p><strong>Input:</strong> "What is 7 + 5?" | <strong>Output:</strong> "12"</p>
-        <p><strong>Total Activations Captured:</strong> 48 tensors across layers 0 and 5</p>
+        <p><strong>Input:</strong> "${inputPrompt}" | <strong>Output:</strong> "${outputText}"</p>
+        <p><strong>Total Activations Captured:</strong> ${totalActivations} tensors across multiple layers</p>
     </div>
     <div class="physics-controls">
         <button id="physics-btn" class="physics-btn">Play Physics</button>
@@ -657,16 +677,16 @@ export async function circuitDiagramTool(args) {
     <script type="module">
         // Import 3D Force Graph renderer
         import { ForceGraph3DRenderer } from './renderer/force_graph_3d_renderer.js';
-        console.log('ForceGraph3DRenderer imported successfully');
+        logToFile('ForceGraph3DRenderer imported successfully');
         
         // Real circuit data from MLX Engine
         const rawCircuitData = ${JSON.stringify(processedData)};
         
-        console.log('🔥 Initializing 3D Force Graph visualization');
-        console.log('Raw activation data keys:', Object.keys(rawCircuitData));
-        console.log('Data conversion status:', rawCircuitData.nodes ? 'Already converted' : 'Raw activation data');
-        console.log('Expected nodes:', rawCircuitData.nodes?.length || 'TBD');
-        console.log('Expected links:', rawCircuitData.links?.length || 'TBD');
+        logToFile('🔥 Initializing 3D Force Graph visualization');
+                logToFile('Raw activation data keys', Object.keys(rawCircuitData));
+                logToFile('Data conversion status', rawCircuitData.nodes ? 'Already converted' : 'Raw activation data');
+                logToFile('Expected nodes', rawCircuitData.nodes?.length || 'TBD');
+                logToFile('Expected links', rawCircuitData.links?.length || 'TBD');
         
         async function initializeForceGraph() {
             try {
@@ -675,13 +695,13 @@ export async function circuitDiagramTool(args) {
                 
                 // Ensure we have properly converted nodes/links data
                 if (rawCircuitData.nodes && rawCircuitData.links) {
-                    console.log('✅ Using converted graph data');
+                    logToFile('✅ Using converted graph data');
                     graphData = rawCircuitData;
                 } else {
                     throw new Error('❌ No valid graph data found - data conversion failed. Check server-side conversion logic.');
                 }
                 
-                console.log('Graph data for 3D Force Graph:', graphData);
+                logToFile('Graph data for 3D Force Graph', graphData);
                 
                 // Initialize 3D Force Graph renderer
                 const container = document.getElementById('graph-container');
@@ -701,27 +721,27 @@ export async function circuitDiagramTool(args) {
                     enablePointerInteraction: true
                 });
                 
-                console.log('3D Force Graph renderer initialized');
+                logToFile('3D Force Graph renderer initialized');
                 
                 // Add event listeners for node interactions
                 renderer.onNodeHover((node) => {
                     if (node) {
-                        console.log('Hovering node:', node.label || node.id);
+                        logToFile('Hovering node', node.label || node.id);
                     }
                 });
                 
                 renderer.onNodeClick((node) => {
                     if (node) {
-                        console.log('Clicked node:', node.label || node.id);
+                        logToFile('Clicked node', node.label || node.id);
                     }
                 });
                 
                 // Load the graph data
                 await renderer.loadGraph(graphData);
-                console.log('✅ Graph loaded successfully');
+                logToFile('✅ Graph loaded successfully');
                 
                 // Labels are handled by the ForceGraph3DRenderer internally
-                console.log('Node labels enabled via renderer configuration');
+                logToFile('Node labels enabled via renderer configuration');
                 
                 // Physics control setup - ensure DOM is ready
                 let physicsPlaying = true;
@@ -734,13 +754,18 @@ export async function circuitDiagramTool(args) {
                     // Set correct initial button state (simulation starts running)
                     if (physicsBtn) {
                         physicsBtn.textContent = 'Pause Physics';
-                        console.log('Physics initialized as running');
+                        logToFile('Physics initialized as running');
                         
                         // Physics toggle functionality using d3Force methods
                         physicsBtn.addEventListener('click', () => {
                             if (physicsPlaying) {
                                 // Disable physics forces
                                 if (renderer.graph && typeof renderer.graph.d3Force === 'function') {
+	window.forces = []
+		window.forces.charge = renderer.graph.d3Force('charge')
+		window.forces.link = renderer.graph.d3Force('link')
+		window.forces.center = renderer.graph.d3Force('center')
+
                                     renderer.graph.d3Force('charge', null)
                                                   .d3Force('link', null)
                                                   .d3Force('center', null);
@@ -758,21 +783,21 @@ export async function circuitDiagramTool(args) {
                                     // Ensure node dragging remains enabled
                                     if (typeof renderer.graph.enableNodeDrag === 'function') {
                                         renderer.graph.enableNodeDrag(true);
-                                        console.log('Node dragging enabled with forces disabled');
+                                        logToFile('Node dragging enabled with forces disabled');
                                     }
                                     
                                     physicsBtn.textContent = 'Play Physics';
                                     physicsPlaying = false;
-                                    console.log('Physics forces disabled, nodes fixed in position');
+                                    logToFile('Physics forces disabled, nodes fixed in position');
                                 } else {
-                                    console.error('d3Force method not available on graph instance');
+                                    logToFile('d3Force method not available on graph instance');
                                 }
                             } else {
                                 // Re-enable physics forces with proper parameters
                                 if (renderer.graph && typeof renderer.graph.d3Force === 'function') {
                                     enablePhysicsForces();
                                 } else {
-                                    console.error('d3Force method not available on graph instance');
+                                    logToFile('d3Force method not available on graph instance');
                                 }
                             }
                             
@@ -815,9 +840,9 @@ export async function circuitDiagramTool(args) {
                                     }
                                     
                                     // Re-enable forces with proper D3 force simulation
-                                    renderer.graph.d3Force('charge', window.d3?.forceManyBody?.().strength(-120) || d3.forceManyBody().strength(-120))
-                                                  .d3Force('link', window.d3?.forceLink?.(links).id(d => d.id).distance(100) || d3.forceLink(links).id(d => d.id).distance(100))
-                                                  .d3Force('center', window.d3?.forceCenter?.(0, 0) || d3.forceCenter(0, 0))
+renderer.graph.d3Force('charge', window.forces.charge)
+                                                  .d3Force('link', window.forces.link)
+                                                  .d3Force('center', window.forces.center)
                                                   .resumeAnimation();
                                     
                                     // Gradually release positions after forces are stable
@@ -831,11 +856,11 @@ export async function circuitDiagramTool(args) {
                                     
                                     physicsBtn.textContent = 'Pause Physics';
                                     physicsPlaying = true;
-                                    console.log('Physics forces re-enabled using Method 1 (standard)');
+                                    logToFile('Physics forces re-enabled using Method 1 (standard)');
                                     
                                 } catch (e1) {
                                     restorePositions();
-                                    console.warn('Method 1 failed, trying Method 2 (refresh):', e1);
+                                    logToFile('Method 1 failed, trying Method 2 (refresh)', e1.message);
                                     
                                     try {
                                         // Method 2: Use refresh() to reset everything
@@ -846,11 +871,11 @@ export async function circuitDiagramTool(args) {
                                         
                                         physicsBtn.textContent = 'Pause Physics';
                                         physicsPlaying = true;
-                                        console.log('Physics forces re-enabled using Method 2 (refresh)');
+                                        logToFile('Physics forces re-enabled using Method 2 (refresh)');
                                         
                                     } catch (e2) {
                                         restorePositions();
-                                        console.warn('Method 2 failed, trying Method 3 (direct simulation):', e2);
+                                        logToFile('Method 2 failed, trying Method 3 (direct simulation)', e2.message);
                                         
                                         try {
                                             // Method 3: Access D3 simulation directly
@@ -864,11 +889,11 @@ export async function circuitDiagramTool(args) {
                                             
                                             physicsBtn.textContent = 'Pause Physics';
                                             physicsPlaying = true;
-                                            console.log('Physics forces re-enabled using Method 3 (direct simulation)');
+                                            logToFile('Physics forces re-enabled using Method 3 (direct simulation)');
                                             
                                         } catch (e3) {
                                             restorePositions();
-                                            console.warn('Method 3 failed, trying Method 4 (gradual enabling):', e3);
+                                            logToFile('Method 3 failed, trying Method 4 (gradual enabling)', e3.message);
                                             
                                             try {
                                                 // Method 4: Gradual force re-enabling
@@ -905,11 +930,11 @@ export async function circuitDiagramTool(args) {
                                                 
                                                 physicsBtn.textContent = 'Pause Physics';
                                                 physicsPlaying = true;
-                                                console.log('Physics forces re-enabled using Method 4 (gradual)');
+                                                logToFile('Physics forces re-enabled using Method 4 (gradual)');
                                                 
                                             } catch (e4) {
                                                 restorePositions();
-                                                console.error('All physics re-enabling methods failed:', e4);
+                                                logToFile('All physics re-enabling methods failed', e4.message);
                                                 
                                                 // Last resort: just unfix nodes and restart animation
                                                 try {
@@ -925,9 +950,9 @@ export async function circuitDiagramTool(args) {
                                                     
                                                     physicsBtn.textContent = 'Pause Physics';
                                                     physicsPlaying = true;
-                                                    console.log('Physics re-enabled using last resort method');
+                                                    logToFile('Physics re-enabled using last resort method');
                                                 } catch (finalError) {
-                                                    console.error('Complete failure to re-enable physics:', finalError);
+                                                    logToFile('Complete failure to re-enable physics', finalError.message);
                                                 }
                                             }
                                         }
@@ -941,7 +966,7 @@ export async function circuitDiagramTool(args) {
                             }
                         });
                     } else {
-                        console.error('Physics button not found in DOM');
+                        logToFile('Physics button not found in DOM');
                     }
                 };
                 
@@ -953,10 +978,10 @@ export async function circuitDiagramTool(args) {
                     setTimeout(setupPhysicsControls, 100);
                 }
                 
-                console.log('3D Force Graph visualization ready');
+                logToFile('3D Force Graph visualization ready');
                 
             } catch (error) {
-                console.error('3D Force Graph initialization failed:', error);
+                logToFile('3D Force Graph initialization failed', error.message);
                 throw error; // No fallbacks - we use 3D Force Graph or fail gracefully
             }
         }

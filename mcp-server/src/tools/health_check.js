@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import fetch from 'node-fetch';
 
 // Schema definition
 export const HealthCheckArgsSchema = z.object({
@@ -19,7 +20,9 @@ export async function healthCheckTool(args) {
     
     async function checkMLXEngine() {
         try {
-            const response = await fetch('http://localhost:50111/health');
+            const response = await fetch('http://localhost:50111/health', {
+                timeout: 15 * 60 * 1000 // 15 minutes timeout
+            });
             if (response.ok) {
                 const data = await response.json();
                 return {
@@ -47,7 +50,9 @@ export async function healthCheckTool(args) {
     
     async function checkVisualizationServer() {
         try {
-            const response = await fetch('http://localhost:8888/health');
+            const response = await fetch('http://localhost:8888/health', {
+                timeout: 15 * 60 * 1000 // 15 minutes timeout
+            });
             if (response.ok) {
                 const data = await response.json();
                 return {

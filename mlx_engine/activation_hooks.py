@@ -312,7 +312,45 @@ class ActivationHookManager:
             print(f"[WARNING] {error_msg}")
             
         return spec.hook_id
+
+    def add_hook(self, spec: Union[ActivationHookSpec, dict]) -> str:
+        """Alias for register_hook to maintain compatibility with upstream code."""
+        # Convert dict to ActivationHookSpec if needed
+        if isinstance(spec, dict):
+            spec = ActivationHookSpec(
+                layer_name=spec['layer_name'],
+                component=ComponentType(spec.get('component', 'attention')),
+                hook_id=spec.get('hook_id'),
+                capture_input=spec.get('capture_input', False),
+                capture_output=spec.get('capture_output', True)
+            )
+        return self.register_hook(spec)
+
+    def enable_hooks(self):
+        """Enable all registered hooks. This is a no-op since hooks are active when registered."""
+        pass
     
+    def disable_hooks(self):
+        """Disable all registered hooks. This is a no-op since hooks are managed per registration."""
+        pass
+    
+    def get_captured_activations(self) -> dict:
+        """Get all captured activations from registered hooks."""
+        activations = {}
+        for hook_id, hook in self.hooks.items():
+            if hook.activations:
+                activations[hook_id] = [act.to_dict() for act in hook.activations]
+        return activations
+    
+    def clear_captured_activations(self):
+        """Clear all captured activations from registered hooks."""
+        for hook in self.hooks.values():
+            hook.activations.clear()
+    
+    def remove_all_hooks(self):
+        """Remove all registered hooks. Alias for clear_all_hooks."""
+        self.clear_all_hooks()
+
     def unregister_hook(self, hook_id: str):
         """Unregister an activation hook and clean up any patched methods."""
         if hook_id in self._registered_handles:

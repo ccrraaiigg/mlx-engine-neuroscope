@@ -191,21 +191,24 @@ async function mlxAnalyzeMath(params) {
  * @returns {Promise<object>} Attention analysis results
  */
 async function mlxAnalyzeAttention(params) {
-  logger.info(`Analyzing attention patterns for layers: ${params.layers.join(', ')}`);
+  logger.info(`Analyzing attention patterns for layers: ${params.layers.join(', ')} with scope: ${params.scope || 'layer_level'}`);
   
   const client = getMLXClient();
   
   try {
-    const result = await client.analyzeAttention(params.prompt, params.layers);
+    const result = await client.analyzeAttention(params.prompt, params.layers, params.scope);
     
     return {
       success: true,
       prompt: params.prompt,
       layers: params.layers,
+      scope: params.scope || 'layer_level',
       analysis_type: 'attention_patterns',
-      patterns: result.patterns,
       attention_heads: result.attention_heads,
-      pattern_types: result.pattern_types,
+      patterns: result.patterns,
+      cross_layer_dependencies: result.cross_layer_dependencies,
+      token_attributions: result.token_attributions,
+      visualization_data: result.visualization_data,
       execution_time_ms: result.execution_time_ms,
     };
     
@@ -216,6 +219,7 @@ async function mlxAnalyzeAttention(params) {
       error: error.message,
       prompt: params.prompt,
       layers: params.layers,
+      scope: params.scope,
     };
   }
 }
@@ -490,7 +494,7 @@ export const mlxTools = [
   
   {
     name: 'mlx_analyze_attention',
-    description: 'Analyzes attention patterns in specified layers',
+    description: 'Analyzes attention patterns in specified layers with comprehensive circuit discovery',
     inputSchema: {
       type: 'object',
       properties: {
@@ -502,12 +506,18 @@ export const mlxTools = [
         layers: {
           type: 'array',
           items: { type: 'integer', minimum: 0, maximum: 50 },
-          description: 'Layers to analyze attention in',
+          description: 'Layers to analyze attention in (optional for global analysis)',
           minItems: 1,
           maxItems: 10,
         },
+        scope: {
+          type: 'string',
+          enum: ['head_level', 'layer_level', 'cross_layer', 'global'],
+          default: 'layer_level',
+          description: 'Analysis scope: head_level (individual heads), layer_level (layer aggregates), cross_layer (dependencies), global (full model)',
+        },
       },
-      required: ['prompt', 'layers'],
+      required: ['prompt'],
       additionalProperties: false,
     },
     handler: mlxAnalyzeAttention,
