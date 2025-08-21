@@ -49,6 +49,10 @@ export class MCPServer {
   async start() {
     try {
       this.logger.info('Starting MCP Server...');
+      
+      // Clean up discover-circuits.log on startup
+      await this.cleanupLogFiles();
+      
       this.running = true;
       this.startTime = Date.now();
       this.logger.info('MCP Server started successfully');
@@ -59,6 +63,25 @@ export class MCPServer {
     } catch (error) {
       this.logger.error(`Failed to start MCP Server: ${error.message}`);
       throw error;
+    }
+  }
+
+  /**
+   * Clean up log files on startup
+   */
+  async cleanupLogFiles() {
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      // Remove discover-circuits.log if it exists
+      const logPath = path.join(process.cwd(), 'discover-circuits.log');
+      if (fs.existsSync(logPath)) {
+        fs.unlinkSync(logPath);
+        this.logger.info('Removed discover-circuits.log on startup');
+      }
+    } catch (error) {
+      this.logger.warn(`Failed to clean up log files: ${error.message}`);
     }
   }
 

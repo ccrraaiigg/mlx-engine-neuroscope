@@ -346,4 +346,4 @@ class CacheWrapper:
         """
         Add the generated token to the token list, so that we can map the token to the KV cache.
         """
-        self.tokens = mx.concat([self.tokens, mx.array([token])])
+        self.tokens = mx.concat([self.tokens, mx.array([token], dtype=mx.int32)])

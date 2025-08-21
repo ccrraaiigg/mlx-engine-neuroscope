@@ -305,6 +305,18 @@ class CircuitEndpoint(EndpointBase):
             logger.info(f"PROGRESS: Total combinations to analyze: {len(target_layers) * len(target_components) * len(intervention_types)}")
             
             try:
+                import gc
+                
+                # Clear GPU memory before starting intensive operation
+                try:
+                    import mlx.core as mx
+                    if hasattr(mx, 'metal') and hasattr(mx.metal, 'clear_cache'):
+                        mx.metal.clear_cache()
+                        logger.info("GPU memory cleared before enhanced causal trace")
+                    gc.collect()
+                except Exception as cleanup_error:
+                    logger.warning(f"Pre-operation GPU cleanup failed: {cleanup_error}")
+                
                 start_time = time.time()
                 logger.info(f"PROGRESS: [0%] Starting enhanced causal trace at {time.strftime('%H:%M:%S')}")
                 
@@ -325,11 +337,48 @@ class CircuitEndpoint(EndpointBase):
                     logger.info(f"First result type: {type(enhanced_results[0])}")
                     logger.info(f"First result attributes: {dir(enhanced_results[0])}")
             except Exception as trace_error:
-                logger.error(f"Error during enhanced_causal_trace: {trace_error}")
+                # Check for Metal/GPU specific errors
+                error_str = str(trace_error).lower()
+                is_metal_error = any(keyword in error_str for keyword in [
+                    'metal', 'gpu', 'command buffer', 'completion queue', 
+                    'device', 'memory', 'resource', 'mtl', 'cuda', 'mlx'
+                ])
+                
+                if is_metal_error:
+                    logger.error(f"Metal/GPU error during enhanced_causal_trace: {trace_error}")
+                    logger.error("Performing emergency GPU cleanup after Metal error")
+                    
+                    # Emergency GPU cleanup
+                    try:
+                        import mlx.core as mx
+                        if hasattr(mx, 'metal') and hasattr(mx.metal, 'clear_cache'):
+                            mx.metal.clear_cache()
+                        
+                        # Force multiple garbage collections
+                        for _ in range(3):
+                            gc.collect()
+                            time.sleep(0.1)
+                            
+                    except Exception as cleanup_error:
+                        logger.error(f"Emergency cleanup failed: {cleanup_error}")
+                else:
+                    logger.error(f"Error during enhanced_causal_trace: {trace_error}")
+                
                 logger.error(f"Trace error type: {type(trace_error)}")
                 import traceback
                 logger.error(f"Trace error traceback: {traceback.format_exc()}")
-                raise CircuitDiscoveryError(f"Enhanced causal trace failed: {str(trace_error)}", "enhanced_causal_trace", trace_error)
+                
+                # Provide more specific error message for Metal errors
+                if is_metal_error:
+                    raise CircuitDiscoveryError(
+                        f"Metal/GPU error in enhanced causal trace: {str(trace_error)}. "
+                        f"This may be due to GPU memory issues or Metal framework problems. "
+                        f"Try reducing the model size or restarting the service.", 
+                        "metal_gpu_error", 
+                        trace_error
+                    )
+                else:
+                    raise CircuitDiscoveryError(f"Enhanced causal trace failed: {str(trace_error)}", "enhanced_causal_trace", trace_error)
             
             # Format results for API response
             logger.info("Formatting results for API response...")

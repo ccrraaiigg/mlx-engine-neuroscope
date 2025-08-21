@@ -195,7 +195,7 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
     
     # Default model path (can be overridden via environment variable)
-    default_model_path = "../models/nightmedia/gpt-oss-20b-q4-hi-mlx"
+    default_model_path = "/Users/craig/.lmstudio/models/nightmedia/gpt-oss-20b-q5-hi-mlx"
     model_path = os.environ.get('MLX_MODEL_PATH', default_model_path)
     
     # Check if model exists
