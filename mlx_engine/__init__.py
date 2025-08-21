@@ -18,6 +18,7 @@ import os
 
 from .utils.disable_hf_download import patch_huggingface_hub
 from .utils.register_models import register_models
+from .utils.patch_attention import patch_mlx_attention
 
 
 from .generate import (
@@ -32,6 +33,7 @@ from .generate import (
 
 patch_huggingface_hub()
 register_models()
+patch_mlx_attention()
 
 
 def _set_outlines_cache_dir(cache_dir: Union[Path, str]):

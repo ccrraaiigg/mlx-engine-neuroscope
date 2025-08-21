@@ -326,6 +326,13 @@ class EnhancedGradientAttribution:
         # Tokenize the prompt first
         tokens = self._tokenize(prompt)
         
+        # Ensure tokens are properly shaped and typed for embedding layer
+        if len(tokens.shape) == 1:
+            tokens = tokens[None, :]  # Add batch dimension if needed
+        
+        # Ensure tokens are integers
+        tokens = mx.array(tokens, dtype=mx.int32)
+        
         # Get embeddings from the model's embedding layer
         if hasattr(self.model, 'embed_tokens'):
             return self.model.embed_tokens(tokens)
@@ -350,37 +357,87 @@ class EnhancedGradientAttribution:
                         # Simple fallback objective
                         return mx.sum(embeddings ** 2)
                     
-                    # Run forward pass through model
-                    if hasattr(self.model_kit.model, '__call__'):
-                        # Convert embeddings to proper input format
-                        if len(embeddings.shape) == 2:
-                            # Add batch dimension if needed
-                            model_input = mx.expand_dims(embeddings, axis=0)
-                        else:
-                            model_input = embeddings
+                    # Use model_kit's generate method with embeddings as input
+                    # We need to create a dummy prompt and replace its embeddings
+                    try:
+                        # Create a simple prompt to get the right structure
+                        dummy_prompt = "test"
                         
-                        # Forward pass
-                        output = self.model_kit.model(model_input)
+                        # Get the model's forward pass through model_kit
+                        # Since we can't directly pass embeddings, we'll use a workaround
+                        # by temporarily replacing the embedding layer's output
                         
-                        # Extract logits
-                        if isinstance(output, tuple):
-                            logits = output[0]
-                        else:
-                            logits = output
-                        
-                        # Focus on target tokens if specified
-                        if target_tokens is not None and len(target_tokens) > 0:
-                            # Ensure target_tokens are integers for proper indexing
-                            target_indices = mx.array(target_tokens, dtype=mx.int32)
-                            # Extract logits for target tokens
-                            if len(logits.shape) == 3:  # [batch, seq, vocab]
-                                target_logits = logits[0, -1, target_indices]  # Last position, target tokens
+                        # Store original embedding function
+                        original_embed = None
+                        if hasattr(self.model, 'model') and hasattr(self.model.model, 'embed_tokens'):
+                            original_embed = self.model.model.embed_tokens
+                            
+                            # Create a function that returns our custom embeddings
+                            def custom_embed(tokens):
+                                # Return our custom embeddings instead of computing from tokens
+                                return embeddings
+                            
+                            # Temporarily replace the embedding function
+                            self.model.model.embed_tokens = custom_embed
+                            
+                            # Use model_kit to generate with our custom embeddings
+                            tokens = self.model_kit.tokenize(dummy_prompt)
+                            if len(tokens) > 0:
+                                # Convert to mx.array with proper dtype
+                                token_array = mx.array(tokens, dtype=mx.int32)
+                                
+                                # Get logits using the model
+                                logits = self.model(token_array)
+                                
+                                # Restore original embedding function
+                                if original_embed is not None:
+                                    self.model.model.embed_tokens = original_embed
+                                
+                                # Extract logits if it's a tuple
+                                if isinstance(logits, tuple):
+                                    logits = logits[0]
+                                
+                                # Focus on target tokens if specified
+                                if target_tokens is not None and len(target_tokens) > 0:
+                                    # Create a mask for target tokens instead of using gather
+                                    vocab_size = logits.shape[-1]
+                                    target_mask = mx.zeros(vocab_size, dtype=mx.float32)
+                                    for token_id in target_tokens:
+                                        # Replace JAX-style .at[] with MLX array manipulation
+                                        mask_copy = target_mask.copy()
+                                        mask_copy = mx.concatenate([
+                                            mask_copy[:int(token_id)],
+                                            mx.array([1.0], dtype=mx.float32),
+                                            mask_copy[int(token_id)+1:]
+                                        ])
+                                        target_mask = mask_copy
+                                    
+                                    # Apply mask to logits to focus on target tokens
+                                    if len(logits.shape) == 3:  # [batch, seq, vocab]
+                                        masked_logits = logits[0, -1] * target_mask  # Last position
+                                    else:
+                                        masked_logits = logits * target_mask
+                                    return mx.sum(masked_logits)
+                                else:
+                                    # Sum all logits as objective
+                                    return mx.sum(logits)
+                                    
                             else:
-                                target_logits = logits[target_indices]
-                            return mx.sum(target_logits)
+                                # Restore original embedding function
+                                if original_embed is not None:
+                                    self.model.model.embed_tokens = original_embed
+                                return mx.sum(embeddings ** 2)
                         else:
-                            # Sum all logits as objective
-                            return mx.sum(logits)
+                            # Fallback: simple objective function
+                            return mx.sum(embeddings ** 2)
+                            
+                    except Exception as model_error:
+                        logger.warning(f"Error in model forward pass: {model_error}")
+                        # Restore original embedding function if it was modified
+                        if 'original_embed' in locals() and original_embed is not None:
+                            self.model.model.embed_tokens = original_embed
+                        # Simple fallback objective
+                        return mx.sum(embeddings ** 2)
                     else:
                         # Fallback: simple objective function
                         return mx.sum(embeddings ** 2)
@@ -428,11 +485,19 @@ class EnhancedGradientAttribution:
             # Sample a subset of dimensions for efficiency
             num_dims = flat_embeddings.shape[0]
             sample_size = min(100, num_dims)  # Limit to 100 dimensions for efficiency
-            indices = mx.random.choice(num_dims, sample_size, replace=False)
+            # Use random permutation instead of choice (which doesn't exist in MLX)
+            all_indices = mx.arange(num_dims)
+            perm = mx.random.permutation(all_indices)
+            indices = perm[:sample_size]
             
             for i in indices:
-                # Create perturbed input
-                perturbed = flat_embeddings.at[i].add(epsilon)
+                # Create perturbed input using proper MLX array operations
+                perturbed = flat_embeddings.copy()
+                perturbed = mx.concatenate([
+                    perturbed[:i],
+                    mx.array([perturbed[i] + epsilon]),
+                    perturbed[i+1:]
+                ])
                 perturbed_embeddings = mx.reshape(perturbed, input_embeddings.shape)
                 
                 # Compute perturbed output
@@ -440,7 +505,12 @@ class EnhancedGradientAttribution:
                 
                 # Finite difference approximation
                 gradient = (perturbed_output - baseline_output) / epsilon
-                flat_gradients = flat_gradients.at[i].set(gradient)
+                # Update gradients using proper MLX array operations
+                flat_gradients = mx.concatenate([
+                    flat_gradients[:i],
+                    mx.array([gradient]),
+                    flat_gradients[i+1:]
+                ])
             
             # Reshape back to original shape
             gradients = mx.reshape(flat_gradients, input_embeddings.shape)

@@ -81,7 +81,13 @@ class MoELayer(nn.Module):
             expert_weights = expert_weights.sum(axis=-1, keepdims=True)
             
             # Add weighted expert output to the result
-            output = output.at[expert_mask].add(expert_output * expert_weights)
+            # Replace JAX-style .at[] with MLX array manipulation
+            weighted_output = expert_output * expert_weights
+            output_copy = output.copy()
+            output_copy = mx.where(expert_mask.reshape(-1, 1), 
+                                 output_copy + weighted_output, 
+                                 output_copy)
+            output = output_copy
         
         # Reshape back to original dimensions
         output = output.reshape(batch_size, seq_len, hidden_dim)

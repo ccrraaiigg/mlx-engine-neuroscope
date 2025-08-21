@@ -206,7 +206,14 @@ class ActivationPatcher:
             result = activation.copy()
             for pos in spec.target_positions:
                 if pos < activation.shape[0]:
-                    result = result.at[pos].set(0.0)
+                    # Replace JAX-style .at[] with MLX array manipulation
+                    result_copy = result.copy()
+                    result_copy = mx.concatenate([
+                        result_copy[:pos],
+                        mx.zeros((1,) + result_copy.shape[1:], dtype=result_copy.dtype),
+                        result_copy[pos+1:]
+                    ])
+                    result = result_copy
             return result * (1.0 - spec.strength) + result * 0.0 * spec.strength
         else:
             # Ablate entire activation
@@ -219,7 +226,14 @@ class ActivationPatcher:
             result = activation.copy()
             for pos in spec.target_positions:
                 if pos < activation.shape[0]:
-                    result = result.at[pos].set(mean_activation[0])
+                    # Replace JAX-style .at[] with MLX array manipulation
+                    result_copy = result.copy()
+                    result_copy = mx.concatenate([
+                        result_copy[:pos],
+                        mean_activation[0:1],
+                        result_copy[pos+1:]
+                    ])
+                    result = result_copy
             return result
         else:
             return activation * (1.0 - spec.strength) + mean_activation * spec.strength
@@ -239,7 +253,14 @@ class ActivationPatcher:
             result = activation.copy()
             for pos in spec.target_positions:
                 if pos < activation.shape[0] and pos < replacement.shape[0]:
-                    result = result.at[pos].set(replacement[pos])
+                    # Replace JAX-style .at[] with MLX array manipulation
+                    result_copy = result.copy()
+                    result_copy = mx.concatenate([
+                        result_copy[:pos],
+                        replacement[pos:pos+1],
+                        result_copy[pos+1:]
+                    ])
+                    result = result_copy
             return result
         else:
             return activation * (1.0 - spec.strength) + replacement * spec.strength

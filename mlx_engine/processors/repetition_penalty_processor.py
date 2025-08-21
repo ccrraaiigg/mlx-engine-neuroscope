@@ -45,6 +45,6 @@ class RepetitionPenaltyProcessor:
             historical_tokens,
             dtype=mx.int64,
         )
-        all_tokens_to_consider = mx.concat([historical_tokens_mx, tokens])
+        all_tokens_to_consider = mx.concatenate([historical_tokens_mx, tokens])
         result = self.repetition_penalty_function(all_tokens_to_consider, logits)
         return result

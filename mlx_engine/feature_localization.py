@@ -665,9 +665,19 @@ class FeatureLocalizer:
             # Add this pattern to all samples with some noise
             for sample_idx in range(num_samples):
                 noise = mx.random.normal((block_size,)) * 0.3
-                activations = activations.at[sample_idx, i:end_idx].set(
-                    activations[sample_idx, i:end_idx] + base_pattern + noise
-                )
+                # Replace JAX-style .at[] with MLX array manipulation
+                updated_slice = activations[sample_idx, i:end_idx] + base_pattern + noise
+                activations_copy = activations.copy()
+                activations_copy = mx.concatenate([
+                    activations_copy[:sample_idx],
+                    mx.concatenate([
+                        activations_copy[sample_idx:sample_idx+1, :i],
+                        updated_slice.reshape(1, -1),
+                        activations_copy[sample_idx:sample_idx+1, end_idx:]
+                    ], axis=1).reshape(1, -1),
+                    activations_copy[sample_idx+1:]
+                ], axis=0)
+                activations = activations_copy
         
         return activations
 

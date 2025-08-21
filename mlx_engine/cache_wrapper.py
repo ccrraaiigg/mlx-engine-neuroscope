@@ -91,8 +91,8 @@ class CacheWrapper:
         mask = prompt_tokens[:min_length] == current_tokens[:min_length]
 
         # Find the index where the first mismatch occurs
-        if mx.any(mask == False):  # noqa E712
-            common_length = int(mx.argmax(mask == False))  # noqa E712
+        if mx.any(~mask):  # Use proper boolean negation
+            common_length = int(mx.argmax(~mask))  # Use proper boolean negation
         else:
             common_length = int(min_length)
 
@@ -346,4 +346,4 @@ class CacheWrapper:
         """
         Add the generated token to the token list, so that we can map the token to the KV cache.
         """
-        self.tokens = mx.concat([self.tokens, mx.array([token], dtype=mx.int32)])
+        self.tokens = mx.concatenate([self.tokens, mx.array([token], dtype=mx.int32)])

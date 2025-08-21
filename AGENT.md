@@ -26,9 +26,13 @@ documents just as much as the official spec design document is.
 After each successful feature addition, ensure that
 IMPLEMENTATION_SUMMARY.md is up to date.
 
+## Using the MLX Python API
+
+The documentation is at https://ml-explore.github.io/mlx
+
 ## Using the shell
 
-The shell is 'tcsh', not 'bash'. Always wait for commands to
+The shell is 'zsh', not 'bash'. Always wait for commands to
 finish. You are not allowed to run any code from the shell. The only
 way you are allowed to run code is via the MCP server tools.
 
@@ -55,11 +59,6 @@ beginning of the function. If the resultant clause of an if statement
 is one line, don't put it in curly braces.
 
 Never bundle sources. Never use webpack or anything like it.
-
-## Using Cosmos Graph (@cosmos.gl/graph)
-
-The API documentation is at /Users/craig/forks/graph/src/stories/. Use
-@interacta/css-labels for labels.
 
 ## Using the mcp-server MCP Server
 
