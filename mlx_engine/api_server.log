@@ -1,7 +1,7 @@
-2025-08-21 14:49:54,407 - mlx_engine.api_server - INFO - <module>:32 - API Server logging initialized. Log file: /Users/craig/me/behavior/forks/mlx-engine-neuroscope/mcp-server/../mlx_engine/api_server.log
-2025-08-21 14:49:54,443 - mlx_engine.api_server - INFO - <module>:97 - Attempting to import from activation_hooks...
-2025-08-21 14:49:54,443 - mlx_engine.api_server - INFO - <module>:99 - Successfully imported ActivationHookSpec: <class 'mlx_engine.activation_hooks.ActivationHookSpec'>
-2025-08-21 14:49:54,445 - mlx_engine.api_server - INFO - <module>:111 - Successfully imported activation patching components
-2025-08-21 14:49:54,446 - mlx_engine.api_server - INFO - <module>:123 - Successfully imported feature localization components
-2025-08-21 14:49:54,453 - mlx_engine.api_server - INFO - <module>:135 - Successfully imported enhanced causal tracing components
-2025-08-21 14:49:54,455 - mlx_engine.api_server - INFO - <module>:148 - Successfully imported attention analysis components
+2025-08-22 10:26:49,353 - mlx_engine.api_server - INFO - <module>:32 - API Server logging initialized. Log file: /Users/craig/me/behavior/forks/mlx-engine-neuroscope/mcp-server/../mlx_engine/api_server.log
+2025-08-22 10:26:49,396 - mlx_engine.api_server - INFO - <module>:97 - Attempting to import from activation_hooks...
+2025-08-22 10:26:49,396 - mlx_engine.api_server - INFO - <module>:99 - Successfully imported ActivationHookSpec: <class 'mlx_engine.activation_hooks.ActivationHookSpec'>
+2025-08-22 10:26:49,398 - mlx_engine.api_server - INFO - <module>:111 - Successfully imported activation patching components
+2025-08-22 10:26:49,400 - mlx_engine.api_server - INFO - <module>:123 - Successfully imported feature localization components
+2025-08-22 10:26:49,401 - mlx_engine.api_server - INFO - <module>:135 - Successfully imported enhanced causal tracing components
+2025-08-22 10:26:49,403 - mlx_engine.api_server - INFO - <module>:148 - Successfully imported attention analysis components

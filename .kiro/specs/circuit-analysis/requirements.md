@@ -2,9 +2,9 @@
 
 ## Introduction
 
-This specification covers advanced circuit analysis experiments that enable direct manipulation of transformer models through circuit-based weight editing, activation steering, knowledge injection, and capability transfer. These experiments represent sophisticated interventions that modify model behavior while preserving core capabilities.
+This specification covers circuit analysis experiments that enable direct manipulation of transformer models through circuit-based weight editing, activation steering, knowledge injection, and capability transfer. These experiments represent interventions that modify model behavior while preserving core capabilities.
 
-**Note:** All advanced analysis capabilities defined in this specification are accessible through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to perform complex model modifications through standardized MCP tools with built-in safety validation.
+**Note:** All circuit analysis capabilities defined in this specification are accessible through the **Mechanistic Interpretability MCP Server**, enabling LLM agents to perform complex model modifications through standardized MCP tools with built-in safety validation.
 
 ## Requirements
 

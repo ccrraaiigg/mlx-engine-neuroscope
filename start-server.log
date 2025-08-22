@@ -1,0 +1,4 @@
+[2025-08-22T17:26:44.517Z] Current working directory: "/Users/craig/me/behavior/forks/mlx-engine-neuroscope"
+[2025-08-22T17:26:44.518Z] Attempting to start MLX Engine with script: "/Users/craig/me/behavior/forks/mlx-engine-neuroscope/mcp-server/mlx_engine_service.py"
+[2025-08-22T17:26:52.539Z] Current working directory: "/Users/craig/me/behavior/forks/mlx-engine-neuroscope"
+[2025-08-22T17:26:52.539Z] Attempting to start visualization server with script: "/Users/craig/me/behavior/forks/mlx-engine-neuroscope/mcp-server/src/visualization/server.js"
